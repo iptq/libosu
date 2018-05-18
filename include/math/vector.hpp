@@ -2,9 +2,11 @@
 #ifndef INCLUDE_UTIL_VECTOR_HPP_
 #define INCLUDE_UTIL_VECTOR_HPP_
 
+#include "common.hpp"
+
 namespace osu {
 
-template <typename T = unsigned int> class Vector {
+template <typename T = uint> class Vector {
   public:
     // constructors
     Vector(T x, T y) : x(x), y(y) {}
