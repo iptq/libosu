@@ -17,7 +17,7 @@ class RgbColor {
     // other useful functions
     std::string hexstring();
 
-  private:
+    // actual colors
     uchar red, green, blue;
 };
 

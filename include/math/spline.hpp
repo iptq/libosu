@@ -10,10 +10,7 @@ namespace osu {
 
 class Spline {
   public:
-    std::vector<Vector<>> points() const { return this->points_; }
-
-  private:
-    std::vector<Vector<>> points_;
+    std::vector<Vector<>> points;
 };
 
 } // namespace osu

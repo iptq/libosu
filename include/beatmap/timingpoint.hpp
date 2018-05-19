@@ -3,23 +3,32 @@
 #define INCLUDE_BEATMAP_TIMINGPOINT_HPP_
 
 #include "common.hpp"
+#include "enums.hpp"
 
 namespace osu {
 
-class UninheritedTimingPoint {
+class TimingPoint {
   public:
-    InheritedTimingPoint newChild(uint measure, uint offset, uint division);
+    SampleSet sampleSet;
+    uint volume;
+    bool kiai;
+};
 
+// forward declaration
+class InheritedTimingPoint;
+
+class UninheritedTimingPoint : public TimingPoint {
+  public:
+    InheritedTimingPoint *newChild(uint measure, uint offset, uint division);
     uint offset;
 };
 
-class InheritedTimingPoint {
-  private:
+class InheritedTimingPoint : public TimingPoint {
+  public:
     UninheritedTimingPoint *parent;
-};
-
-struct InheritedTimingPointComparator {
-    bool operator()(const InheritedTimingPoint &lhs, const InheritedTimingPoint &rhs) { return lhs < rhs; }
+    uint measure;
+    uint offset;
+    uint division;
 };
 
 } // namespace osu

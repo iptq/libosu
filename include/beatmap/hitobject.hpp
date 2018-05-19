@@ -8,7 +8,7 @@ namespace osu {
 
 class HitObject {
   private:
-    Vector<> position;
+    Vector<> startPosition;
 };
 
 class HitCircle : public HitObject {};
