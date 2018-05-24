@@ -2,8 +2,8 @@
 #ifndef INCLUDE_BEATMAP_TIMINGPOINT_HPP_
 #define INCLUDE_BEATMAP_TIMINGPOINT_HPP_
 
-#include "common.hpp"
-#include "enums.hpp"
+#include "osu/util/common.hpp"
+#include "osu/util/enums.hpp"
 
 namespace osu {
 

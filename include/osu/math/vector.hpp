@@ -2,7 +2,7 @@
 #ifndef INCLUDE_UTIL_VECTOR_HPP_
 #define INCLUDE_UTIL_VECTOR_HPP_
 
-#include "common.hpp"
+#include "osu/util/common.hpp"
 
 namespace osu {
 

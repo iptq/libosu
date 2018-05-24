@@ -1,4 +1,4 @@
-#include "beatmap/timingpoint.hpp"
+#include "osu/beatmap/timingpoint.hpp"
 
 namespace osu {
 

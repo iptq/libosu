@@ -4,7 +4,7 @@
 
 #include <map>
 
-#include "beatmap/map.hpp"
+#include "osu/beatmap/map.hpp"
 
 namespace osu {
 

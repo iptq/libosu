@@ -1,6 +1,6 @@
 #include <sstream>
 
-#include "util/color.hpp"
+#include "osu/util/color.hpp"
 
 namespace osu {
 

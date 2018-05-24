@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "math/vector.hpp"
+#include "osu/math/vector.hpp"
 
 namespace osu {
 

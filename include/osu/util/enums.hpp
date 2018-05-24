@@ -18,6 +18,13 @@ enum SampleSet {
     Drum = 3,
 };
 
+enum Additions {
+    None = 1,
+    Whistle = 2,
+    Finish = 4,
+    Clap = 8,
+};
+
 } // namespace osu
 
 #endif

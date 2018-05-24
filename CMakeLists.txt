@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(osu CXX)
 
 include_directories(include)
+
 add_library(
     osu SHARED
     src/beatmap/hitobject.cpp
@@ -16,5 +17,6 @@ add_library(
 
 install(
     TARGETS osu
+    INCLUDES DESTINATION include
     LIBRARY DESTINATION lib
 )

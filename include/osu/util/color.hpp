@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "common.hpp"
+#include "osu/util/common.hpp"
 
 namespace osu {
 

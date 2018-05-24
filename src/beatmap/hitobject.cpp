@@ -1,3 +1,3 @@
-#include "beatmap/hitobject.hpp"
+#include "osu/beatmap/hitobject.hpp"
 
 namespace osu {}

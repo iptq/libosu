@@ -1,1 +1,1 @@
-#include "math/spline.hpp"
+#include "osu/math/spline.hpp"

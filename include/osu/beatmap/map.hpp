@@ -4,8 +4,8 @@
 
 #include <set>
 
-#include "beatmap/timingpoint.hpp"
-#include "enums.hpp"
+#include "osu/beatmap/timingpoint.hpp"
+#include "osu/util/enums.hpp"
 
 namespace osu {
 
