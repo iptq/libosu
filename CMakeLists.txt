@@ -11,7 +11,7 @@ add_library(
     src/beatmap/set.cpp
     src/beatmap/timingpoint.cpp
     src/math/spline.cpp
-    src/oldparser/beatmapparser.cpp
+    src/osz/beatmapparser.cpp
     src/util/color.cpp
 )
 
