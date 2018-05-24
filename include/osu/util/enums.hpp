@@ -2,27 +2,36 @@
 #ifndef INCLUDE_ENUMS_HPP_
 #define INCLUDE_ENUMS_HPP_
 
+#include <map>
+
 namespace osu {
 
 enum Mode {
-    Standard = 0,
-    Taiko = 1,
-    Catch = 2,
-    Mania = 3,
+    ModeStandard = 0,
+    ModeTaiko = 1,
+    ModeCatch = 2,
+    ModeMania = 3,
 };
 
 enum SampleSet {
-    Auto = 0,
-    Normal = 1,
-    Soft = 2,
-    Drum = 3,
+    SampleAuto = 0,
+    SampleNormal = 1,
+    SampleSoft = 2,
+    SampleDrum = 3,
+};
+
+static std::map<std::string, SampleSet> SampleSetMapper = {
+    std::pair<std::string, SampleSet>("Auto", SampleAuto),
+    std::pair<std::string, SampleSet>("Normal", SampleNormal),
+    std::pair<std::string, SampleSet>("Soft", SampleSoft),
+    std::pair<std::string, SampleSet>("Drum", SampleDrum),
 };
 
 enum Additions {
-    None = 1,
-    Whistle = 2,
-    Finish = 4,
-    Clap = 8,
+    AdditionNone = 1,
+    AdditionWhistle = 2,
+    AdditionFinish = 4,
+    AdditionClap = 8,
 };
 
 } // namespace osu

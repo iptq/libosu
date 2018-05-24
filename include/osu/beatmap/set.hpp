@@ -23,7 +23,7 @@ class BeatmapSet {
     int beatmapSetId;
     uint previewTime;
 
-    std::map<std::string, Beatmap> maps_;
+    std::map<std::string, Beatmap *> maps;
 };
 
 } // namespace osu

@@ -14,9 +14,10 @@ class Beatmap {
     std::string audioFilename;
     uint audioLeadIn;
     bool countdown;
+    SampleSet sampleSet;
     double stackLeniency;
     Mode mode;
-    bool letterBoxInBreaks;
+    bool letterboxInBreaks;
     bool widescreenStoryboard;
 
     std::string difficultyName;
@@ -24,6 +25,8 @@ class Beatmap {
     double circleSize;
     double overallDifficulty;
     double approachRate;
+    double sliderMultiplier;
+    double sliderTickRate;
 
     std::set<InheritedTimingPoint> inheritedTimingPoints;
 };
