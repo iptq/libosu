@@ -5,5 +5,8 @@ authors = ["michael <localhost>"]
 
 description = "General-purpose osu! library with bindings for other languages."
 license = "MIT"
+readme = "README.md"
+keywords = ["osu"]
+repository = "https://github.com/iptq/libosu.git"
 
 [dependencies]
