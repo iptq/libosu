@@ -1,3 +1,5 @@
+use Point;
+
 pub enum HitObjectKind {
     Circle,
     Slider,
@@ -5,5 +7,8 @@ pub enum HitObjectKind {
 }
 
 pub struct HitObject {
+    pos: Point<i32>,
+    start_time: i32,
+    end_time: i32,
     kind: HitObjectKind,
 }
