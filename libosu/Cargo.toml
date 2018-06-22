@@ -1,0 +1,16 @@
+[package]
+name = "libosu"
+version = "0.0.2"
+authors = ["michael <localhost>"]
+
+description = "General-purpose osu! library with bindings for other languages."
+license = "MIT"
+readme = "README.md"
+keywords = ["osu"]
+repository = "https://github.com/iptq/libosu.git"
+documentation = "https://docs.rs/libosu/"
+
+[dependencies]
+failure = "0.1.1"
+regex = "1.0.1"
+
