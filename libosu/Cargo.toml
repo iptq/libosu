@@ -12,5 +12,6 @@ documentation = "https://docs.rs/libosu/"
 
 [dependencies]
 failure = "0.1.1"
+lazy_static = "1.0.1"
 regex = "1.0.1"
 

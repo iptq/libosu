@@ -1,8 +1,13 @@
 use failure::Error;
+use regex::Regex;
 
 use Beatmap;
 use HitObject;
 use TimingPoint;
+
+lazy_static! {
+    static ref SECTION_HEADER_RGX: Regex = Regex::new(r"\[(?P<name>[A-Za-z]+)\]").unwrap();
+}
 
 pub trait OszParser {
     type Output;
@@ -11,10 +16,18 @@ pub trait OszParser {
 
 impl OszParser for Beatmap {
     type Output = Beatmap;
-    fn parse(input: &str) -> Result<Beatmap, Error> {
-        let mut section = "Format";
+    fn parse<'src>(input: &'src str) -> Result<Beatmap, Error> {
+        let mut section = "Version".to_owned();
         let mut format = 0;
-        for line in input.split(" ") {}
+        for line in input.split(" ") {
+            match SECTION_HEADER_RGX.captures(line) {
+                Some(captures) => {
+                    section = String::from(&captures["name"]);
+                    continue;
+                }
+                None => (),
+            }
+        }
         Ok(Beatmap {
             format,//
         })
