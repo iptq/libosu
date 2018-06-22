@@ -1,0 +1,6 @@
+[package]
+name = "libosu"
+version = "0.1.0"
+authors = ["Michael <localhost>"]
+
+[dependencies]
