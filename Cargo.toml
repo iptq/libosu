@@ -1,6 +1,6 @@
 [package]
 name = "libosu"
-version = "0.0.0"
+version = "0.0.1"
 authors = ["michael <localhost>"]
 
 description = "General-purpose osu! library with bindings for other languages."
