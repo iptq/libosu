@@ -1,7 +1,7 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+//! libosu
+
+mod beatmap;
+mod hitobject;
+
+pub use beatmap::*;
+pub use hitobject::*;
