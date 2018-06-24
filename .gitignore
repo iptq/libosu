@@ -1,2 +1,3 @@
-.vscode
-build
+Cargo.lock
+target
+
