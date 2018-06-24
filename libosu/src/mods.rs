@@ -40,6 +40,6 @@ pub enum Mods {
 impl BitOr for Mods {
     type Output = u32;
     fn bitor(self, other: Mods) -> Self::Output {
-        return (self as u32 | other as u32);
+        return self as u32 | other as u32;
     }
 }

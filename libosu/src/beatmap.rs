@@ -1,6 +1,6 @@
-use std::rc::Rc;
-
+use HitObject;
 use Mods;
+use TimingPoint;
 
 pub struct BeatmapSet {}
 
@@ -12,7 +12,11 @@ pub struct Difficulty {
 }
 
 pub struct Beatmap {
-    pub format: u32,
+    pub Version: u32,
+
+    pub AudioFilename: String,
+    pub HitObjects: Vec<HitObject>,
+    pub TimingPoints: Vec<TimingPoint>,
 }
 
 impl Difficulty {
