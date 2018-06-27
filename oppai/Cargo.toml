@@ -5,7 +5,7 @@ authors = ["michael <localhost>"]
 
 description = "osu! pp advanced inspector, ported to Rust using libosu"
 license = "MIT"
-readme = "oppai/README.md"
+readme = "README.md"
 keywords = ["osu"]
 repository = "https://github.com/iptq/libosu.git"
 documentation = "https://docs.rs/oppai/"
