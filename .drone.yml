@@ -11,6 +11,7 @@ pipeline:
       - CARGO_HOME=/build/.cargo
       - RUSTUP_HOME=/build/.multirust
     commands:
+      - rustup default nightly
       - cargo check
       - cargo build --release
 
