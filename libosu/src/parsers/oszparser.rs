@@ -3,6 +3,8 @@ use regex::Regex;
 
 use Beatmap;
 use HitObject;
+use HitObjectKind;
+use Point;
 use TimingPoint;
 
 lazy_static! {
@@ -22,7 +24,7 @@ impl OszParser for Beatmap {
         let mut AudioFilename = String::new();
         let mut HitObjects = Vec::new();
         let mut TimingPoints = Vec::new();
-        for line in input.split(" ") {
+        for line in input.lines() {
             match SECTION_HEADER_RGX.captures(line) {
                 Some(captures) => {
                     section = String::from(&captures["name"]);
@@ -39,7 +41,6 @@ impl OszParser for Beatmap {
                 _ => (),
             }
         }
-        panic!();
         Ok(Beatmap {
             Version,
             AudioFilename,
@@ -52,7 +53,12 @@ impl OszParser for Beatmap {
 impl OszParser for HitObject {
     type Output = HitObject;
     fn parse<'src>(input: &'src str) -> Result<Self::Output, Error> {
-        bail!("shiet");
+        let obj = HitObject {
+            kind: HitObjectKind::Circle,
+            pos: Point(0, 0),
+            start_time: 0,
+        };
+        Ok(obj)
     }
 }
 

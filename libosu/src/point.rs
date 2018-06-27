@@ -2,7 +2,7 @@ use std::fmt::{self, Display};
 use std::ops::{Add, Mul, Sub};
 
 #[derive(Debug)]
-pub struct Point<T>(T, T);
+pub struct Point<T>(pub T, pub T);
 
 impl<T: Display> fmt::Display for Point<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

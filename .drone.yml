@@ -13,5 +13,5 @@ pipeline:
     commands:
       - rustup default nightly
       - cargo check
-      - cargo build --release
+      - cargo test
 
