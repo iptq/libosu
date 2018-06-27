@@ -1,0 +1,17 @@
+workspace:
+  base: /build
+  path: .
+
+pipeline:
+  build:
+    image: rust:1.26.0
+    environment:
+      - CARGO_HOME=/build/.cargo
+      - RUSTUP_HOME=/build/.multirust
+    commands:
+      - cargo check
+      - cargo build --release
+
+cache:
+  mount:
+    - target
