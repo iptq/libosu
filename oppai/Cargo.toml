@@ -1,6 +1,13 @@
 [package]
 name = "oppai"
-version = "0.1.0"
-authors = ["Michael <localhost>"]
+version = "0.0.1"
+authors = ["michael <localhost>"]
+
+description = "osu! pp advanced inspector, ported to Rust using libosu"
+license = "MIT"
+readme = "oppai/README.md"
+keywords = ["osu"]
+repository = "https://github.com/iptq/libosu.git"
+documentation = "https://docs.rs/oppai/"
 
 [dependencies]
