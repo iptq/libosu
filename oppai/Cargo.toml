@@ -11,3 +11,4 @@ repository = "https://github.com/iptq/libosu.git"
 documentation = "https://docs.rs/oppai/"
 
 [dependencies]
+libosu = { version = "*", path = "../libosu" }
