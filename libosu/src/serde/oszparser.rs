@@ -20,12 +20,22 @@ pub trait OszParser<'src> {
     fn parse(input: &'src str) -> Result<Self::Output, Error>;
 }
 
+macro_rules! kvalue {
+    ($captures:ident[$name:ident]: str) => {
+        $name = String::from(&$captures["value"]);
+    };
+    ($captures:ident[$name:ident]: parse($type:ident)) => {
+        $name = $captures["value"].parse::<$type>()?;
+    };
+}
+
 impl<'map> OszParser<'map> for Beatmap<'map> {
     type Output = Beatmap<'map>;
     fn parse(input: &'map str) -> Result<Beatmap, Error> {
         let mut section = "Version".to_owned();
         let mut version = 0;
         let mut audio_filename = String::new();
+        let mut audio_leadin = 0;
         let mut hit_objects = Vec::new();
         let mut timing_points = Vec::new();
         for line in input.lines() {
@@ -49,7 +59,8 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
                 }
                 _ => if let Some(captures) = KEY_VALUE_RGX.captures(line) {
                     match &captures["key"] {
-                        "AudioFilename" => audio_filename = String::from(&captures["value"]),
+                        "AudioFilename" => kvalue!(captures[audio_filename]: str),
+                        "AudioLeadIn" => kvalue!(captures[audio_leadin]: parse(u32)),
                         _ => (),
                     }
                 },
@@ -63,6 +74,7 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
         Ok(Beatmap {
             version,
             audio_filename,
+            audio_leadin,
             hit_objects,
             timing_points,
         })

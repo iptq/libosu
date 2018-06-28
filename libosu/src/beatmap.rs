@@ -19,6 +19,8 @@ pub struct Beatmap<'map> {
     pub version: u32,
 
     pub audio_filename: String,
+    pub audio_leadin: u32,
+
     pub hit_objects: Vec<HitObject>,
     pub timing_points: Vec<TimingPoint<'map>>,
 }
