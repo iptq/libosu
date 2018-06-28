@@ -10,7 +10,11 @@ pub use self::hitobject::*;
 pub use self::osrparser::*;
 pub use self::timing::*;
 
-pub trait OszParser<'src> {
+pub trait Deserializer<'src> {
     type Output;
     fn parse(input: &'src str) -> Result<Self::Output, Error>;
+}
+
+pub trait Serializer {
+    type Input;
 }

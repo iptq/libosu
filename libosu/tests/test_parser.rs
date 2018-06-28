@@ -3,7 +3,7 @@ extern crate libosu;
 use std::fs::File;
 use std::io::Read;
 
-use libosu::{Beatmap, OszParser};
+use libosu::{Beatmap, Deserializer};
 
 macro_rules! test_parser {
     ($($name:ident: $id:expr,)*) => {

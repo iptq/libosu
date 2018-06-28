@@ -1,11 +1,11 @@
 use failure::Error;
 
-use serde::OszParser;
+use serde::Deserializer;
 use HitObject;
 use HitObjectKind;
 use Point;
 
-impl<'map> OszParser<'map> for HitObject {
+impl<'map> Deserializer<'map> for HitObject {
     type Output = HitObject;
     fn parse(input: &'map str) -> Result<Self::Output, Error> {
         let parts = input.split(",");

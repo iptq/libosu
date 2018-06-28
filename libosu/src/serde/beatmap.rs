@@ -1,7 +1,7 @@
 use failure::Error;
 use regex::Regex;
 
-use serde::{self, OszParser};
+use serde::{self, Deserializer};
 use Beatmap;
 use HitObject;
 use Mode;
@@ -24,7 +24,7 @@ macro_rules! kvalue {
     };
 }
 
-impl<'map> OszParser<'map> for Beatmap<'map> {
+impl<'map> Deserializer<'map> for Beatmap<'map> {
     type Output = Beatmap<'map>;
     fn parse(input: &'map str) -> Result<Beatmap, Error> {
         // TODO: actually, replace all the required "default" values with Option<T>s.

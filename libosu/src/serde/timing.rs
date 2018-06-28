@@ -1,11 +1,11 @@
 use failure::Error;
 
-use serde::OszParser;
+use serde::Deserializer;
 use TimeLocation;
 use TimingPoint;
 use TimingPointKind;
 
-impl<'map> OszParser<'map> for TimingPoint<'map> {
+impl<'map> Deserializer<'map> for TimingPoint<'map> {
     type Output = TimingPoint<'map>;
     fn parse(input: &'map str) -> Result<Self::Output, Error> {
         let parts = input.split(",");
