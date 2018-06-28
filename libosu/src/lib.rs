@@ -13,15 +13,15 @@ extern crate lazy_static;
 extern crate regex;
 
 mod beatmap;
+mod enums;
 mod hitobject;
-mod mods;
 mod point;
 mod serde;
 mod timing;
 
 pub use beatmap::*;
+pub use enums::*;
 pub use hitobject::*;
-pub use mods::*;
 pub use point::*;
 pub use serde::*;
 pub use timing::*;

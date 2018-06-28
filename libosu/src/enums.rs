@@ -1,9 +1,16 @@
 use std::ops::BitOr;
 
+#[derive(Debug)]
+pub enum Mode {
+    Osu = 0,
+    Taiko = 1,
+    Catch = 2,
+    Mania = 3,
+}
+
 /// Mod listing with their respective bitwise representation.
 ///
 /// This list is ripped directly from the [osu! wiki](https://github.com/ppy/osu-api/wiki).
-#[allow(non_camel_case_types)]
 pub enum Mods {
     None = 0,
     NoFail = 1,
@@ -26,7 +33,7 @@ pub enum Mods {
     Key6 = 131072,
     Key7 = 262144,
     Key8 = 524288,
-    keyMod = 1015808,
+    KeyMod = 1015808,
     FadeIn = 1048576,
     Random = 2097152,
     LastMod = 4194304,

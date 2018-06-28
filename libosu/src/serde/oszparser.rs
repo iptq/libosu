@@ -4,6 +4,7 @@ use regex::Regex;
 use Beatmap;
 use HitObject;
 use HitObjectKind;
+use Mode;
 use Point;
 use TimingPoint;
 
@@ -34,10 +35,17 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
     fn parse(input: &'map str) -> Result<Beatmap, Error> {
         let mut section = "Version".to_owned();
         let mut version = 0;
+
         let mut audio_filename = String::new();
         let mut audio_leadin = 0;
+        let mut preview_time = 0;
+        let mut countdown = 0;
+        let mut stack_leniency = 0.0;
+        let mut mode = 0;
+
         let mut hit_objects = Vec::new();
         let mut timing_points = Vec::new();
+
         for line in input.lines() {
             match SECTION_HEADER_RGX.captures(line) {
                 Some(captures) => {
@@ -61,6 +69,8 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
                     match &captures["key"] {
                         "AudioFilename" => kvalue!(captures[audio_filename]: str),
                         "AudioLeadIn" => kvalue!(captures[audio_leadin]: parse(u32)),
+                        "PreviewTime" => kvalue!(captures[preview_time]: parse(u32)),
+                        "Countdown" => kvalue!(captures[countdown]: parse(u32)),
                         _ => (),
                     }
                 },
@@ -75,6 +85,16 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
             version,
             audio_filename,
             audio_leadin,
+            preview_time,
+            countdown: countdown > 0,
+            stack_leniency,
+            mode: match mode {
+                0 => Mode::Osu,
+                1 => Mode::Taiko,
+                2 => Mode::Catch,
+                3 => Mode::Mania,
+                _ => panic!("Invalid game mode."),
+            },
             hit_objects,
             timing_points,
         })

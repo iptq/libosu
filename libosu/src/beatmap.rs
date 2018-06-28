@@ -1,5 +1,5 @@
 use HitObject;
-use Mods;
+use Mode;
 use TimingPoint;
 
 #[derive(Debug)]
@@ -20,6 +20,10 @@ pub struct Beatmap<'map> {
 
     pub audio_filename: String,
     pub audio_leadin: u32,
+    pub preview_time: u32,
+    pub countdown: bool,
+    pub stack_leniency: f64,
+    pub mode: Mode,
 
     pub hit_objects: Vec<HitObject>,
     pub timing_points: Vec<TimingPoint<'map>>,
