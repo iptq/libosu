@@ -1,14 +1,11 @@
 use failure::Error;
 use regex::Regex;
 
+use serde::{self, OszParser};
 use Beatmap;
 use HitObject;
-use HitObjectKind;
 use Mode;
-use Point;
-use TimeLocation;
 use TimingPoint;
-use TimingPointKind;
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =
@@ -16,11 +13,6 @@ lazy_static! {
     static ref SECTION_HEADER_RGX: Regex = Regex::new(r"^\[(?P<name>[A-Za-z]+)\]$").unwrap();
     static ref KEY_VALUE_RGX: Regex =
         Regex::new(r"^(?P<key>[A-Za-z0-9]+)\s*:\s*(?P<value>.+)$").unwrap();
-}
-
-pub trait OszParser<'src> {
-    type Output;
-    fn parse(input: &'src str) -> Result<Self::Output, Error>;
 }
 
 macro_rules! kvalue {
@@ -171,34 +163,5 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
             hit_objects,
             timing_points,
         })
-    }
-}
-
-impl<'map> OszParser<'map> for HitObject {
-    type Output = HitObject;
-    fn parse(input: &'map str) -> Result<Self::Output, Error> {
-        let parts = input.split(",");
-
-        let hit_obj = HitObject {
-            kind: HitObjectKind::Circle,
-            pos: Point(0, 0),
-            start_time: 0,
-        };
-
-        Ok(hit_obj)
-    }
-}
-
-impl<'map> OszParser<'map> for TimingPoint<'map> {
-    type Output = TimingPoint<'map>;
-    fn parse(input: &'map str) -> Result<Self::Output, Error> {
-        let parts = input.split(",");
-
-        let timing_point = TimingPoint {
-            kind: TimingPointKind::Uninherited { bpm: 1.0 },
-            time: TimeLocation::Absolute(0),
-        };
-
-        Ok(timing_point)
     }
 }
