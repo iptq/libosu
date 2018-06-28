@@ -1,4 +1,10 @@
-//! libosu
+//! # libosu
+//!
+//! `libosu` is an attempt to make a convenient library for writing osu!-related programs. It
+//! includes data structures and parsers for beatmaps, replays, and more.
+//!
+//! Please note that until this crate hits `1.0`, none of the APIs in this crate will be stable, so
+//! take care when using this crate.
 
 #[macro_use]
 extern crate failure;

@@ -11,6 +11,7 @@ pipeline:
       - CARGO_HOME=/build/.cargo
       - RUSTUP_HOME=/build/.multirust
     commands:
+      - apt-get update -y && apt-get install -y python3-dev
       - rustup default nightly
       - cargo check
       - cargo test

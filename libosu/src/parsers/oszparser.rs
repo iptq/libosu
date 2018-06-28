@@ -20,10 +20,10 @@ impl OszParser for Beatmap {
     type Output = Beatmap;
     fn parse<'src>(input: &'src str) -> Result<Beatmap, Error> {
         let mut section = "Version".to_owned();
-        let mut Version = 0;
-        let mut AudioFilename = String::new();
-        let mut HitObjects = Vec::new();
-        let mut TimingPoints = Vec::new();
+        let mut version = 0;
+        let mut audio_filename = String::new();
+        let mut hit_objects = Vec::new();
+        let mut timing_points = Vec::new();
         for line in input.lines() {
             match SECTION_HEADER_RGX.captures(line) {
                 Some(captures) => {
@@ -36,16 +36,16 @@ impl OszParser for Beatmap {
             match section.as_ref() {
                 "HitObjects" => {
                     let obj = HitObject::parse(line)?;
-                    HitObjects.push(obj);
+                    hit_objects.push(obj);
                 }
                 _ => (),
             }
         }
         Ok(Beatmap {
-            Version,
-            AudioFilename,
-            HitObjects,
-            TimingPoints,
+            version,
+            audio_filename,
+            hit_objects,
+            timing_points,
         })
     }
 }
@@ -53,6 +53,7 @@ impl OszParser for Beatmap {
 impl OszParser for HitObject {
     type Output = HitObject;
     fn parse<'src>(input: &'src str) -> Result<Self::Output, Error> {
+        let parts = input.split(",");
         let obj = HitObject {
             kind: HitObjectKind::Circle,
             pos: Point(0, 0),

@@ -2,7 +2,8 @@ use std::ops::BitOr;
 
 /// Mod listing with their respective bitwise representation.
 ///
-/// This list is ripped directly from https://github.com/ppy/osu-api/wiki.
+/// This list is ripped directly from the [osu! wiki](https://github.com/ppy/osu-api/wiki).
+#[allow(non_camel_case_types)]
 pub enum Mods {
     None = 0,
     NoFail = 1,
