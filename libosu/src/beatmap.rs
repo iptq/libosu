@@ -33,6 +33,17 @@ pub struct Beatmap<'map> {
     pub grid_size: u8,
     pub timeline_zoom: f64,
 
+    pub title: String,
+    pub title_unicode: String,
+    pub artist: String,
+    pub artist_unicode: String,
+    pub creator: String,
+    pub difficulty_name: String,
+    pub source: String,
+    pub tags: Vec<String>,
+    pub beatmap_id: i32,
+    pub beatmap_set_id: i32,
+
     pub hit_objects: Vec<HitObject>,
     pub timing_points: Vec<TimingPoint<'map>>,
 }

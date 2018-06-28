@@ -33,6 +33,7 @@ macro_rules! kvalue {
 impl<'map> OszParser<'map> for Beatmap<'map> {
     type Output = Beatmap<'map>;
     fn parse(input: &'map str) -> Result<Beatmap, Error> {
+        // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();
         let mut version = 0;
 
@@ -50,6 +51,17 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
         let mut beat_divisor = 0;
         let mut grid_size = 0;
         let mut timeline_zoom = 0.0;
+
+        let mut title = String::new();
+        let mut title_unicode = String::new();
+        let mut artist = String::new();
+        let mut artist_unicode = String::new();
+        let mut creator = String::new();
+        let mut difficulty_name = String::new();
+        let mut source = String::new();
+        let mut tags = vec![];
+        let mut beatmap_id = 0;
+        let mut beatmap_set_id = -1;
 
         let mut hit_objects = Vec::new();
         let mut timing_points = Vec::new();
@@ -96,6 +108,20 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
                         "BeatDivisor" => kvalue!(captures[beat_divisor]: parse(u8)),
                         "GridSize" => kvalue!(captures[grid_size]: parse(u8)),
                         "TimelineZoom" => kvalue!(captures[timeline_zoom]: parse(f64)),
+
+                        "Title" => kvalue!(captures[title]: str),
+                        "TitleUnicode" => kvalue!(captures[title_unicode]: str),
+                        "Artist" => kvalue!(captures[artist]: str),
+                        "ArtistUnicode" => kvalue!(captures[artist_unicode]: str),
+                        "Creator" => kvalue!(captures[creator]: str),
+                        "Version" => kvalue!(captures[difficulty_name]: str),
+                        "Source" => kvalue!(captures[source]: str),
+                        "Tags" => {
+                            tags = captures["value"].split(" ").map(|s| s.to_owned()).collect()
+                        }
+                        "BeatmapID" => kvalue!(captures[beatmap_id]: parse(i32)),
+                        "BeatmapSetID" => kvalue!(captures[beatmap_set_id]: parse(i32)),
+
                         _ => (),
                     }
                 },
@@ -122,11 +148,24 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
             },
             letterbox_in_breaks: letterbox_in_breaks > 0,
             widescreen_storyboard: widescreen_storyboard > 0,
+
             bookmarks,
             distance_spacing,
             beat_divisor,
             grid_size,
             timeline_zoom,
+
+            title,
+            title_unicode,
+            artist,
+            artist_unicode,
+            creator,
+            difficulty_name,
+            source,
+            tags,
+            beatmap_id,
+            beatmap_set_id,
+
             hit_objects,
             timing_points,
         })
