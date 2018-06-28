@@ -15,9 +15,3 @@ pipeline:
       - rustup default nightly
       - cargo check
       - cargo test
-
-cache:
-  mount:
-    - .cargo
-    - .multirust
-    - target
