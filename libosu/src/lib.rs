@@ -27,6 +27,7 @@ pub use point::*;
 pub use timingpoint::*;
 
 /// Says "hello there"
+#[deprecated]
 pub fn say_hello_there() {
     println!("hello there");
 }
