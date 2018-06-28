@@ -1,4 +1,5 @@
 use Point;
+use TimeLocation;
 
 #[derive(Debug)]
 pub enum HitObjectKind {
@@ -8,8 +9,8 @@ pub enum HitObjectKind {
 }
 
 #[derive(Debug)]
-pub struct HitObject {
+pub struct HitObject<'map> {
     pub pos: Point<i32>,
-    pub start_time: u32,
+    pub start_time: TimeLocation<'map>,
     pub kind: HitObjectKind,
 }

@@ -1,7 +1,7 @@
 use failure::Error;
 use regex::Regex;
 
-use serde::{self, Deserializer};
+use serde::{self, Deserializer, Serializer};
 use Beatmap;
 use HitObject;
 use Mode;
@@ -163,5 +163,15 @@ impl<'map> Deserializer<'map> for Beatmap<'map> {
             hit_objects,
             timing_points,
         })
+    }
+}
+
+impl<'map> Serializer for Beatmap<'map> {
+    fn serialize(&self) -> Result<String, Error> {
+        let mut lines = vec![];
+
+        // version
+        lines.push(format!("osu file format v{}", self.version));
+        Ok(lines.join("\n"))
     }
 }

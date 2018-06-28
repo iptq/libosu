@@ -16,5 +16,5 @@ pub trait Deserializer<'src> {
 }
 
 pub trait Serializer {
-    type Input;
+    fn serialize(&self) -> Result<String, Error>;
 }

@@ -44,6 +44,6 @@ pub struct Beatmap<'map> {
     pub beatmap_id: i32,
     pub beatmap_set_id: i32,
 
-    pub hit_objects: Vec<HitObject>,
+    pub hit_objects: Vec<HitObject<'map>>,
     pub timing_points: Vec<TimingPoint<'map>>,
 }
