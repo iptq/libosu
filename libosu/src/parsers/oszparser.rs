@@ -8,7 +8,10 @@ use Point;
 use TimingPoint;
 
 lazy_static! {
-    static ref SECTION_HEADER_RGX: Regex = Regex::new(r"\[(?P<name>[A-Za-z]+)\]").unwrap();
+    static ref OSU_FORMAT_VERSION_RGX: Regex =
+        Regex::new(r"^osu file format v(?P<version>\d+)$").unwrap();
+    static ref SECTION_HEADER_RGX: Regex = Regex::new(r"^\[(?P<name>[A-Za-z]+)\]$").unwrap();
+    static ref KEY_VALUE_RGX: Regex = Regex::new(r"^([A-Za-z0-9]+)\s*:\s*(.+)$").unwrap();
 }
 
 pub trait OszParser<'src> {
@@ -38,8 +41,18 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
                     let obj = HitObject::parse(line)?;
                     hit_objects.push(obj);
                 }
+                "Version" => {
+                    if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(line) {
+                        version = capture["version"].parse::<u32>()?;
+                    }
+                }
                 _ => (),
             }
+        }
+        if version == 0 {
+            bail!(
+                "Could not find osu! file format version line. Check your beatmap and try again."
+            );
         }
         Ok(Beatmap {
             version,

@@ -17,14 +17,14 @@ mod hitobject;
 mod mods;
 mod parsers;
 mod point;
-mod timingpoint;
+mod timing;
 
 pub use beatmap::*;
 pub use hitobject::*;
 pub use mods::*;
 pub use parsers::*;
 pub use point::*;
-pub use timingpoint::*;
+pub use timing::*;
 
 /// Says "hello there"
 #[deprecated]
