@@ -2,8 +2,10 @@ use HitObject;
 use Mods;
 use TimingPoint;
 
+#[derive(Debug)]
 pub struct BeatmapSet {}
 
+#[derive(Debug)]
 pub struct Difficulty {
     pub hp_drain_rate: f32,
     pub circle_size: f32,
@@ -12,6 +14,7 @@ pub struct Difficulty {
 }
 
 /// Represents a single beatmap.
+#[derive(Debug)]
 pub struct Beatmap<'map> {
     pub version: u32,
 

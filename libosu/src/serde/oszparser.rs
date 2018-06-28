@@ -11,7 +11,8 @@ lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =
         Regex::new(r"^osu file format v(?P<version>\d+)$").unwrap();
     static ref SECTION_HEADER_RGX: Regex = Regex::new(r"^\[(?P<name>[A-Za-z]+)\]$").unwrap();
-    static ref KEY_VALUE_RGX: Regex = Regex::new(r"^([A-Za-z0-9]+)\s*:\s*(.+)$").unwrap();
+    static ref KEY_VALUE_RGX: Regex =
+        Regex::new(r"^(?P<key>[A-Za-z0-9]+)\s*:\s*(?P<value>.+)$").unwrap();
 }
 
 pub trait OszParser<'src> {
@@ -46,7 +47,12 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
                         version = capture["version"].parse::<u32>()?;
                     }
                 }
-                _ => (),
+                _ => if let Some(captures) = KEY_VALUE_RGX.captures(line) {
+                    match &captures["key"] {
+                        "AudioFilename" => audio_filename = String::from(&captures["value"]),
+                        _ => (),
+                    }
+                },
             }
         }
         if version == 0 {
