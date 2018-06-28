@@ -16,3 +16,8 @@ pipeline:
       - cargo check
       - cargo test
 
+cache:
+  mount:
+    - .cargo
+    - .multirust
+    - target
