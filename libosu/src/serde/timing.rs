@@ -1,13 +1,13 @@
 use failure::Error;
 
-use serde::Deserializer;
+use serde::{Deserializer, OsuFormat, Serializer};
 use TimeLocation;
 use TimingPoint;
 use TimingPointKind;
 
-impl<'map> Deserializer<'map> for TimingPoint<'map> {
+impl<'map> Deserializer<OsuFormat> for TimingPoint<'map> {
     type Output = TimingPoint<'map>;
-    fn parse(input: &'map str) -> Result<Self::Output, Error> {
+    fn deserialize(input: OsuFormat) -> Result<Self::Output, Error> {
         let parts = input.split(",");
 
         let timing_point = TimingPoint {

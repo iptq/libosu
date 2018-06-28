@@ -10,11 +10,13 @@ pub use self::hitobject::*;
 pub use self::osrparser::*;
 pub use self::timing::*;
 
-pub trait Deserializer<'src> {
+pub trait Deserializer<T> {
     type Output;
-    fn parse(input: &'src str) -> Result<Self::Output, Error>;
+    fn deserialize(input: T) -> Result<Self::Output, Error>;
 }
 
-pub trait Serializer {
-    fn serialize(&self) -> Result<String, Error>;
+pub trait Serializer<T> {
+    fn serialize(&self) -> Result<T, Error>;
 }
+
+type OsuFormat = String;

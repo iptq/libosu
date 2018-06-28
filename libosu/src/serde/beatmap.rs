@@ -1,7 +1,7 @@
 use failure::Error;
 use regex::Regex;
 
-use serde::{self, Deserializer, Serializer};
+use serde::{Deserializer, OsuFormat, Serializer};
 use Beatmap;
 use HitObject;
 use Mode;
@@ -15,6 +15,7 @@ lazy_static! {
         Regex::new(r"^(?P<key>[A-Za-z0-9]+)\s*:\s*(?P<value>.+)$").unwrap();
 }
 
+/// Macro for matching beatmap keys easier.
 macro_rules! kvalue {
     ($captures:ident[$name:ident]: str) => {
         $name = String::from(&$captures["value"]);
@@ -24,9 +25,9 @@ macro_rules! kvalue {
     };
 }
 
-impl<'map> Deserializer<'map> for Beatmap<'map> {
+impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
     type Output = Beatmap<'map>;
-    fn parse(input: &'map str) -> Result<Beatmap, Error> {
+    fn deserialize(input: OsuFormat) -> Result<Self::Output, Error> {
         // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();
         let mut version = 0;
@@ -71,7 +72,7 @@ impl<'map> Deserializer<'map> for Beatmap<'map> {
             println!("\"{}\" {}", section, line);
             match section.as_ref() {
                 "HitObjects" => {
-                    let obj = HitObject::parse(line)?;
+                    let obj = HitObject::deserialize(String::from(line))?;
                     hit_objects.push(obj);
                 }
                 "Version" => {
@@ -166,12 +167,19 @@ impl<'map> Deserializer<'map> for Beatmap<'map> {
     }
 }
 
-impl<'map> Serializer for Beatmap<'map> {
-    fn serialize(&self) -> Result<String, Error> {
+impl<'map> Serializer<OsuFormat> for Beatmap<'map> {
+    fn serialize(&self) -> Result<OsuFormat, Error> {
         let mut lines = vec![];
 
         // version
         lines.push(format!("osu file format v{}", self.version));
+        lines.push("".to_string()); // new line
+
+        // general
+        lines.push("[General]".to_string());
+        lines.push(format!("AudioFilename: {}", self.audio_filename));
+        lines.push(format!("AudioLeadIn: {}", self.audio_leadin));
+
         Ok(lines.join("\n"))
     }
 }

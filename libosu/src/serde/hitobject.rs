@@ -1,14 +1,14 @@
 use failure::Error;
 
-use serde::Deserializer;
+use serde::{Deserializer, OsuFormat, Serializer};
 use HitObject;
 use HitObjectKind;
 use Point;
 use TimeLocation;
 
-impl<'map> Deserializer<'map> for HitObject<'map> {
+impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
     type Output = HitObject<'map>;
-    fn parse(input: &'map str) -> Result<Self::Output, Error> {
+    fn deserialize(input: OsuFormat) -> Result<Self::Output, Error> {
         let parts = input.split(",");
 
         let hit_obj = HitObject {
