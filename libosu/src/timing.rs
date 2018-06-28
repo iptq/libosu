@@ -31,9 +31,9 @@ pub enum TimingPointKind {
 #[derive(Debug)]
 pub struct TimingPoint<'map> {
     /// The timestamp of this timing point, represented as a `TimeLocation`.
-    time: TimeLocation<'map>,
+    pub time: TimeLocation<'map>,
     /// The type of this timing point. See `TimingPointKind`.
-    kind: TimingPointKind,
+    pub kind: TimingPointKind,
 }
 
 impl<'map> TimeLocation<'map> {

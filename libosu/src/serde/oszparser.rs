@@ -6,7 +6,9 @@ use HitObject;
 use HitObjectKind;
 use Mode;
 use Point;
+use TimeLocation;
 use TimingPoint;
+use TimingPointKind;
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =
@@ -177,18 +179,26 @@ impl<'map> OszParser<'map> for HitObject {
     fn parse(input: &'map str) -> Result<Self::Output, Error> {
         let parts = input.split(",");
 
-        let obj = HitObject {
+        let hit_obj = HitObject {
             kind: HitObjectKind::Circle,
             pos: Point(0, 0),
             start_time: 0,
         };
-        Ok(obj)
+
+        Ok(hit_obj)
     }
 }
 
 impl<'map> OszParser<'map> for TimingPoint<'map> {
     type Output = TimingPoint<'map>;
     fn parse(input: &'map str) -> Result<Self::Output, Error> {
-        bail!("shiet");
+        let parts = input.split(",");
+
+        let timing_point = TimingPoint {
+            kind: TimingPointKind::Uninherited { bpm: 1.0 },
+            time: TimeLocation::Absolute(0),
+        };
+
+        Ok(timing_point)
     }
 }
