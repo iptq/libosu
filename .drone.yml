@@ -11,9 +11,7 @@ pipeline:
       - CARGO_HOME=/build/.cargo
       - RUSTUP_HOME=/build/.multirust
     commands:
-      - apt-get update -y && apt-get install -y python3-dev libssl-dev pkg-config cmake zlib1g-dev
+      - apt-get update -y && apt-get install -y python3-dev
       - rustup default nightly
       - cargo check
       - cargo test
-      - RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin
-      - cargo tarpaulin --coveralls ${COVERALLS_TOKEN}
