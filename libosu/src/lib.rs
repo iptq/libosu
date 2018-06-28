@@ -25,3 +25,8 @@ pub use mods::*;
 pub use parsers::*;
 pub use point::*;
 pub use timingpoint::*;
+
+/// Says "hello there"
+pub fn say_hello_there() {
+    println!("hello there");
+}

@@ -54,6 +54,7 @@ impl OszParser for HitObject {
     type Output = HitObject;
     fn parse<'src>(input: &'src str) -> Result<Self::Output, Error> {
         let parts = input.split(",");
+
         let obj = HitObject {
             kind: HitObjectKind::Circle,
             pos: Point(0, 0),
