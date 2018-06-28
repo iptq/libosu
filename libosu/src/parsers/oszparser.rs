@@ -11,14 +11,14 @@ lazy_static! {
     static ref SECTION_HEADER_RGX: Regex = Regex::new(r"\[(?P<name>[A-Za-z]+)\]").unwrap();
 }
 
-pub trait OszParser {
+pub trait OszParser<'src> {
     type Output;
-    fn parse(input: &str) -> Result<Self::Output, Error>;
+    fn parse(input: &'src str) -> Result<Self::Output, Error>;
 }
 
-impl OszParser for Beatmap {
-    type Output = Beatmap;
-    fn parse<'src>(input: &'src str) -> Result<Beatmap, Error> {
+impl<'map> OszParser<'map> for Beatmap<'map> {
+    type Output = Beatmap<'map>;
+    fn parse(input: &'map str) -> Result<Beatmap, Error> {
         let mut section = "Version".to_owned();
         let mut version = 0;
         let mut audio_filename = String::new();
@@ -50,9 +50,9 @@ impl OszParser for Beatmap {
     }
 }
 
-impl OszParser for HitObject {
+impl<'map> OszParser<'map> for HitObject {
     type Output = HitObject;
-    fn parse<'src>(input: &'src str) -> Result<Self::Output, Error> {
+    fn parse(input: &'map str) -> Result<Self::Output, Error> {
         let parts = input.split(",");
 
         let obj = HitObject {
@@ -64,9 +64,9 @@ impl OszParser for HitObject {
     }
 }
 
-impl OszParser for TimingPoint {
-    type Output = TimingPoint;
-    fn parse<'src>(input: &'src str) -> Result<Self::Output, Error> {
+impl<'map> OszParser<'map> for TimingPoint<'map> {
+    type Output = TimingPoint<'map>;
+    fn parse(input: &'map str) -> Result<Self::Output, Error> {
         bail!("shiet");
     }
 }

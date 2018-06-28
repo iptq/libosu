@@ -12,10 +12,10 @@ pub struct Difficulty {
 }
 
 /// Represents a single beatmap.
-pub struct Beatmap {
+pub struct Beatmap<'map> {
     pub version: u32,
 
     pub audio_filename: String,
     pub hit_objects: Vec<HitObject>,
-    pub timing_points: Vec<TimingPoint>,
+    pub timing_points: Vec<TimingPoint<'map>>,
 }
