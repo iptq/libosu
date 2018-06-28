@@ -16,4 +16,4 @@ pipeline:
       - cargo check
       - cargo test
       - RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin
-      - cargo tarpaulin --token $${COVERALLS_TOKEN}
+      - cargo tarpaulin --coveralls $${COVERALLS_TOKEN}
