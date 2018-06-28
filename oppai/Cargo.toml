@@ -11,4 +11,5 @@ repository = "https://github.com/iptq/libosu.git"
 documentation = "https://docs.rs/oppai/"
 
 [dependencies]
+structopt = "0.2.10"
 libosu = { version = "*", path = "../libosu" }

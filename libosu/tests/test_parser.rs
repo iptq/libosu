@@ -21,4 +21,5 @@ macro_rules! test_parser {
 
 test_parser!{
     test_parser_774965: 774965,
+    test_parser_804683: 804683,
 }
