@@ -15,15 +15,15 @@ extern crate regex;
 mod beatmap;
 mod hitobject;
 mod mods;
-mod parsers;
 mod point;
+mod serde;
 mod timing;
 
 pub use beatmap::*;
 pub use hitobject::*;
 pub use mods::*;
-pub use parsers::*;
 pub use point::*;
+pub use serde::*;
 pub use timing::*;
 
 /// Says "hello there"
