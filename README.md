@@ -18,6 +18,11 @@ libosu = "*"
 
 Bindings for other languages are under development, and will be listed here once they become available.
 
+Getting Started
+---------------
+
+Check out the [API Documentation](https://docs.rs/libosu) for details on how to use the various functions, or check out some of the examples (pending).
+
 Why Rust?
 ---------
 
