@@ -48,4 +48,17 @@ impl<'map> TimeLocation<'map> {
             }
         }
     }
+
+    /// Converts any `TimeLocation` into a relative time tuple given a `TimingPoint`.
+    pub fn approximate(&self, tp: &'map TimingPoint) -> (u32, u32, u32) {
+        match self {
+            TimeLocation::Absolute(ref val) => (0, 0, 0),
+            TimeLocation::Relative(ref tp, ref m, ref d, ref i) => {
+                // need to reconstruct the TimeLocation because we could be using a different
+                // timing point
+                // TODO: if the timing point is the same, return immediately
+                TimeLocation::Absolute(self.into_milliseconds()).approximate(tp)
+            }
+        }
+    }
 }
