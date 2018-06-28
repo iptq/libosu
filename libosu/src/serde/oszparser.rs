@@ -42,6 +42,14 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
         let mut countdown = 0;
         let mut stack_leniency = 0.0;
         let mut mode = 0;
+        let mut letterbox_in_breaks = 0;
+        let mut widescreen_storyboard = 0;
+
+        let mut bookmarks = vec![];
+        let mut distance_spacing = 0.0;
+        let mut beat_divisor = 0;
+        let mut grid_size = 0;
+        let mut timeline_zoom = 0.0;
 
         let mut hit_objects = Vec::new();
         let mut timing_points = Vec::new();
@@ -70,7 +78,24 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
                         "AudioFilename" => kvalue!(captures[audio_filename]: str),
                         "AudioLeadIn" => kvalue!(captures[audio_leadin]: parse(u32)),
                         "PreviewTime" => kvalue!(captures[preview_time]: parse(u32)),
-                        "Countdown" => kvalue!(captures[countdown]: parse(u32)),
+                        "Countdown" => kvalue!(captures[countdown]: parse(u8)),
+                        "StackLeniency" => kvalue!(captures[stack_leniency]: parse(f64)),
+                        "Mode" => kvalue!(captures[mode]: parse(u8)),
+                        "LetterBoxInBreaks" => kvalue!(captures[letterbox_in_breaks]: parse(u8)),
+                        "WidescreenStoryboard" => {
+                            kvalue!(captures[widescreen_storyboard]: parse(u8))
+                        }
+
+                        "Bookmarks" => {
+                            bookmarks = captures["value"]
+                                .split(",")
+                                .map(|n| n.parse::<i32>().unwrap())
+                                .collect()
+                        }
+                        "DistanceSpacing" => kvalue!(captures[distance_spacing]: parse(f64)),
+                        "BeatDivisor" => kvalue!(captures[beat_divisor]: parse(u8)),
+                        "GridSize" => kvalue!(captures[grid_size]: parse(u8)),
+                        "TimelineZoom" => kvalue!(captures[timeline_zoom]: parse(f64)),
                         _ => (),
                     }
                 },
@@ -95,6 +120,13 @@ impl<'map> OszParser<'map> for Beatmap<'map> {
                 3 => Mode::Mania,
                 _ => panic!("Invalid game mode."),
             },
+            letterbox_in_breaks: letterbox_in_breaks > 0,
+            widescreen_storyboard: widescreen_storyboard > 0,
+            bookmarks,
+            distance_spacing,
+            beat_divisor,
+            grid_size,
+            timeline_zoom,
             hit_objects,
             timing_points,
         })

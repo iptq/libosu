@@ -24,6 +24,14 @@ pub struct Beatmap<'map> {
     pub countdown: bool,
     pub stack_leniency: f64,
     pub mode: Mode,
+    pub letterbox_in_breaks: bool,
+    pub widescreen_storyboard: bool,
+
+    pub bookmarks: Vec<i32>,
+    pub distance_spacing: f64,
+    pub beat_divisor: u8,
+    pub grid_size: u8,
+    pub timeline_zoom: f64,
 
     pub hit_objects: Vec<HitObject>,
     pub timing_points: Vec<TimingPoint<'map>>,
