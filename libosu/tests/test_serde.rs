@@ -19,10 +19,10 @@ macro_rules! test_parser {
                 let stage1 = beatmap.serialize().expect("couldn't serialize");
                 
                 // ok parse again
-                let beatmap2 = Beatmap::deserialize(stage1.clone()).expect("couldn't parse");
+                let beatmap1 = Beatmap::deserialize(stage1.clone()).expect("couldn't parse");
 
                 // stage 2
-                let stage2 = beatmap.serialize().expect("couldn't serialize");
+                let stage2 = beatmap1.serialize().expect("couldn't serialize");
 
                 assert_eq!(stage1, stage2);
             }
