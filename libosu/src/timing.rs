@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 /// A struct representing a _precise_ location in time.
 ///
 /// This enum represents a timestamp by either an absolute timestamp (milliseconds), or a tuple
@@ -49,21 +51,24 @@ impl<'map> TimeLocation<'map> {
         match self {
             TimeLocation::Absolute(ref val) => *val,
             TimeLocation::Relative(ref tp, ref m, ref d, ref i) => {
+                // the start of the previous timing point
                 let base = tp.time.into_milliseconds();
+
                 // first, retrieve next uninherited timing point
-                let (utp, bpm, meter) = match &tp.kind {
+                let (bpm, meter) = match &tp.kind {
                     TimingPointKind::Uninherited {
                         ref bpm, ref meter, ..
-                    } => (tp, *bpm, *meter),
+                    } => (*bpm, *meter),
                     TimingPointKind::Inherited { ref parent, .. } => match &parent.kind {
                         TimingPointKind::Uninherited {
                             ref bpm, ref meter, ..
-                        } => (tp, *bpm, *meter),
+                        } => (*bpm, *meter),
                         TimingPointKind::Inherited { ref parent, .. } => {
                             panic!("Inherited timing point does not have a parent.")
                         }
                     },
                 };
+
                 // milliseconds per beat
                 let mpb = 60_000.0 / bpm;
 
@@ -75,7 +80,7 @@ impl<'map> TimeLocation<'map> {
                 let measure_offset = mpm * (*m as f64);
 
                 // this is the fractional part, from the beginning of the measure
-                let remaining_offset = (*d as f64) * mpm / (*i as f64);
+                let remaining_offset = (*i as f64) * mpm / (*d as f64);
 
                 // ok now just add it all together
                 base + (measure_offset + remaining_offset) as i32
@@ -86,7 +91,69 @@ impl<'map> TimeLocation<'map> {
     /// Converts any `TimeLocation` into a relative time tuple given a `TimingPoint`.
     pub fn approximate(&self, tp: &'map TimingPoint) -> (u32, u32, u32) {
         match self {
-            TimeLocation::Absolute(ref val) => (0, 0, 0),
+            TimeLocation::Absolute(ref val) => {
+                // this is going to be black magic btw
+
+                // in this function i'm going to assume that the osu editor is _extremely_
+                // accurate, and all inaccuracies up to 2ms will be accommodated. this essentially
+                // means if your timestamp doesn't fall on a beat exactly, and it's also _not_ 2ms
+                // from any well-established snapping, it's probably going to fail horribly (a.k.a.
+                // report large numbers for d)
+
+                // oh well, let's give this a shot
+
+                // first, let's calculate the measure offset
+                // (using all the stuff from into_milliseconds above)
+                let (bpm, meter) = match &tp.kind {
+                    TimingPointKind::Uninherited {
+                        ref bpm, ref meter, ..
+                    } => (*bpm, *meter),
+                    TimingPointKind::Inherited { ref parent, .. } => match &parent.kind {
+                        TimingPointKind::Uninherited {
+                            ref bpm, ref meter, ..
+                        } => (*bpm, *meter),
+                        TimingPointKind::Inherited { ref parent, .. } => {
+                            panic!("Inherited timing point does not have a parent.")
+                        }
+                    },
+                };
+                let mpb = 60_000.0 / bpm;
+                let mpm = mpb * (meter as f64);
+                let base = tp.time.into_milliseconds();
+                let cur = *val;
+                let measures = ((cur - base) as f64 / mpm) as i32;
+
+                // approximate time that our measure starts
+                let measure_start = cur - (measures as f64 * mpm) as i32;
+                let offset = cur - measure_start;
+
+                // now, enumerate several well-established snappings
+                let mut snappings = BTreeSet::new();
+                for d in vec![1, 2, 3, 4, 6, 8, 12, 16] {
+                    for i in 0..d {
+                        let snap = (mpm * i as f64 / d as f64) as i32;
+                        snappings.insert((i, d, snap));
+                    }
+                }
+
+                // now find out which one's the closest
+                let mut distances = snappings
+                    .into_iter()
+                    .map(|(i, d, n)| (i, d, (offset - n).abs()))
+                    .collect::<Vec<_>>();
+                distances.sort_unstable_by(|(_, _, n1), (_, _, n2)| n1.cmp(n2));
+
+                // now see how accurate the first one is
+                let (i, d, n) = distances.first().unwrap();
+                if *n < 3 {
+                    // yay accurate
+                    return (measures as u32, *i as u32, *d as u32);
+                }
+
+                // i'll worry about this later
+                // this is probably going to just be some fraction approximation algorithm tho
+                (0, 0, 0)
+            }
             TimeLocation::Relative(ref tp, ref m, ref d, ref i) => {
                 // need to reconstruct the TimeLocation because we could be using a different
                 // timing point
