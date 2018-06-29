@@ -69,7 +69,7 @@ impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
                 }
                 None => (),
             }
-            println!("\"{}\" {}", section, line);
+            // println!("\"{}\" {}", section, line);
             match section.as_ref() {
                 "HitObjects" => {
                     let obj = HitObject::deserialize(String::from(line))?;
@@ -172,6 +172,7 @@ impl<'map> Serializer<OsuFormat> for Beatmap<'map> {
         let mut lines = vec![];
 
         // version
+        // TODO: should probably use a fixed version
         lines.push(format!("osu file format v{}", self.version));
         lines.push("".to_string()); // new line
 
@@ -179,6 +180,23 @@ impl<'map> Serializer<OsuFormat> for Beatmap<'map> {
         lines.push("[General]".to_string());
         lines.push(format!("AudioFilename: {}", self.audio_filename));
         lines.push(format!("AudioLeadIn: {}", self.audio_leadin));
+        lines.push(format!("PreviewTime: {}", self.preview_time));
+        lines.push(format!("Countdown: {}", if self.countdown { 1 } else { 0 }));
+        // SampleSet
+        lines.push(format!("StackLeniency: {}", self.stack_leniency));
+        lines.push(format!("Mode: {}", self.mode as u32));
+        lines.push(format!(
+            "LetterBoxInBreaks: {}",
+            if self.letterbox_in_breaks { 1 } else { 0 }
+        ));
+        lines.push(format!(
+            "WidescreenStoryboard: {}",
+            if self.widescreen_storyboard { 1 } else { 0 }
+        ));
+        lines.push("".to_string());
+
+        // editor
+        lines.push("[Editor]".to_string());
 
         Ok(lines.join("\n"))
     }

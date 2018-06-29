@@ -24,7 +24,11 @@ macro_rules! test_parser {
                 // stage 2
                 let stage2 = beatmap1.serialize().expect("couldn't serialize");
 
+                println!("{}", stage2);
+                println!("{:?}", beatmap);
+
                 assert_eq!(stage1, stage2);
+                // panic!();
             }
         )*
     };
