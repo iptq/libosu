@@ -20,6 +20,8 @@ pub enum TimingPointKind<'map> {
     Uninherited {
         /// BPM (beats per minute) of this timing section
         bpm: f64,
+        /// The number of beats in a single measure
+        meter: u32,
         /// List of inherited timing points that belong to this section.
         children: Vec<TimingPoint<'map>>,
     },
@@ -49,10 +51,14 @@ impl<'map> TimeLocation<'map> {
             TimeLocation::Relative(ref tp, ref m, ref d, ref i) => {
                 let base = tp.time.into_milliseconds();
                 // first, retrieve next uninherited timing point
-                let (utp, bpm) = match &tp.kind {
-                    TimingPointKind::Uninherited { ref bpm, .. } => (tp, *bpm),
+                let (utp, bpm, meter) = match &tp.kind {
+                    TimingPointKind::Uninherited {
+                        ref bpm, ref meter, ..
+                    } => (tp, *bpm, *meter),
                     TimingPointKind::Inherited { ref parent, .. } => match &parent.kind {
-                        TimingPointKind::Uninherited { ref bpm, .. } => (tp, *bpm),
+                        TimingPointKind::Uninherited {
+                            ref bpm, ref meter, ..
+                        } => (tp, *bpm, *meter),
                         TimingPointKind::Inherited { ref parent, .. } => {
                             panic!("Inherited timing point does not have a parent.")
                         }
@@ -61,10 +67,18 @@ impl<'map> TimeLocation<'map> {
                 // milliseconds per beat
                 let mpb = 60_000.0 / bpm;
 
-                // this is the amount of time from the timing point to the beginning of the current
-                // measure
-                let measure_offset = 0;
-                base + measure_offset
+                // milliseconds per measure
+                let mpm = mpb * (meter as f64);
+
+                // amount of time from the timing point to the beginning of the current measure
+                // this is equal to (milliseconds / measure) * (# measures)
+                let measure_offset = mpm * (*m as f64);
+
+                // this is the fractional part, from the beginning of the measure
+                let remaining_offset = (*d as f64) * mpm / (*i as f64);
+
+                // ok now just add it all together
+                base + (measure_offset + remaining_offset) as i32
             }
         }
     }
