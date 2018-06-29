@@ -163,3 +163,31 @@ impl<'map> TimeLocation<'map> {
         }
     }
 }
+
+impl<'map> TimingPoint<'map> {
+    /// Gets the closest parent that is an uninherited timing point.
+    pub fn get_uninherited_ancestor(&'map self) -> &'map TimingPoint<'map> {
+        match &self.kind {
+            &TimingPointKind::Uninherited { .. } => self,
+            &TimingPointKind::Inherited { ref parent, .. } => parent.get_uninherited_ancestor(),
+        }
+    }
+
+    /// Gets the BPM of this timing section by climbing the timing section tree.
+    pub fn get_bpm(&self) -> f64 {
+        let ancestor = self.get_uninherited_ancestor();
+        match &ancestor.kind {
+            &TimingPointKind::Uninherited { ref bpm, .. } => *bpm,
+            _ => panic!("The ancestor should always be an Uninherited timing point."),
+        }
+    }
+
+    /// Gets the meter of this timing section by climbing the timing section tree.
+    pub fn get_meter(&self) -> u32 {
+        let ancestor = self.get_uninherited_ancestor();
+        match &ancestor.kind {
+            &TimingPointKind::Uninherited { ref meter, .. } => *meter,
+            _ => panic!("The ancestor should always be an Uninherited timing point."),
+        }
+    }
+}
