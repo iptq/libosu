@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::BTreeSet;
 
 /// A struct representing a _precise_ location in time.
@@ -25,7 +26,7 @@ pub enum TimingPointKind<'map> {
         /// The number of beats in a single measure
         meter: u32,
         /// List of inherited timing points that belong to this section.
-        children: Vec<TimingPoint<'map>>,
+        children: BTreeSet<TimingPoint<'map>>,
     },
     /// Inherited timing point
     Inherited {
@@ -136,6 +137,26 @@ impl<'map> TimeLocation<'map> {
     }
 }
 
+impl<'map> Eq for TimeLocation<'map> {}
+
+impl<'map> PartialEq for TimeLocation<'map> {
+    fn eq(&self, other: &TimeLocation) -> bool {
+        self.into_milliseconds() == other.into_milliseconds()
+    }
+}
+
+impl<'map> Ord for TimeLocation<'map> {
+    fn cmp(&self, other: &TimeLocation) -> Ordering {
+        self.into_milliseconds().cmp(&other.into_milliseconds())
+    }
+}
+
+impl<'map> PartialOrd for TimeLocation<'map> {
+    fn partial_cmp(&self, other: &TimeLocation) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 impl<'map> TimingPoint<'map> {
     /// Gets the closest parent that is an uninherited timing point.
     pub fn get_uninherited_ancestor(&'map self) -> &'map TimingPoint<'map> {
@@ -161,5 +182,25 @@ impl<'map> TimingPoint<'map> {
             &TimingPointKind::Uninherited { ref meter, .. } => *meter,
             _ => panic!("The ancestor should always be an Uninherited timing point."),
         }
+    }
+}
+
+impl<'map> Eq for TimingPoint<'map> {}
+
+impl<'map> PartialEq for TimingPoint<'map> {
+    fn eq(&self, other: &TimingPoint) -> bool {
+        self.time.eq(&other.time)
+    }
+}
+
+impl<'map> Ord for TimingPoint<'map> {
+    fn cmp(&self, other: &TimingPoint) -> Ordering {
+        self.time.cmp(&other.time)
+    }
+}
+
+impl<'map> PartialOrd for TimingPoint<'map> {
+    fn partial_cmp(&self, other: &TimingPoint) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
