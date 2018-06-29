@@ -54,26 +54,11 @@ impl<'map> TimeLocation<'map> {
                 // the start of the previous timing point
                 let base = tp.time.into_milliseconds();
 
-                // first, retrieve next uninherited timing point
-                let (bpm, meter) = match &tp.kind {
-                    TimingPointKind::Uninherited {
-                        ref bpm, ref meter, ..
-                    } => (*bpm, *meter),
-                    TimingPointKind::Inherited { ref parent, .. } => match &parent.kind {
-                        TimingPointKind::Uninherited {
-                            ref bpm, ref meter, ..
-                        } => (*bpm, *meter),
-                        TimingPointKind::Inherited { ref parent, .. } => {
-                            panic!("Inherited timing point does not have a parent.")
-                        }
-                    },
-                };
-
                 // milliseconds per beat
-                let mpb = 60_000.0 / bpm;
+                let mpb = 60_000.0 / tp.get_bpm();
 
                 // milliseconds per measure
-                let mpm = mpb * (meter as f64);
+                let mpm = mpb * (tp.get_meter() as f64);
 
                 // amount of time from the timing point to the beginning of the current measure
                 // this is equal to (milliseconds / measure) * (# measures)
@@ -104,21 +89,8 @@ impl<'map> TimeLocation<'map> {
 
                 // first, let's calculate the measure offset
                 // (using all the stuff from into_milliseconds above)
-                let (bpm, meter) = match &tp.kind {
-                    TimingPointKind::Uninherited {
-                        ref bpm, ref meter, ..
-                    } => (*bpm, *meter),
-                    TimingPointKind::Inherited { ref parent, .. } => match &parent.kind {
-                        TimingPointKind::Uninherited {
-                            ref bpm, ref meter, ..
-                        } => (*bpm, *meter),
-                        TimingPointKind::Inherited { ref parent, .. } => {
-                            panic!("Inherited timing point does not have a parent.")
-                        }
-                    },
-                };
-                let mpb = 60_000.0 / bpm;
-                let mpm = mpb * (meter as f64);
+                let mpb = 60_000.0 / tp.get_bpm();
+                let mpm = mpb * (tp.get_meter() as f64);
                 let base = tp.time.into_milliseconds();
                 let cur = *val;
                 let measures = ((cur - base) as f64 / mpm) as i32;
