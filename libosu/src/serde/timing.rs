@@ -11,7 +11,10 @@ impl<'map> Deserializer<OsuFormat> for TimingPoint<'map> {
         let parts = input.split(",");
 
         let timing_point = TimingPoint {
-            kind: TimingPointKind::Uninherited { bpm: 1.0 },
+            kind: TimingPointKind::Uninherited {
+                bpm: 1.0,
+                children: vec![],
+            },
             time: TimeLocation::Absolute(0),
         };
 

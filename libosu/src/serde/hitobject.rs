@@ -24,24 +24,27 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
         } else if (obj_type & 2) == 2 {
             let mut ctl_parts = parts[5].split("|").collect::<Vec<_>>();
             let slider_type = ctl_parts.remove(0);
-            HitObjectKind::Slider(
-                match slider_type {
+            HitObjectKind::Slider {
+                kind: match slider_type {
                     "L" => SliderSplineKind::Linear,
                     "B" => SliderSplineKind::Bezier,
                     "C" => SliderSplineKind::Catmull,
                     "P" => SliderSplineKind::Perfect,
                     _ => bail!("Invalid slider type."),
                 },
-                ctl_parts
+                control: ctl_parts
                     .into_iter()
                     .map(|s| {
                         let p = s.split(":").collect::<Vec<_>>();
                         Point(p[0].parse::<i32>().unwrap(), p[1].parse::<i32>().unwrap())
                     })
                     .collect(),
-            )
+            }
         } else if (obj_type & 8) == 8 {
-            HitObjectKind::Spinner
+            let end_time = parts[5].parse::<i32>()?;
+            HitObjectKind::Spinner {
+                end_time: TimeLocation::Absolute(end_time),
+            }
         } else {
             bail!("Invalid object type.")
         };

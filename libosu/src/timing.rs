@@ -15,14 +15,18 @@ pub enum TimeLocation<'map> {
 }
 
 #[derive(Debug)]
-pub enum TimingPointKind {
+pub enum TimingPointKind<'map> {
     /// Uninherited timing point
     Uninherited {
         /// BPM (beats per minute) of this timing section
         bpm: f64,
+        /// List of inherited timing points that belong to this section.
+        children: Vec<TimingPoint<'map>>,
     },
     /// Inherited timing point
     Inherited {
+        /// The uninherited timing point to which this timing point belongs
+        parent: &'map TimingPoint<'map>,
         /// Slider velocity multiplier
         slider_velocity: f64,
     },
@@ -33,7 +37,7 @@ pub struct TimingPoint<'map> {
     /// The timestamp of this timing point, represented as a `TimeLocation`.
     pub time: TimeLocation<'map>,
     /// The type of this timing point. See `TimingPointKind`.
-    pub kind: TimingPointKind,
+    pub kind: TimingPointKind<'map>,
 }
 
 impl<'map> TimeLocation<'map> {
@@ -44,7 +48,23 @@ impl<'map> TimeLocation<'map> {
             TimeLocation::Absolute(ref val) => *val,
             TimeLocation::Relative(ref tp, ref m, ref d, ref i) => {
                 let base = tp.time.into_milliseconds();
-                base
+                // first, retrieve next uninherited timing point
+                let (utp, bpm) = match &tp.kind {
+                    TimingPointKind::Uninherited { ref bpm, .. } => (tp, *bpm),
+                    TimingPointKind::Inherited { ref parent, .. } => match &parent.kind {
+                        TimingPointKind::Uninherited { ref bpm, .. } => (tp, *bpm),
+                        TimingPointKind::Inherited { ref parent, .. } => {
+                            panic!("Inherited timing point does not have a parent.")
+                        }
+                    },
+                };
+                // milliseconds per beat
+                let mpb = 60_000.0 / bpm;
+
+                // this is the amount of time from the timing point to the beginning of the current
+                // measure
+                let measure_offset = 0;
+                base + measure_offset
             }
         }
     }
