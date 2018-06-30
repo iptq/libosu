@@ -1,7 +1,7 @@
 libosu
 ======
 
-[![](https://ci.mzhang.me/api/badges/michael/libosu/status.svg)](https://ci.mzhang.me/michael/libosu)
+[![](https://ci.mzhang.me/api/badges/osu/libosu/status.svg)](https://ci.mzhang.me/osu/libosu)
 [![](https://img.shields.io/crates/d/libosu.svg)](https://crates.io/crates/libosu)
 [![](https://docs.rs/libosu/badge.svg)](https://docs.rs/libosu)
 
