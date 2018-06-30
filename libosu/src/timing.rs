@@ -41,6 +41,8 @@ pub enum TimingPointKind<'map> {
 pub struct TimingPoint<'map> {
     /// The timestamp of this timing point, represented as a `TimeLocation`.
     pub time: TimeLocation<'map>,
+    /// Whether or not Kiai time should be on for this timing point.
+    pub kiai: bool,
     /// The type of this timing point. See `TimingPointKind`.
     pub kind: TimingPointKind<'map>,
 }
@@ -127,7 +129,7 @@ impl<'map> TimeLocation<'map> {
                 // this is probably going to just be some fraction approximation algorithm tho
                 (0, 0, 0)
             }
-            TimeLocation::Relative(ref tp, ref m, ref d, ref i) => {
+            TimeLocation::Relative(ref tp, _, _, _) => {
                 // need to reconstruct the TimeLocation because we could be using a different
                 // timing point
                 // TODO: if the timing point is the same, return immediately

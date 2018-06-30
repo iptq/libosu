@@ -37,9 +37,16 @@ impl<'map> Deserializer<OsuFormat> for TimingPoint<'map> {
                     children: BTreeSet::new(),
                 }
             },
-            time: TimeLocation::Absolute(0),
+            kiai,
+            time: TimeLocation::Absolute(timestamp),
         };
 
         Ok(timing_point)
+    }
+}
+
+impl<'map> Serializer<OsuFormat> for TimingPoint<'map> {
+    fn serialize(&self) -> Result<OsuFormat, Error> {
+        bail!("shiet");
     }
 }
