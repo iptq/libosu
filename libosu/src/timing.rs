@@ -8,9 +8,13 @@ use SampleSet;
 /// A struct representing a _precise_ location in time.
 ///
 /// This enum represents a timestamp by either an absolute timestamp (milliseconds), or a tuple
-/// (t, m, i, d) where _t_ is the `TimingPoint` that it's relative to, _m_ is the measure number
-/// from within this timing section, _d_ is a value representing the meter (for example, 0 =
-/// 1/1 meter, 1 = 1/2 meter, 3 = 1/4 meter, etc.), and _i_ is the index from the start of the measure.
+/// (t, m, f) where _t_ is the `TimingPoint` that it's relative to, _m_ is the measure number
+/// from within this timing section, and _f_ is a fraction (actually implemented with
+/// `num_rational::Ratio`) that represents how far into the measure this note appears.
+///
+/// When possible, prefer to stack measures. The value of _f_ should not ever reach 1; instead, opt
+/// to use measure numbers for whole amounts of measures. For example, 1 measure + 5 / 4 should be
+/// represented as 2 measures + 1 / 4 instead.
 #[derive(Debug)]
 pub enum TimeLocation<'map> {
     /// Absolute timing in terms of number of milliseconds since the beginning of the audio file.
@@ -18,7 +22,6 @@ pub enum TimeLocation<'map> {
     Absolute(i32),
     /// Relative timing based on an existing TimingPoint. The lifetime of this TimeLocation thus
     /// depends on the lifetime of the map.
-    /// TODO: someday replace this with some kind of fraction class instead of this tuple hack
     Relative(&'map TimingPoint<'map>, u32, Ratio<u32>),
 }
 
@@ -97,7 +100,6 @@ impl<'map> TimeLocation<'map> {
     pub fn approximate(&self, tp: &'map TimingPoint) -> (u32, Ratio<u32>) {
         match self {
             TimeLocation::Absolute(ref val) => {
-                println!("approximating {} with {:?}", val, tp);
                 // this is going to be black magic btw
 
                 // in this function i'm going to assume that the osu editor is _extremely_
@@ -115,15 +117,10 @@ impl<'map> TimeLocation<'map> {
                 let base = tp.time.into_milliseconds();
                 let cur = *val;
                 let measures = ((cur - base) as f64 / mpm) as i32;
-                println!(
-                    "cur: {}, base: {}, measures: {}, mpm: {}",
-                    cur, base, measures, mpm
-                );
 
                 // approximate time that our measure starts
                 let measure_start = base + (measures as f64 * mpm) as i32;
                 let offset = cur - measure_start;
-                println!("meausre_start: {}, offset: {}", measure_start, offset);
 
                 // now, enumerate several well-established snappings
                 let mut snappings = BTreeSet::new();
@@ -133,7 +130,6 @@ impl<'map> TimeLocation<'map> {
                         snappings.insert((i, d, snap));
                     }
                 }
-                println!("snappings {:?}", snappings);
 
                 // now find out which one's the closest
                 let mut distances = snappings
@@ -141,7 +137,6 @@ impl<'map> TimeLocation<'map> {
                     .map(|(i, d, n)| (i, d, (offset - n).abs()))
                     .collect::<Vec<_>>();
                 distances.sort_unstable_by(|(_, _, n1), (_, _, n2)| n1.cmp(n2));
-                println!("distances {:?}", distances);
 
                 // now see how accurate the first one is
                 let (i, d, n) = distances.first().unwrap();
