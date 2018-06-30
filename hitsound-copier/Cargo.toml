@@ -1,0 +1,15 @@
+[package]
+name = "hitsound-copier"
+version = "0.0.1"
+authors = ["michael <localhost>"]
+
+description = "osu! hitsound copier, ported to Rust using libosu"
+license = "MIT"
+readme = "README.md"
+keywords = ["osu"]
+repository = "https://github.com/iptq/libosu.git"
+documentation = "https://docs.rs/hitsound-copier/"
+
+[dependencies]
+structopt = "0.2.10"
+libosu = { version = "*", path = "../libosu" }

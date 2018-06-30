@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "hitsound-copier",
     "libosu",
     "libosu-py",
     "oppai"
