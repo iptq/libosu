@@ -25,10 +25,17 @@ impl<'map> Deserializer<OsuFormat> for TimingPoint<'map> {
         let bpm = 60_000.0 / mpb;
 
         let timing_point = TimingPoint {
-            kind: TimingPointKind::Uninherited {
-                bpm,
-                meter,
-                children: BTreeSet::new(),
+            kind: if inherited {
+                TimingPointKind::Inherited {
+                    parent: None,
+                    slider_velocity: 0.0, // TODO: calculate this from mpb
+                }
+            } else {
+                TimingPointKind::Uninherited {
+                    bpm,
+                    meter,
+                    children: BTreeSet::new(),
+                }
             },
             time: TimeLocation::Absolute(0),
         };

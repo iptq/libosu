@@ -31,7 +31,7 @@ pub enum TimingPointKind<'map> {
     /// Inherited timing point
     Inherited {
         /// The uninherited timing point to which this timing point belongs
-        parent: &'map TimingPoint<'map>,
+        parent: Option<&'map TimingPoint<'map>>,
         /// Slider velocity multiplier
         slider_velocity: f64,
     },
@@ -162,7 +162,10 @@ impl<'map> TimingPoint<'map> {
     pub fn get_uninherited_ancestor(&'map self) -> &'map TimingPoint<'map> {
         match &self.kind {
             &TimingPointKind::Uninherited { .. } => self,
-            &TimingPointKind::Inherited { ref parent, .. } => parent.get_uninherited_ancestor(),
+            &TimingPointKind::Inherited { ref parent, .. } => match parent {
+                Some(_parent) => _parent.get_uninherited_ancestor(),
+                None => panic!("Inherited timing point does not have a parent."),
+            },
         }
     }
 
