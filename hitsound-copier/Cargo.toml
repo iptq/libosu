@@ -10,6 +10,15 @@ keywords = ["osu"]
 repository = "https://github.com/iptq/libosu.git"
 documentation = "https://docs.rs/hitsound-copier/"
 
+[[bin]]
+name = "hitsound-copier-gui"
+path = "bin/gui.rs"
+
+[[bin]]
+name = "hitsound-copier"
+path = "bin/cli.rs"
+
 [dependencies]
-structopt = "0.2.10"
+failure = "0.1.1"
 libosu = { version = "0.0.5", path = "../libosu" }
+structopt = "0.2.10"
