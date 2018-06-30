@@ -70,6 +70,11 @@ impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
                 None => (),
             }
             // println!("\"{}\" {}", section, line);
+            //
+            if line.trim().len() == 0 {
+                continue;
+            }
+
             match section.as_ref() {
                 "HitObjects" => {
                     let obj = HitObject::deserialize(String::from(line))?;
@@ -197,6 +202,59 @@ impl<'map> Serializer<OsuFormat> for Beatmap<'map> {
 
         // editor
         lines.push("[Editor]".to_string());
+        lines.push(format!(
+            "Bookmarks: {}",
+            self.bookmarks
+                .iter()
+                .map(|n| n.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
+        ));
+        lines.push(format!("DistanceSpacing: {}", self.distance_spacing));
+        lines.push(format!("BeatDivisor: {}", self.beat_divisor));
+        lines.push(format!("GridSize: {}", self.grid_size));
+        lines.push(format!("TimelineZoom: {}", self.timeline_zoom));
+        lines.push("".to_string());
+
+        // metadata
+        lines.push("[Metadata]".to_string());
+        lines.push(format!("Title:{}", self.title));
+        lines.push(format!("TitleUnicode:{}", self.title_unicode));
+        lines.push(format!("Artist:{}", self.artist));
+        lines.push(format!("ArtistUnicode:{}", self.artist_unicode));
+        lines.push(format!("Creator:{}", self.creator));
+        lines.push(format!("Version:{}", self.difficulty_name));
+        lines.push(format!("Source:{}", self.source));
+        lines.push(format!("Tags:{}", self.tags.join(" ")));
+        lines.push(format!("BeatmapID:{}", self.beatmap_id));
+        lines.push(format!("BeatmapSetID:{}", self.beatmap_set_id));
+        lines.push("".to_string());
+
+        // difficulty
+        lines.push("[Difficulty]".to_string());
+        lines.push("".to_string());
+
+        // events
+        lines.push("[Events]".to_string());
+        lines.push("".to_string());
+
+        // timing points
+        lines.push("[TimingPoints]".to_string());
+        for timing_point in self.timing_points.iter() {
+            lines.push(timing_point.serialize()?);
+        }
+        lines.push("".to_string());
+
+        // colors
+        lines.push("[Colours]".to_string());
+        lines.push("".to_string());
+
+        // hit objects
+        lines.push("[HitObjects]".to_string());
+        for hit_object in self.hit_objects.iter() {
+            lines.push(hit_object.serialize()?);
+        }
+        lines.push("".to_string());
 
         Ok(lines.join("\n"))
     }

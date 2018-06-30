@@ -17,6 +17,7 @@ pub enum TimeLocation<'map> {
     Relative(&'map TimingPoint<'map>, u32, u32, u32),
 }
 
+/// An enum distinguishing between inherited and uninherited timing points.
 #[derive(Debug)]
 pub enum TimingPointKind<'map> {
     /// Uninherited timing point
@@ -30,7 +31,8 @@ pub enum TimingPointKind<'map> {
     },
     /// Inherited timing point
     Inherited {
-        /// The uninherited timing point to which this timing point belongs
+        /// The uninherited timing point to which this timing point belongs.
+        /// This field is an option because parsing and tree-building occur in different stages.
         parent: Option<&'map TimingPoint<'map>>,
         /// Slider velocity multiplier
         slider_velocity: f64,

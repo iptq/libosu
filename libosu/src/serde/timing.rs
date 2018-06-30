@@ -47,6 +47,6 @@ impl<'map> Deserializer<OsuFormat> for TimingPoint<'map> {
 
 impl<'map> Serializer<OsuFormat> for TimingPoint<'map> {
     fn serialize(&self) -> Result<OsuFormat, Error> {
-        bail!("shiet");
+        Ok("".to_string())
     }
 }

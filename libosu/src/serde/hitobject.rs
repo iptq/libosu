@@ -11,6 +11,7 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
     type Output = HitObject<'map>;
     fn deserialize(input: OsuFormat) -> Result<Self::Output, Error> {
         let parts = input.split(",").collect::<Vec<_>>();
+        println!("parsing {:?}", input);
 
         let x = parts[0].parse::<i32>()?;
         let y = parts[1].parse::<i32>()?;
@@ -57,5 +58,42 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
         };
 
         Ok(hit_obj)
+    }
+}
+
+impl<'map> Serializer<OsuFormat> for HitObject<'map> {
+    fn serialize(&self) -> Result<OsuFormat, Error> {
+        let obj_type = match &self.kind {
+            &HitObjectKind::Circle => 1,
+            &HitObjectKind::Slider { .. } => 2,
+            &HitObjectKind::Spinner { .. } => 8,
+            _ => 0,
+        } | if self.new_combo { 4 } else { 0 };
+        let mut line = format!(
+            "{},{},{},{},{}",
+            self.pos.0,
+            self.pos.1,
+            self.start_time.into_milliseconds(),
+            obj_type,
+            0,
+        );
+        match &self.kind {
+            &HitObjectKind::Slider { ref kind, .. } => {
+                line += &format!(
+                    ",{}|0:0",
+                    match kind {
+                        &SliderSplineKind::Linear => "L",
+                        &SliderSplineKind::Bezier => "B",
+                        &SliderSplineKind::Catmull => "C",
+                        &SliderSplineKind::Perfect => "P",
+                    }
+                );
+            }
+            &HitObjectKind::Spinner { ref end_time } => {
+                line += &format!(",{}", end_time.into_milliseconds());
+            }
+            _ => (),
+        }
+        Ok(line)
     }
 }
