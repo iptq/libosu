@@ -12,7 +12,7 @@ documentation = "https://docs.rs/hitsound-copier/"
 
 [features]
 default = ["gui"]
-gui = ["gtk", "gio"]
+gui = ["gdk", "gtk", "gio"]
 
 [[bin]]
 name = "hitsound-copier-gui"
@@ -29,4 +29,5 @@ libosu = { version = "0.0.5", path = "../libosu" }
 structopt = "0.2.10"
 
 gio = { version = "0.4.1", optional = true }
-gtk = { version = "0.4.1", optional = true }
+gdk = { version = "0.8.0", optional = true }
+gtk = { version = "0.4.1", optional = true, features = ["v3_14"] }
