@@ -229,11 +229,12 @@ impl<'map> PartialOrd for TimingPoint<'map> {
     }
 }
 
-mod tests {
+pub mod tests {
     extern crate lazy_static;
 
     #[allow(unused_imports)]
     #[allow(non_upper_case_globals)]
+    #[allow(dead_code)]
     use super::*;
 
     lazy_static! {
@@ -262,7 +263,7 @@ mod tests {
         };
     }
 
-    fn get_test_data<'a>() -> Vec<(TimeLocation<'a>, i32)> {
+    pub fn get_test_data<'a>() -> Vec<(TimeLocation<'a>, i32)> {
         let test_data = vec![
             // uninherited timing points
             (TimeLocation::Relative(&TP, 0, Ratio::new(0, 1)), 12345), // no change from the measure at all
@@ -281,7 +282,7 @@ mod tests {
     }
 
     #[test]
-    fn test_into_milliseconds() {
+    pub fn test_into_milliseconds() {
         let test_data = get_test_data();
         for (time, abs) in test_data.iter() {
             assert_eq!(time.into_milliseconds(), *abs);
@@ -289,7 +290,7 @@ mod tests {
     }
 
     #[test]
-    fn test_approximate() {
+    pub fn test_approximate() {
         let test_data = get_test_data();
         for (time, abs) in test_data.iter() {
             let t = TimeLocation::Absolute(*abs);
