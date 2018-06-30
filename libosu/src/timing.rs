@@ -1,6 +1,8 @@
 use std::cmp::Ordering;
 use std::collections::BTreeSet;
 
+use SampleSet;
+
 /// A struct representing a _precise_ location in time.
 ///
 /// This enum represents a timestamp by either an absolute timestamp (milliseconds), or a tuple
@@ -45,6 +47,12 @@ pub struct TimingPoint<'map> {
     pub time: TimeLocation<'map>,
     /// Whether or not Kiai time should be on for this timing point.
     pub kiai: bool,
+    /// The sample set associated with this timing section.
+    pub sample_set: SampleSet,
+    /// Index (if using a custom sample)
+    pub sample_index: u32,
+    /// Volume of this timing section.
+    pub volume: u16,
     /// The type of this timing point. See `TimingPointKind`.
     pub kind: TimingPointKind<'map>,
 }

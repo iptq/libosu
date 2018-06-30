@@ -1,6 +1,7 @@
 use HitObject;
 use Mode;
 use TimingPoint;
+use SampleSet;
 
 #[derive(Debug)]
 pub struct BeatmapSet {}
@@ -22,6 +23,7 @@ pub struct Beatmap<'map> {
     pub audio_leadin: u32,
     pub preview_time: u32,
     pub countdown: bool,
+    pub sample_set: SampleSet,
     pub stack_leniency: f64,
     pub mode: Mode,
     pub letterbox_in_breaks: bool,

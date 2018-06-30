@@ -27,4 +27,5 @@ pub struct HitObject<'map> {
     pub start_time: TimeLocation<'map>,
     pub kind: HitObjectKind<'map>,
     pub new_combo: bool,
+    pub hitsound: u32,
 }

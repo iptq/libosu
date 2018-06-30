@@ -5,6 +5,7 @@ use serde::{Deserializer, OsuFormat, Serializer};
 use Beatmap;
 use HitObject;
 use Mode;
+use SampleSet;
 use TimingPoint;
 
 lazy_static! {
@@ -36,6 +37,7 @@ impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
         let mut audio_leadin = 0;
         let mut preview_time = 0;
         let mut countdown = 0;
+        let mut sample_set = String::new();
         let mut stack_leniency = 0.0;
         let mut mode = 0;
         let mut letterbox_in_breaks = 0;
@@ -80,6 +82,10 @@ impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
                     let obj = HitObject::deserialize(String::from(line))?;
                     hit_objects.push(obj);
                 }
+                "TimingPoints" => {
+                    let tp = TimingPoint::deserialize(String::from(line))?;
+                    timing_points.push(tp);
+                }
                 "Version" => {
                     if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(line) {
                         version = capture["version"].parse::<u32>()?;
@@ -91,6 +97,7 @@ impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
                         "AudioLeadIn" => kvalue!(captures[audio_leadin]: parse(u32)),
                         "PreviewTime" => kvalue!(captures[preview_time]: parse(u32)),
                         "Countdown" => kvalue!(captures[countdown]: parse(u8)),
+                        "SampleSet" => kvalue!(captures[sample_set]: str),
                         "StackLeniency" => kvalue!(captures[stack_leniency]: parse(f64)),
                         "Mode" => kvalue!(captures[mode]: parse(u8)),
                         "LetterBoxInBreaks" => kvalue!(captures[letterbox_in_breaks]: parse(u8)),
@@ -138,6 +145,13 @@ impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
             audio_leadin,
             preview_time,
             countdown: countdown > 0,
+            sample_set: match sample_set.as_ref() {
+                "Auto" | "None" => SampleSet::Auto,
+                "Normal" => SampleSet::Normal,
+                "Soft" => SampleSet::Soft,
+                "Drum" => SampleSet::Drum,
+                _ => panic!("Invalid sample set '{}'.", sample_set),
+            },
             stack_leniency,
             mode: match mode {
                 0 => Mode::Osu,
@@ -187,7 +201,15 @@ impl<'map> Serializer<OsuFormat> for Beatmap<'map> {
         lines.push(format!("AudioLeadIn: {}", self.audio_leadin));
         lines.push(format!("PreviewTime: {}", self.preview_time));
         lines.push(format!("Countdown: {}", if self.countdown { 1 } else { 0 }));
-        // SampleSet
+        lines.push(format!(
+            "SampleSet: {}",
+            match &self.sample_set {
+                &SampleSet::Auto => "None", // is this really 'None'? TODO: check this
+                &SampleSet::Normal => "Normal",
+                &SampleSet::Soft => "Soft",
+                &SampleSet::Drum => "Drum",
+            }
+        ));
         lines.push(format!("StackLeniency: {}", self.stack_leniency));
         lines.push(format!("Mode: {}", self.mode as u32));
         lines.push(format!(

@@ -17,7 +17,7 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
         let y = parts[1].parse::<i32>()?;
         let timestamp = parts[2].parse::<i32>()?;
         let obj_type = parts[3].parse::<i32>()?;
-        let hitsound = parts[4].parse::<i32>()?;
+        let hitsound = parts[4].parse::<u32>()?;
 
         let new_combo = (obj_type & 4) == 4;
         let kind = if (obj_type & 1) == 1 {
@@ -54,6 +54,7 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
             kind: kind,
             pos: Point(x, y),
             new_combo,
+            hitsound,
             start_time: TimeLocation::Absolute(timestamp),
         };
 
@@ -67,7 +68,6 @@ impl<'map> Serializer<OsuFormat> for HitObject<'map> {
             &HitObjectKind::Circle => 1,
             &HitObjectKind::Slider { .. } => 2,
             &HitObjectKind::Spinner { .. } => 8,
-            _ => 0,
         } | if self.new_combo { 4 } else { 0 };
         let mut line = format!(
             "{},{},{},{},{}",
