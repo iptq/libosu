@@ -6,12 +6,11 @@
 //! Please note that until this crate hits `1.0`, none of the APIs in this crate will be stable, so
 //! take care when using this crate.
 
-#![warn(missing_docs)]
-
 #[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate lazy_static;
+extern crate num_rational;
 extern crate regex;
 
 mod beatmap;
