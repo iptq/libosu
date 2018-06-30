@@ -55,6 +55,7 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
             pos: Point(x, y),
             new_combo,
             hitsound,
+            timing_point: None,
             start_time: TimeLocation::Absolute(timestamp),
         };
 

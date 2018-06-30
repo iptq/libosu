@@ -7,6 +7,7 @@ use HitObject;
 use Mode;
 use SampleSet;
 use TimingPoint;
+use TimingPointKind;
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =
@@ -139,6 +140,11 @@ impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
                 "Could not find osu! file format version line. Check your beatmap and try again."
             );
         }
+
+        // associate hit objects with timing sections
+        timing_points.sort_unstable_by(|tp1, tp2| tp1.cmp(tp2));
+        hit_objects.sort_unstable_by(|o1, o2| o1.start_time.cmp(&o2.start_time));
+
         Ok(Beatmap {
             version,
             audio_filename,

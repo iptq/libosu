@@ -1,7 +1,7 @@
 use HitObject;
 use Mode;
-use TimingPoint;
 use SampleSet;
+use TimingPoint;
 
 #[derive(Debug)]
 pub struct BeatmapSet {}
