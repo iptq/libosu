@@ -41,6 +41,10 @@ pub enum TimingPointKind<'map> {
     },
 }
 
+/// A timing point, which represents configuration settings for a timing section.
+///
+/// This is a generic timing point struct representing both inherited and uninherited timing
+/// points, distinguished by the `kind` field.
 #[derive(Debug)]
 pub struct TimingPoint<'map> {
     /// The timestamp of this timing point, represented as a `TimeLocation`.
