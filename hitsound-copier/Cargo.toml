@@ -12,4 +12,4 @@ documentation = "https://docs.rs/hitsound-copier/"
 
 [dependencies]
 structopt = "0.2.10"
-libosu = { version = "*", path = "../libosu" }
+libosu = { version = "0.0.4", path = "../libosu" }
