@@ -8,5 +8,6 @@ before_install:
   - sudo apt-get update -y
   - sudo apt-get install -y libgtk-3-dev
 script:
-  - cargo build --all
-  - cargo test --all
+  - cargo build --package libosu
+  - cargo test --package libosu
+
