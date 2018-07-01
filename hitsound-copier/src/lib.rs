@@ -1,6 +1,9 @@
 extern crate failure;
 extern crate libosu;
 
+#[cfg(feature = "gui")]
+pub mod gui;
+
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;

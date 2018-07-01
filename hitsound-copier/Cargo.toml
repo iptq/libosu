@@ -25,6 +25,7 @@ path = "bin/cli.rs"
 
 [dependencies]
 failure = "0.1.1"
+lazy_static = "1.0.1"
 libosu = { version = "0.0.5", path = "../libosu" }
 structopt = "0.2.10"
 
