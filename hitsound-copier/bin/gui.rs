@@ -3,7 +3,10 @@ extern crate gdk;
 extern crate gio;
 extern crate gtk;
 extern crate hitsound_copier;
+extern crate libosu;
 
+use std::fs::{self,File};
+use std::io::Read;
 use std::env;
 use std::path::PathBuf;
 
@@ -11,6 +14,7 @@ use failure::Error;
 use gdk::prelude::*;
 use gio::prelude::*;
 use gtk::prelude::*;
+use libosu::*;
 use gtk::{Builder, BuilderExt};
 use hitsound_copier::gui;
 
@@ -77,7 +81,7 @@ fn build_ui(app: &gtk::Application) -> Result<(), Error> {
         folderpicker.destroy();
     }));
 
-    /*    let btnload_action = Box::new(clone!(builder => move |_| {
+   btnload.connect_clicked(clone!(builder => move |_| {
         let input: gtk::Entry = builder
             .get_object("inputfolder")
             .expect("couldn't get 'inputfolder'");
@@ -87,12 +91,44 @@ fn build_ui(app: &gtk::Application) -> Result<(), Error> {
             Some(s) => path_str = s,
         }
         println!("str: {:?}", path_str);
-        let path = PathBuf::from(path_str);
+        let path = PathBuf::from(&path_str);
 
         println!("path: {:?}", path);
-    }));*/
-    // btnload.connect_activate(*btnload_action);
-    //btnload.connect_clicked(*btnload_action);
+        let mut names = Vec::new();
+        for name in fs::read_dir(path_str).unwrap() {
+            if let Ok(de) = name {
+                let p = de.path();
+                let p1 = p.clone();
+                let name = p.file_name().unwrap().to_str().unwrap();
+                if !name.ends_with(".osu") {
+                    continue;
+                }
+                let mut f = File::open(p1).expect("couldn't open file");
+                let mut contents = String::new();
+                f.read_to_string(&mut contents).expect("couldn't read");
+                let map = Beatmap::deserialize(contents).expect("couldn't parse");
+                println!("name: {:?}", name);
+                let row = gtk::ListBoxRow::new();
+                let label = gtk::Label::new(Some(map.difficulty_name.as_ref()));
+                label.set_justify(gtk::Justification::Left);
+                row.add(&label);
+                names.push(row);
+            } else {
+                println!("wtf");
+            }
+        }
+        println!("names: {:?}", names);
+        
+        let src_box: gtk::ListBox = builder.get_object("src_files").expect("couldn't get src_files");
+        let dst_box: gtk::ListBox = builder.get_object("dst_files").expect("couldn't get dst_files");
+        for row in names {
+            src_box.add(&row.clone());
+            dst_box.add(&row.clone());
+        }
+        src_box.show_all();
+        dst_box.show_all();
+        builder.get_object::<gtk::Frame>("area").expect("couldn't get area").set_sensitive(true);
+    }));
 
     window.show_all();
     Ok(())
