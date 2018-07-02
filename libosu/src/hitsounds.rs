@@ -6,7 +6,7 @@
 #[derive(Copy, Clone, Debug)]
 pub enum SampleSet {
     /// No sample set used. (TODO: wtf?)
-    Auto = 0,
+    None = 0,
     /// Normal sample set.
     Normal = 1,
     /// Soft sample set.

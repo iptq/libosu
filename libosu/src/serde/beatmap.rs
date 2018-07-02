@@ -151,7 +151,7 @@ impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
             preview_time,
             countdown: countdown > 0,
             sample_set: match sample_set.as_ref() {
-                "Auto" | "None" => SampleSet::Auto,
+                "None" => SampleSet::None,
                 "Normal" => SampleSet::Normal,
                 "Soft" => SampleSet::Soft,
                 "Drum" => SampleSet::Drum,
@@ -209,7 +209,7 @@ impl<'map> Serializer<OsuFormat> for Beatmap<'map> {
         lines.push(format!(
             "SampleSet: {}",
             match &self.sample_set {
-                &SampleSet::Auto => "None", // is this really 'None'? TODO: check this
+                &SampleSet::None => "None",
                 &SampleSet::Normal => "Normal",
                 &SampleSet::Soft => "Soft",
                 &SampleSet::Drum => "Drum",
