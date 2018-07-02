@@ -1,6 +1,7 @@
 #![feature(proc_macro, specialization, const_fn)]
 
 extern crate pyo3;
+extern crate libosu;
 
 mod beatmap;
 
