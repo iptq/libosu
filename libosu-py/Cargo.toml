@@ -3,6 +3,9 @@ name = "libosu-py"
 version = "0.1.0"
 authors = ["Michael <localhost>"]
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
-cpython = "0.2.0"
+cpython = { version = "0.2.0", features = ["extension-module"] }
 
