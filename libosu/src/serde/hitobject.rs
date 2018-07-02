@@ -28,7 +28,9 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
             HitObjectKind::Circle
         } else if (obj_type & 2) == 2 {
             let mut ctl_parts = parts[5].split("|").collect::<Vec<_>>();
+            let repeats = parts[6].parse::<u32>()?;
             let slider_type = ctl_parts.remove(0);
+
             HitObjectKind::Slider {
                 kind: match slider_type {
                     "L" => SliderSplineKind::Linear,
@@ -44,6 +46,7 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
                         Point(p[0].parse::<i32>().unwrap(), p[1].parse::<i32>().unwrap())
                     })
                     .collect(),
+                repeats,
             }
         } else if (obj_type & 8) == 8 {
             let end_time = parts[5].parse::<i32>()?;
@@ -85,15 +88,20 @@ impl<'map> Serializer<OsuFormat> for HitObject<'map> {
             0,
         );
         match &self.kind {
-            &HitObjectKind::Slider { ref kind, .. } => {
+            &HitObjectKind::Slider {
+                ref kind,
+                ref repeats,
+                ..
+            } => {
                 line += &format!(
-                    ",{}|0:0",
+                    ",{}|0:0,{}",
                     match kind {
                         &SliderSplineKind::Linear => "L",
                         &SliderSplineKind::Bezier => "B",
                         &SliderSplineKind::Catmull => "C",
                         &SliderSplineKind::Perfect => "P",
-                    }
+                    },
+                    repeats
                 );
             }
             &HitObjectKind::Spinner { ref end_time } => {
