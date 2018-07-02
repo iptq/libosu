@@ -7,7 +7,6 @@ use HitObject;
 use Mode;
 use SampleSet;
 use TimingPoint;
-use TimingPointKind;
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =

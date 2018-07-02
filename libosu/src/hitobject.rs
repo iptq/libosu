@@ -36,6 +36,10 @@ pub struct HitObject<'map> {
     pub start_time: TimeLocation<'map>,
     pub kind: HitObjectKind<'map>,
     pub new_combo: bool,
+    /// Reference to the timing point under which this HitObject belongs.
     pub timing_point: Option<&'map TimingPoint<'map>>,
+    /// The number of combo colors to skip
+    pub skip_color: i32,
+    /// WIP
     pub hitsound: u32,
 }

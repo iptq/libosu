@@ -19,6 +19,10 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
         let obj_type = parts[3].parse::<i32>()?;
         let hitsound = parts[4].parse::<u32>()?;
 
+        // color is the top 3 bits of the "type" string, since there's a possible of 8 different
+        // combo colors max
+        let skip_color = (obj_type >> 4) & 0b111;
+
         let new_combo = (obj_type & 4) == 4;
         let kind = if (obj_type & 1) == 1 {
             HitObjectKind::Circle
@@ -56,6 +60,7 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
             new_combo,
             hitsound,
             timing_point: None,
+            skip_color,
             start_time: TimeLocation::Absolute(timestamp),
         };
 
@@ -69,7 +74,8 @@ impl<'map> Serializer<OsuFormat> for HitObject<'map> {
             &HitObjectKind::Circle => 1,
             &HitObjectKind::Slider { .. } => 2,
             &HitObjectKind::Spinner { .. } => 8,
-        } | if self.new_combo { 4 } else { 0 };
+        } | if self.new_combo { 4 } else { 0 } | self.skip_color;
+
         let mut line = format!(
             "{},{},{},{},{}",
             self.pos.0,
