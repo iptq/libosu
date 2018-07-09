@@ -1,7 +1,0 @@
-[workspace]
-members = [
-    "libosu",
-    "libosu-py",
-    "libosu-js/native",
-    "oppai"
-]
