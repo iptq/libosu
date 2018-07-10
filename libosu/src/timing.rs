@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 use std::collections::BTreeSet;
 
 use num_rational::Ratio;
+use serde::ser::*;
 
 use SampleSet;
 
@@ -226,6 +227,16 @@ impl<'map> Ord for TimingPoint<'map> {
 impl<'map> PartialOrd for TimingPoint<'map> {
     fn partial_cmp(&self, other: &TimingPoint) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+impl<'map> Serialize for TimingPoint<'map> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let state = serializer.serialize_struct("TimingPoint", 0)?;
+        state.end()
     }
 }
 

@@ -13,4 +13,7 @@ crate-type = ["dylib"]
 neon-build = "0.1.23"
 
 [dependencies]
+libosu = { version = "^0.0", path = "../../libosu" }
 neon = "0.1.23"
+neon-serde = "0.0.3"
+

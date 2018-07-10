@@ -1,8 +1,15 @@
+extern crate libosu;
 #[macro_use]
 extern crate neon;
 
-use neon::vm::{Call, JsResult};
+mod beatmap;
+mod point;
+
 use neon::js::JsString;
+use neon::vm::{Call, JsResult};
+
+pub use beatmap::*;
+pub use point::*;
 
 fn hello(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
@@ -10,5 +17,6 @@ fn hello(call: Call) -> JsResult<JsString> {
 }
 
 register_module!(m, {
-    m.export("hello", hello)
+    m.export("hello", hello)?;
+    Ok(())
 });

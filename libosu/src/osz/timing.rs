@@ -2,15 +2,15 @@ use std::collections::BTreeSet;
 
 use failure::Error;
 
-use serde::{Deserializer, OsuFormat, Serializer};
+use osz::*;
 use SampleSet;
 use TimeLocation;
 use TimingPoint;
 use TimingPointKind;
 
-impl<'map> Deserializer<OsuFormat> for TimingPoint<'map> {
+impl<'map> OszDeserializer<OsuFormat> for TimingPoint<'map> {
     type Output = TimingPoint<'map>;
-    fn deserialize(input: OsuFormat) -> Result<Self::Output, Error> {
+    fn deserialize_osz(input: OsuFormat) -> Result<Self::Output, Error> {
         let parts = input.split(",").collect::<Vec<_>>();
 
         let timestamp = parts[0].parse::<i32>()?;
@@ -55,8 +55,8 @@ impl<'map> Deserializer<OsuFormat> for TimingPoint<'map> {
     }
 }
 
-impl<'map> Serializer<OsuFormat> for TimingPoint<'map> {
-    fn serialize(&self) -> Result<OsuFormat, Error> {
+impl<'map> OszSerializer<OsuFormat> for TimingPoint<'map> {
+    fn serialize_osz(&self) -> Result<OsuFormat, Error> {
         let mpb;
         let inherited;
         match &self.kind {

@@ -1,11 +1,16 @@
 extern crate libosu;
+extern crate serde;
+#[macro_use]
+extern crate serde_json;
 
 use std::fs::File;
 use std::io::Read;
 
-use libosu::{Beatmap, Deserializer, Serializer};
+use serde::{Deserialize, Serialize};
 
-macro_rules! test_parser {
+use libosu::{Beatmap, OsuDeserializer, OsuSerializer};
+
+macro_rules! test_serde {
     ($($name:ident: $id:expr,)*) => {
         $(
             #[test]
@@ -29,12 +34,14 @@ macro_rules! test_parser {
 
                 assert_eq!(stage1, stage2);
                 // panic!();
+                
+                let json = json!(beatmap).to_string();
             }
         )*
     };
 }
 
-test_parser!{
+test_serde!{
     test_parser_774965: 774965,
     test_parser_804683: 804683,
 }

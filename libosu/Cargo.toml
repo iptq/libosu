@@ -10,9 +10,14 @@ keywords = ["osu"]
 repository = "https://github.com/iptq/libosu.git"
 documentation = "https://docs.rs/libosu/"
 
+[dev-dependencies]
+serde_json = "1.0"
+
 [dependencies]
 failure = "0.1.1"
 lazy_static = "1.0.1"
 num-rational = "0.2.1"
 regex = "1.0.1"
+serde = "1.0.70"
+serde_derive = "1.0.70"
 

@@ -12,21 +12,24 @@ extern crate failure;
 extern crate lazy_static;
 extern crate num_rational;
 extern crate regex;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 
 mod beatmap;
 mod enums;
 mod hitobject;
 mod hitsounds;
+mod osz;
 mod point;
-mod serde;
 mod timing;
 
 pub use beatmap::*;
 pub use enums::*;
 pub use hitobject::*;
 pub use hitsounds::*;
+pub use osz::*;
 pub use point::*;
-pub use serde::*;
 pub use timing::*;
 
 /// Says "hello there"

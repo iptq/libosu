@@ -1,3 +1,5 @@
+use serde::ser::*;
+
 use HitObject;
 use Mode;
 use SampleSet;
@@ -48,4 +50,17 @@ pub struct Beatmap<'map> {
 
     pub hit_objects: Vec<HitObject<'map>>,
     pub timing_points: Vec<TimingPoint<'map>>,
+}
+
+impl<'map> Serialize for Beatmap<'map> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("Beatmap", 1)?;
+        state.serialize_field("version", &self.version)?;
+
+        state.serialize_field("timing_points", &self.timing_points)?;
+        state.end()
+    }
 }

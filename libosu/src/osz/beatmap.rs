@@ -1,7 +1,7 @@
 use failure::Error;
 use regex::Regex;
 
-use serde::{Deserializer, OsuFormat, Serializer};
+use osz::*;
 use Beatmap;
 use HitObject;
 use Mode;
@@ -26,9 +26,9 @@ macro_rules! kvalue {
     };
 }
 
-impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
+impl<'map> OszDeserializer<OsuFormat> for Beatmap<'map> {
     type Output = Beatmap<'map>;
-    fn deserialize(input: OsuFormat) -> Result<Self::Output, Error> {
+    fn deserialize_osz(input: OsuFormat) -> Result<Self::Output, Error> {
         // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();
         let mut version = 0;
@@ -191,8 +191,8 @@ impl<'map> Deserializer<OsuFormat> for Beatmap<'map> {
     }
 }
 
-impl<'map> Serializer<OsuFormat> for Beatmap<'map> {
-    fn serialize(&self) -> Result<OsuFormat, Error> {
+impl<'map> OszSerializer<OsuFormat> for Beatmap<'map> {
+    fn serialize_osz(&self) -> Result<OsuFormat, Error> {
         let mut lines = vec![];
 
         // version

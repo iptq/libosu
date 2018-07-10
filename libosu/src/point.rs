@@ -2,7 +2,7 @@ use std::fmt::{self, Display};
 use std::ops::{Add, Mul, Sub};
 
 /// Represents a 2D point (or any pair of objects).
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Point<T>(pub T, pub T);
 
 impl<T: Display> fmt::Display for Point<T> {

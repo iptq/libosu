@@ -1,15 +1,15 @@
 use failure::Error;
 
-use serde::{Deserializer, OsuFormat, Serializer};
+use osz::*;
 use HitObject;
 use HitObjectKind;
 use Point;
 use SliderSplineKind;
 use TimeLocation;
 
-impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
+impl<'map> OszDeserializer<OsuFormat> for HitObject<'map> {
     type Output = HitObject<'map>;
-    fn deserialize(input: OsuFormat) -> Result<Self::Output, Error> {
+    fn deserialize_osz(input: OsuFormat) -> Result<Self::Output, Error> {
         let parts = input.split(",").collect::<Vec<_>>();
         println!("parsing {:?}", input);
 
@@ -71,8 +71,8 @@ impl<'map> Deserializer<OsuFormat> for HitObject<'map> {
     }
 }
 
-impl<'map> Serializer<OsuFormat> for HitObject<'map> {
-    fn serialize(&self) -> Result<OsuFormat, Error> {
+impl<'map> OszSerializer<OsuFormat> for HitObject<'map> {
+    fn serialize_osz(&self) -> Result<OsuFormat, Error> {
         let obj_type = match &self.kind {
             &HitObjectKind::Circle => 1,
             &HitObjectKind::Slider { .. } => 2,
