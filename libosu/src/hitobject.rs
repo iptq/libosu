@@ -22,11 +22,18 @@ pub enum HitObjectKind<'map> {
     Circle,
     /// Slider.
     Slider {
+        /// The algorithm used to calculate the spline.
         kind: SliderSplineKind,
+        /// The control points that make up the body of the slider.
         control: Vec<Point<i32>>,
+        /// The number of times this slider should repeat.
+        repeats: u32,
     },
     /// Spinner.
-    Spinner { end_time: TimeLocation<'map> },
+    Spinner {
+        /// The time at which the slider ends.
+        end_time: TimeLocation<'map>,
+    },
 }
 
 /// Represents a single hit object.
@@ -36,6 +43,10 @@ pub struct HitObject<'map> {
     pub start_time: TimeLocation<'map>,
     pub kind: HitObjectKind<'map>,
     pub new_combo: bool,
+    /// Reference to the timing point under which this HitObject belongs.
     pub timing_point: Option<&'map TimingPoint<'map>>,
+    /// The number of combo colors to skip
+    pub skip_color: i32,
+    /// WIP
     pub hitsound: u32,
 }

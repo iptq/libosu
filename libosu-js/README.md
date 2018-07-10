@@ -1,0 +1,3 @@
+# libosu-js
+
+osu! library

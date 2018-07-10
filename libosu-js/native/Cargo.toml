@@ -1,0 +1,16 @@
+[package]
+name = "libosu-js"
+version = "0.0.1"
+authors = ["Michael <localhost>"]
+license = "MIT"
+build = "build.rs"
+
+[lib]
+name = "libosu_js"
+crate-type = ["dylib"]
+
+[build-dependencies]
+neon-build = "0.1.23"
+
+[dependencies]
+neon = "0.1.23"

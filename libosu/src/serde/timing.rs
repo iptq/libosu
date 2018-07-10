@@ -40,7 +40,7 @@ impl<'map> Deserializer<OsuFormat> for TimingPoint<'map> {
             },
             kiai,
             sample_set: match sample_set {
-                0 => SampleSet::Auto,
+                0 => SampleSet::None,
                 1 => SampleSet::Normal,
                 2 => SampleSet::Soft,
                 3 => SampleSet::Drum,

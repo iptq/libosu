@@ -1,8 +1,0 @@
-[package]
-name = "libosu-py"
-version = "0.1.0"
-authors = ["Michael <localhost>"]
-
-[dependencies]
-cpython = "0.2.0"
-
