@@ -1,3 +1,5 @@
+use serde::ser::*;
+
 use Point;
 use TimeLocation;
 use TimingPoint;
@@ -49,4 +51,14 @@ pub struct HitObject<'map> {
     pub skip_color: i32,
     /// WIP
     pub hitsound: u32,
+}
+
+impl<'map> Serialize for HitObject<'map> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let state = serializer.serialize_struct("HitObject", 0)?;
+        state.end()
+    }
 }

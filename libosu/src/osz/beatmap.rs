@@ -79,11 +79,11 @@ impl<'map> OszDeserializer<OsuFormat> for Beatmap<'map> {
 
             match section.as_ref() {
                 "HitObjects" => {
-                    let obj = HitObject::deserialize(String::from(line))?;
+                    let obj = HitObject::deserialize_osz(String::from(line))?;
                     hit_objects.push(obj);
                 }
                 "TimingPoints" => {
-                    let tp = TimingPoint::deserialize(String::from(line))?;
+                    let tp = TimingPoint::deserialize_osz(String::from(line))?;
                     timing_points.push(tp);
                 }
                 "Version" => {
@@ -268,7 +268,7 @@ impl<'map> OszSerializer<OsuFormat> for Beatmap<'map> {
         // timing points
         lines.push("[TimingPoints]".to_string());
         for timing_point in self.timing_points.iter() {
-            lines.push(timing_point.serialize()?);
+            lines.push(timing_point.serialize_osz()?);
         }
         lines.push("".to_string());
 
@@ -279,7 +279,7 @@ impl<'map> OszSerializer<OsuFormat> for Beatmap<'map> {
         // hit objects
         lines.push("[HitObjects]".to_string());
         for hit_object in self.hit_objects.iter() {
-            lines.push(hit_object.serialize()?);
+            lines.push(hit_object.serialize_osz()?);
         }
         lines.push("".to_string());
 
