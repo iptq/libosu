@@ -1,0 +1,8 @@
+[package]
+name = "libosu-py"
+version = "0.0.1"
+authors = ["Michael <localhost>"]
+
+[dependencies]
+libosu = { path = "../libosu" }
+pyo3 = { git = "https://github.com/iptq/pyo3" }

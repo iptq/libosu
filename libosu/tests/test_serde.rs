@@ -22,7 +22,7 @@ macro_rules! test_serde {
 
                 // stage 1
                 let stage1 = beatmap.serialize_osz().expect("couldn't serialize");
-                
+
                 // ok parse again
                 let beatmap1 = Beatmap::deserialize_osz(stage1.clone()).expect("couldn't parse");
 
@@ -34,7 +34,7 @@ macro_rules! test_serde {
 
                 assert_eq!(stage1, stage2);
                 // panic!();
-                
+
                 let json = json!(beatmap).to_string();
             }
         )*

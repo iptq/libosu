@@ -1,3 +1,5 @@
+use std::ops::BitOr;
+
 /// A set of hitsound samples.
 ///
 /// Hitsounds come in sample sets of (normal, soft, drum). In beatmaps, there is a sample set that
@@ -13,4 +15,15 @@ pub enum SampleSet {
     Soft = 2,
     /// Drum sample set.
     Drum = 3,
+}
+
+/// A representation of hitsound additions.
+#[derive(Copy, Clone, Debug)]
+pub struct Additions(u32);
+
+impl BitOr for Additions {
+    type Output = u32;
+    fn bitor(self, other: Self) -> Self::Output {
+        return self.0 | other.0;
+    }
 }
