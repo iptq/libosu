@@ -1,5 +1,7 @@
 use std::ops::BitOr;
 
+use TimeLocation;
+
 /// A set of hitsound samples.
 ///
 /// Hitsounds come in sample sets of (normal, soft, drum). In beatmaps, there is a sample set that
@@ -19,7 +21,15 @@ pub enum SampleSet {
 
 /// A representation of hitsound additions.
 #[derive(Copy, Clone, Debug)]
-pub struct Additions(u32);
+pub struct Additions(pub u32);
+
+/// A hitsound "item" represents a single "hitsound".
+#[derive(Copy, Clone, Debug)]
+pub struct Hitsound<'map> {
+    pub time: TimeLocation<'map>,
+    pub sample: SampleSet,
+    pub additions: Additions,
+}
 
 impl BitOr for Additions {
     type Output = u32;

@@ -1,11 +1,12 @@
 use serde::ser::*;
 
+use Hitsound;
 use Point;
 use TimeLocation;
 use TimingPoint;
 
 /// Distinguishes between different types of slider splines.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum SliderSplineKind {
     /// Linear is the most straightforward, and literally consists of two endpoints.
     Linear,
@@ -18,7 +19,7 @@ pub enum SliderSplineKind {
 }
 
 /// Distinguishes between different types of hit objects.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum HitObjectKind<'map> {
     /// Regular hit circle.
     Circle,
@@ -39,7 +40,7 @@ pub enum HitObjectKind<'map> {
 }
 
 /// Represents a single hit object.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct HitObject<'map> {
     pub pos: Point<i32>,
     pub start_time: TimeLocation<'map>,
@@ -50,7 +51,7 @@ pub struct HitObject<'map> {
     /// The number of combo colors to skip
     pub skip_color: i32,
     /// WIP
-    pub hitsound: u32,
+    pub hitsound: Hitsound<'map>,
 }
 
 impl<'map> Serialize for HitObject<'map> {

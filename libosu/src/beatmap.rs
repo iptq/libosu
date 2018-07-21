@@ -1,8 +1,14 @@
-use serde::ser::*;
+use std::collections::BTreeMap;
+
+use failure::Error;
+use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use HitObject;
+use HitObjectKind;
+use Hitsound;
 use Mode;
 use SampleSet;
+use TimeLocation;
 use TimingPoint;
 
 #[derive(Debug)]
@@ -50,6 +56,45 @@ pub struct Beatmap<'map> {
 
     pub hit_objects: Vec<HitObject<'map>>,
     pub timing_points: Vec<TimingPoint<'map>>,
+}
+
+impl<'map> Beatmap<'map> {
+    pub(crate) fn associate_hitobjects(&mut self) {
+        let mut curr = 1;
+        for obj in self.hit_objects.iter_mut() {
+            if curr >= self.timing_points.len() {
+                break;
+            }
+            let obj_time = obj.start_time.into_milliseconds();
+            // should we advance?
+            let next_time = self.timing_points[curr].time.into_milliseconds();
+            if obj_time >= next_time {
+                curr += 1;
+            }
+            // assign timing point
+            let tp = &self.timing_points[curr - 1];
+            let (measure, frac) = obj.start_time.approximate(tp);
+            obj.start_time = TimeLocation::Relative(tp, measure, frac);
+        }
+    }
+    /// Returns a list of this beatmap's hitsounds.
+    ///
+    /// This will also return hitsounds that occur on parts of objects, for example on slider
+    /// bodies or slider ends. If a hitsound occurs on a spinner, the only "sound" that's counted
+    /// is the moment that the spinner ends.
+    pub fn get_hitsounds(&self) -> Result<Vec<Hitsound<'map>>, Error> {
+        let mut hitsounds = Vec::new();
+        for obj in self.hit_objects.iter() {
+            match obj.kind {
+                HitObjectKind::Slider { .. } => {
+                    // TODO: calculate middle hitsounds
+                    hitsounds.push(obj.hitsound);
+                }
+                _ => hitsounds.push(obj.hitsound),
+            }
+        }
+        Ok(hitsounds)
+    }
 }
 
 impl<'map> Serialize for Beatmap<'map> {

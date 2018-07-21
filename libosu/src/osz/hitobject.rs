@@ -1,9 +1,12 @@
 use failure::Error;
 
 use osz::*;
+use Additions;
 use HitObject;
 use HitObjectKind;
+use Hitsound;
 use Point;
+use SampleSet;
 use SliderSplineKind;
 use TimeLocation;
 
@@ -17,7 +20,9 @@ impl<'map> OszDeserializer<OsuFormat> for HitObject<'map> {
         let y = parts[1].parse::<i32>()?;
         let timestamp = parts[2].parse::<i32>()?;
         let obj_type = parts[3].parse::<i32>()?;
-        let hitsound = parts[4].parse::<u32>()?;
+        let addition = parts[4].parse::<u32>()?;
+
+        let start_time = TimeLocation::Absolute(timestamp);
 
         // color is the top 3 bits of the "type" string, since there's a possible of 8 different
         // combo colors max
@@ -57,6 +62,16 @@ impl<'map> OszDeserializer<OsuFormat> for HitObject<'map> {
             bail!("Invalid object type.")
         };
 
+        // TODO: handle extras field
+        let hitsound = Hitsound {
+            additions: Additions(addition),
+            sample: SampleSet::Normal, // TODO
+            time: match &kind {
+                &HitObjectKind::Spinner { end_time } => end_time,
+                _ => start_time,
+            },
+        };
+
         let hit_obj = HitObject {
             kind: kind,
             pos: Point(x, y),
@@ -64,7 +79,7 @@ impl<'map> OszDeserializer<OsuFormat> for HitObject<'map> {
             hitsound,
             timing_point: None,
             skip_color,
-            start_time: TimeLocation::Absolute(timestamp),
+            start_time,
         };
 
         Ok(hit_obj)

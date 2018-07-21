@@ -16,7 +16,7 @@ use SampleSet;
 /// When possible, prefer to stack measures. The value of _f_ should not ever reach 1; instead, opt
 /// to use measure numbers for whole amounts of measures. For example, 1 measure + 5 / 4 should be
 /// represented as 2 measures + 1 / 4 instead.
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum TimeLocation<'map> {
     /// Absolute timing in terms of number of milliseconds since the beginning of the audio file.
     /// Note that because this is an `i32`, the time is allowed to be negative.
@@ -69,6 +69,11 @@ pub struct TimingPoint<'map> {
 }
 
 impl<'map> TimeLocation<'map> {
+    /// Converts any `TimeLocation` into an absolute one.
+    pub fn into_absolute(self) -> TimeLocation<'map> {
+        TimeLocation::Absolute(self.into_milliseconds())
+    }
+
     /// Converts any `TimeLocation` into an absolute time in milliseconds from the beginning of the
     /// audio file.
     pub fn into_milliseconds(&self) -> i32 {
@@ -95,6 +100,12 @@ impl<'map> TimeLocation<'map> {
                 base + (measure_offset + remaining_offset) as i32
             }
         }
+    }
+
+    /// Converts any `TimeLocation` into a relative one.
+    pub fn into_relative(self, tp: &'map TimingPoint) -> TimeLocation<'map> {
+        let (measure, frac) = self.approximate(tp);
+        TimeLocation::Relative(tp, measure, frac)
     }
 
     /// Converts any `TimeLocation` into a relative time tuple given a `TimingPoint`.
