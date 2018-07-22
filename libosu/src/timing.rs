@@ -17,18 +17,24 @@ use SampleSet;
 /// to use measure numbers for whole amounts of measures. For example, 1 measure + 5 / 4 should be
 /// represented as 2 measures + 1 / 4 instead.
 #[derive(Copy, Clone, Debug)]
-pub enum TimeLocation<'map> {
+pub enum TimeLocation {
     /// Absolute timing in terms of number of milliseconds since the beginning of the audio file.
     /// Note that because this is an `i32`, the time is allowed to be negative.
     Absolute(i32),
     /// Relative timing based on an existing TimingPoint. The lifetime of this TimeLocation thus
     /// depends on the lifetime of the map.
-    Relative(&'map TimingPoint<'map>, u32, Ratio<u32>),
+    Relative {
+        time: TimeLocation,
+        bpm: f64,
+        meter: u32,
+        measures: u32,
+        frac: Ratio<u32>,
+    },
 }
 
 /// An enum distinguishing between inherited and uninherited timing points.
 #[derive(Debug)]
-pub enum TimingPointKind<'map> {
+pub enum TimingPointKind {
     /// Uninherited timing point
     Uninherited {
         /// BPM (beats per minute) of this timing section
@@ -36,13 +42,13 @@ pub enum TimingPointKind<'map> {
         /// The number of beats in a single measure
         meter: u32,
         /// List of inherited timing points that belong to this section.
-        children: BTreeSet<TimingPoint<'map>>,
+        children: BTreeSet<TimingPoint>,
     },
     /// Inherited timing point
     Inherited {
         /// The uninherited timing point to which this timing point belongs.
         /// This field is an option because parsing and tree-building occur in different stages.
-        parent: Option<&'map TimingPoint<'map>>,
+        parent: Option<TimingPoint>,
         /// Slider velocity multiplier
         slider_velocity: f64,
     },
@@ -53,9 +59,9 @@ pub enum TimingPointKind<'map> {
 /// This is a generic timing point struct representing both inherited and uninherited timing
 /// points, distinguished by the `kind` field.
 #[derive(Debug)]
-pub struct TimingPoint<'map> {
+pub struct TimingPoint {
     /// The timestamp of this timing point, represented as a `TimeLocation`.
-    pub time: TimeLocation<'map>,
+    pub time: TimeLocation,
     /// Whether or not Kiai time should be on for this timing point.
     pub kiai: bool,
     /// The sample set associated with this timing section.
@@ -65,12 +71,12 @@ pub struct TimingPoint<'map> {
     /// Volume of this timing section.
     pub volume: u16,
     /// The type of this timing point. See `TimingPointKind`.
-    pub kind: TimingPointKind<'map>,
+    pub kind: TimingPointKind,
 }
 
-impl<'map> TimeLocation<'map> {
+impl TimeLocation {
     /// Converts any `TimeLocation` into an absolute one.
-    pub fn into_absolute(self) -> TimeLocation<'map> {
+    pub fn into_absolute(self) -> TimeLocation {
         TimeLocation::Absolute(self.into_milliseconds())
     }
 
@@ -103,13 +109,13 @@ impl<'map> TimeLocation<'map> {
     }
 
     /// Converts any `TimeLocation` into a relative one.
-    pub fn into_relative(self, tp: &'map TimingPoint) -> TimeLocation<'map> {
-        let (measure, frac) = self.approximate(tp);
+    pub fn into_relative(self, tp: &TimingPoint) -> TimeLocation {
+        let (measure, frac) = self.approximate(tp.time, tp.get_bpm(), tp.get_meter());
         TimeLocation::Relative(tp, measure, frac)
     }
 
     /// Converts any `TimeLocation` into a relative time tuple given a `TimingPoint`.
-    pub fn approximate(&self, tp: &'map TimingPoint) -> (u32, Ratio<u32>) {
+    pub fn approximate(&self, time: TimeLocation, bpm: f64, meter: u32) -> (u32, Ratio<u32>) {
         match self {
             TimeLocation::Absolute(ref val) => {
                 // this is going to be black magic btw
@@ -124,9 +130,9 @@ impl<'map> TimeLocation<'map> {
 
                 // first, let's calculate the measure offset
                 // (using all the stuff from into_milliseconds above)
-                let mpb = 60_000.0 / tp.get_bpm();
-                let mpm = mpb * (tp.get_meter() as f64);
-                let base = tp.time.into_milliseconds();
+                let mpb = 60_000.0 / bpm;
+                let mpm = mpb * (meter as f64);
+                let base = time.into_milliseconds();
                 let cur = *val;
                 let measures = ((cur - base) as f64 / mpm) as i32;
 
@@ -165,35 +171,39 @@ impl<'map> TimeLocation<'map> {
                 // need to reconstruct the TimeLocation because we could be using a different
                 // timing point
                 // TODO: if the timing point is the same, return immediately
-                TimeLocation::Absolute(self.into_milliseconds()).approximate(tp)
+                TimeLocation::Absolute(self.into_milliseconds()).approximate(
+                    tp.time.clone(),
+                    tp.get_bpm(),
+                    tp.get_meter(),
+                )
             }
         }
     }
 }
 
-impl<'map> Eq for TimeLocation<'map> {}
+impl Eq for TimeLocation {}
 
-impl<'map> PartialEq for TimeLocation<'map> {
+impl PartialEq for TimeLocation {
     fn eq(&self, other: &TimeLocation) -> bool {
         self.into_milliseconds() == other.into_milliseconds()
     }
 }
 
-impl<'map> Ord for TimeLocation<'map> {
+impl Ord for TimeLocation {
     fn cmp(&self, other: &TimeLocation) -> Ordering {
         self.into_milliseconds().cmp(&other.into_milliseconds())
     }
 }
 
-impl<'map> PartialOrd for TimeLocation<'map> {
+impl PartialOrd for TimeLocation {
     fn partial_cmp(&self, other: &TimeLocation) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<'map> TimingPoint<'map> {
+impl TimingPoint {
     /// Gets the closest parent that is an uninherited timing point.
-    pub fn get_uninherited_ancestor(&'map self) -> &'map TimingPoint<'map> {
+    pub fn get_uninherited_ancestor(&'map self) -> &'map TimingPoint {
         match &self.kind {
             &TimingPointKind::Uninherited { .. } => self,
             &TimingPointKind::Inherited { ref parent, .. } => match parent {
@@ -221,27 +231,27 @@ impl<'map> TimingPoint<'map> {
     }
 }
 
-impl<'map> Eq for TimingPoint<'map> {}
+impl Eq for TimingPoint {}
 
-impl<'map> PartialEq for TimingPoint<'map> {
+impl PartialEq for TimingPoint {
     fn eq(&self, other: &TimingPoint) -> bool {
         self.time.eq(&other.time)
     }
 }
 
-impl<'map> Ord for TimingPoint<'map> {
+impl Ord for TimingPoint {
     fn cmp(&self, other: &TimingPoint) -> Ordering {
         self.time.cmp(&other.time)
     }
 }
 
-impl<'map> PartialOrd for TimingPoint<'map> {
+impl PartialOrd for TimingPoint {
     fn partial_cmp(&self, other: &TimingPoint) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<'map> Serialize for TimingPoint<'map> {
+impl Serialize for TimingPoint {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -260,7 +270,7 @@ pub mod tests {
     use super::*;
 
     lazy_static! {
-        static ref TP: TimingPoint<'static> = TimingPoint {
+        static ref TP: TimingPoint = TimingPoint {
             kind: TimingPointKind::Uninherited {
                 bpm: 200.0,
                 meter: 4,
@@ -272,7 +282,7 @@ pub mod tests {
             volume: 100,
             kiai: false,
         };
-        static ref ITP: TimingPoint<'static> = TimingPoint {
+        static ref ITP: TimingPoint = TimingPoint {
             kind: TimingPointKind::Inherited {
                 parent: Some(&TP),
                 slider_velocity: 0.0,
@@ -285,7 +295,7 @@ pub mod tests {
         };
     }
 
-    pub fn get_test_data<'a>() -> Vec<(TimeLocation<'a>, i32)> {
+    pub fn get_test_data() -> Vec<(TimeLocation, i32)> {
         let test_data = vec![
             // uninherited timing points
             (TimeLocation::Relative(&TP, 0, Ratio::new(0, 1)), 12345), // no change from the measure at all

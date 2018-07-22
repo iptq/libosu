@@ -8,8 +8,8 @@ use TimeLocation;
 use TimingPoint;
 use TimingPointKind;
 
-impl<'map> OszDeserializer<OsuFormat> for TimingPoint<'map> {
-    type Output = TimingPoint<'map>;
+impl OszDeserializer<OsuFormat> for TimingPoint {
+    type Output = TimingPoint;
     fn deserialize_osz(input: OsuFormat) -> Result<Self::Output, Error> {
         let parts = input.split(",").collect::<Vec<_>>();
 

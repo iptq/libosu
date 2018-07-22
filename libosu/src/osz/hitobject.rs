@@ -10,8 +10,8 @@ use SampleSet;
 use SliderSplineKind;
 use TimeLocation;
 
-impl<'map> OszDeserializer<OsuFormat> for HitObject<'map> {
-    type Output = HitObject<'map>;
+impl OszDeserializer<OsuFormat> for HitObject {
+    type Output = HitObject;
     fn deserialize_osz(input: OsuFormat) -> Result<Self::Output, Error> {
         let parts = input.split(",").collect::<Vec<_>>();
         println!("parsing {:?}", input);

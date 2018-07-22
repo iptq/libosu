@@ -24,7 +24,7 @@ pub struct Difficulty {
 
 /// Represents a single beatmap.
 #[derive(Debug)]
-pub struct Beatmap<'map> {
+pub struct Beatmap {
     pub version: u32,
 
     pub audio_filename: String,
@@ -54,11 +54,11 @@ pub struct Beatmap<'map> {
     pub beatmap_id: i32,
     pub beatmap_set_id: i32,
 
-    pub hit_objects: Vec<HitObject<'map>>,
-    pub timing_points: Vec<TimingPoint<'map>>,
+    pub hit_objects: Vec<HitObject>,
+    pub timing_points: Vec<TimingPoint>,
 }
 
-impl<'map> Beatmap<'map> {
+impl Beatmap {
     pub(crate) fn associate_hitobjects(&mut self) {
         let mut curr = 1;
         for obj in self.hit_objects.iter_mut() {
@@ -73,7 +73,8 @@ impl<'map> Beatmap<'map> {
             }
             // assign timing point
             let tp = &self.timing_points[curr - 1];
-            let (measure, frac) = obj.start_time.approximate(tp);
+            let (measure, frac) = obj.start_time
+                .approximate(tp.time, tp.get_bpm(), tp.get_meter());
             obj.start_time = TimeLocation::Relative(tp, measure, frac);
         }
     }
@@ -82,7 +83,7 @@ impl<'map> Beatmap<'map> {
     /// This will also return hitsounds that occur on parts of objects, for example on slider
     /// bodies or slider ends. If a hitsound occurs on a spinner, the only "sound" that's counted
     /// is the moment that the spinner ends.
-    pub fn get_hitsounds(&self) -> Result<Vec<Hitsound<'map>>, Error> {
+    pub fn get_hitsounds(&self) -> Result<Vec<Hitsound>, Error> {
         let mut hitsounds = Vec::new();
         for obj in self.hit_objects.iter() {
             match obj.kind {
@@ -97,7 +98,7 @@ impl<'map> Beatmap<'map> {
     }
 }
 
-impl<'map> Serialize for Beatmap<'map> {
+impl Serialize for Beatmap {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

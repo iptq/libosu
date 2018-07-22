@@ -25,8 +25,8 @@ pub struct Additions(pub u32);
 
 /// A hitsound "item" represents a single "hitsound".
 #[derive(Copy, Clone, Debug)]
-pub struct Hitsound<'map> {
-    pub time: TimeLocation<'map>,
+pub struct Hitsound {
+    pub time: TimeLocation,
     pub sample: SampleSet,
     pub additions: Additions,
 }

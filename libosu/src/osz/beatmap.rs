@@ -26,8 +26,8 @@ macro_rules! kvalue {
     };
 }
 
-impl<'map> OszDeserializer<OsuFormat> for Beatmap<'map> {
-    type Output = Beatmap<'map>;
+impl OszDeserializer<OsuFormat> for Beatmap {
+    type Output = Beatmap;
     fn deserialize_osz(input: OsuFormat) -> Result<Self::Output, Error> {
         // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();

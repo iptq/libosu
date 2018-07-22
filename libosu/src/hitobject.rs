@@ -20,7 +20,7 @@ pub enum SliderSplineKind {
 
 /// Distinguishes between different types of hit objects.
 #[derive(Clone, Debug)]
-pub enum HitObjectKind<'map> {
+pub enum HitObjectKind {
     /// Regular hit circle.
     Circle,
     /// Slider.
@@ -35,26 +35,26 @@ pub enum HitObjectKind<'map> {
     /// Spinner.
     Spinner {
         /// The time at which the slider ends.
-        end_time: TimeLocation<'map>,
+        end_time: TimeLocation,
     },
 }
 
 /// Represents a single hit object.
 #[derive(Clone, Debug)]
-pub struct HitObject<'map> {
+pub struct HitObject {
     pub pos: Point<i32>,
-    pub start_time: TimeLocation<'map>,
-    pub kind: HitObjectKind<'map>,
+    pub start_time: TimeLocation,
+    pub kind: HitObjectKind,
     pub new_combo: bool,
     /// Reference to the timing point under which this HitObject belongs.
-    pub timing_point: Option<&'map TimingPoint<'map>>,
+    pub timing_point: Option<TimingPoint>,
     /// The number of combo colors to skip
     pub skip_color: i32,
     /// WIP
-    pub hitsound: Hitsound<'map>,
+    pub hitsound: Hitsound,
 }
 
-impl<'map> Serialize for HitObject<'map> {
+impl Serialize for HitObject {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
