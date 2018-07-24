@@ -55,7 +55,7 @@ impl OszDeserializer<OsuFormat> for TimingPoint {
     }
 }
 
-impl<'map> OszSerializer<OsuFormat> for TimingPoint<'map> {
+impl OszSerializer<OsuFormat> for TimingPoint {
     fn serialize_osz(&self) -> Result<OsuFormat, Error> {
         let mpb;
         let inherited;
@@ -74,7 +74,7 @@ impl<'map> OszSerializer<OsuFormat> for TimingPoint<'map> {
             self.time.into_milliseconds(),
             mpb,
             0,
-            self.sample_set as i32,
+            self.sample_set.clone() as i32,
             self.sample_index,
             self.volume,
             inherited,

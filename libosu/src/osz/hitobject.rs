@@ -67,8 +67,8 @@ impl OszDeserializer<OsuFormat> for HitObject {
             additions: Additions(addition),
             sample: SampleSet::Normal, // TODO
             time: match &kind {
-                &HitObjectKind::Spinner { end_time } => end_time,
-                _ => start_time,
+                &HitObjectKind::Spinner { ref end_time } => end_time.clone(),
+                _ => start_time.clone(),
             },
         };
 
@@ -86,7 +86,7 @@ impl OszDeserializer<OsuFormat> for HitObject {
     }
 }
 
-impl<'map> OszSerializer<OsuFormat> for HitObject<'map> {
+impl OszSerializer<OsuFormat> for HitObject {
     fn serialize_osz(&self) -> Result<OsuFormat, Error> {
         let obj_type = match &self.kind {
             &HitObjectKind::Circle => 1,

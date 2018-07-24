@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::collections::BTreeSet;
+use std::rc::Rc;
 
 use num_rational::Ratio;
 use serde::ser::*;
@@ -16,7 +17,7 @@ use SampleSet;
 /// When possible, prefer to stack measures. The value of _f_ should not ever reach 1; instead, opt
 /// to use measure numbers for whole amounts of measures. For example, 1 measure + 5 / 4 should be
 /// represented as 2 measures + 1 / 4 instead.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum TimeLocation {
     /// Absolute timing in terms of number of milliseconds since the beginning of the audio file.
     /// Note that because this is an `i32`, the time is allowed to be negative.
@@ -24,7 +25,7 @@ pub enum TimeLocation {
     /// Relative timing based on an existing TimingPoint. The lifetime of this TimeLocation thus
     /// depends on the lifetime of the map.
     Relative {
-        time: TimeLocation,
+        time: Box<TimeLocation>,
         bpm: f64,
         meter: u32,
         measures: u32,
@@ -33,7 +34,7 @@ pub enum TimeLocation {
 }
 
 /// An enum distinguishing between inherited and uninherited timing points.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum TimingPointKind {
     /// Uninherited timing point
     Uninherited {
@@ -42,13 +43,13 @@ pub enum TimingPointKind {
         /// The number of beats in a single measure
         meter: u32,
         /// List of inherited timing points that belong to this section.
-        children: BTreeSet<TimingPoint>,
+        children: BTreeSet<Rc<TimingPoint>>,
     },
     /// Inherited timing point
     Inherited {
         /// The uninherited timing point to which this timing point belongs.
         /// This field is an option because parsing and tree-building occur in different stages.
-        parent: Option<TimingPoint>,
+        parent: Option<Rc<TimingPoint>>,
         /// Slider velocity multiplier
         slider_velocity: f64,
     },
@@ -58,7 +59,7 @@ pub enum TimingPointKind {
 ///
 /// This is a generic timing point struct representing both inherited and uninherited timing
 /// points, distinguished by the `kind` field.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct TimingPoint {
     /// The timestamp of this timing point, represented as a `TimeLocation`.
     pub time: TimeLocation,
@@ -85,15 +86,21 @@ impl TimeLocation {
     pub fn into_milliseconds(&self) -> i32 {
         match self {
             TimeLocation::Absolute(ref val) => *val,
-            TimeLocation::Relative(ref tp, ref m, ref f) => {
+            TimeLocation::Relative {
+                ref time,
+                ref bpm,
+                ref meter,
+                measures: ref m,
+                frac: ref f,
+            } => {
                 // the start of the previous timing point
-                let base = tp.time.into_milliseconds();
+                let base = time.into_milliseconds();
 
                 // milliseconds per beat
-                let mpb = 60_000.0 / tp.get_bpm();
+                let mpb = 60_000.0 / *bpm;
 
                 // milliseconds per measure
-                let mpm = mpb * (tp.get_meter() as f64);
+                let mpm = mpb * (*meter as f64);
 
                 // amount of time from the timing point to the beginning of the current measure
                 // this is equal to (milliseconds / measure) * (# measures)
@@ -110,12 +117,20 @@ impl TimeLocation {
 
     /// Converts any `TimeLocation` into a relative one.
     pub fn into_relative(self, tp: &TimingPoint) -> TimeLocation {
-        let (measure, frac) = self.approximate(tp.time, tp.get_bpm(), tp.get_meter());
-        TimeLocation::Relative(tp, measure, frac)
+        let bpm = tp.get_bpm();
+        let meter = tp.get_meter();
+        let (measures, frac) = self.approximate(&tp.time, bpm, meter);
+        TimeLocation::Relative {
+            time: Box::new(tp.time.clone()),
+            bpm,
+            meter,
+            measures,
+            frac,
+        }
     }
 
     /// Converts any `TimeLocation` into a relative time tuple given a `TimingPoint`.
-    pub fn approximate(&self, time: TimeLocation, bpm: f64, meter: u32) -> (u32, Ratio<u32>) {
+    pub fn approximate(&self, time: &TimeLocation, bpm: f64, meter: u32) -> (u32, Ratio<u32>) {
         match self {
             TimeLocation::Absolute(ref val) => {
                 // this is going to be black magic btw
@@ -167,14 +182,19 @@ impl TimeLocation {
                 // this is probably going to just be some fraction approximation algorithm tho
                 (0, Ratio::from(0))
             }
-            TimeLocation::Relative(ref tp, _, _) => {
+            TimeLocation::Relative {
+                ref time,
+                ref bpm,
+                ref meter,
+                ..
+            } => {
                 // need to reconstruct the TimeLocation because we could be using a different
                 // timing point
                 // TODO: if the timing point is the same, return immediately
                 TimeLocation::Absolute(self.into_milliseconds()).approximate(
-                    tp.time.clone(),
-                    tp.get_bpm(),
-                    tp.get_meter(),
+                    &*time.clone(),
+                    *bpm,
+                    *meter,
                 )
             }
         }
@@ -203,7 +223,7 @@ impl PartialOrd for TimeLocation {
 
 impl TimingPoint {
     /// Gets the closest parent that is an uninherited timing point.
-    pub fn get_uninherited_ancestor(&'map self) -> &'map TimingPoint {
+    pub fn get_uninherited_ancestor(&self) -> &TimingPoint {
         match &self.kind {
             &TimingPointKind::Uninherited { .. } => self,
             &TimingPointKind::Inherited { ref parent, .. } => match parent {
@@ -261,6 +281,7 @@ impl Serialize for TimingPoint {
     }
 }
 
+/*
 pub mod tests {
     extern crate lazy_static;
 
@@ -336,3 +357,4 @@ pub mod tests {
         }
     }
 }
+*/

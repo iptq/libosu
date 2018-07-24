@@ -7,7 +7,7 @@ use TimeLocation;
 /// Hitsounds come in sample sets of (normal, soft, drum). In beatmaps, there is a sample set that
 /// apply to the entire beatmap as a whole, to timing sections specifically, to individual notes,
 /// or even the hitsound additions (whistle, finish, clap).
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum SampleSet {
     /// No sample set used. (TODO: wtf?)
     None = 0,
@@ -20,11 +20,11 @@ pub enum SampleSet {
 }
 
 /// A representation of hitsound additions.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Additions(pub u32);
 
 /// A hitsound "item" represents a single "hitsound".
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Hitsound {
     pub time: TimeLocation,
     pub sample: SampleSet,

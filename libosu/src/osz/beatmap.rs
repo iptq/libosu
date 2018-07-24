@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use failure::Error;
 use regex::Regex;
 
@@ -80,11 +83,11 @@ impl OszDeserializer<OsuFormat> for Beatmap {
             match section.as_ref() {
                 "HitObjects" => {
                     let obj = HitObject::deserialize_osz(String::from(line))?;
-                    hit_objects.push(obj);
+                    hit_objects.push(Rc::new(RefCell::new(obj)));
                 }
                 "TimingPoints" => {
                     let tp = TimingPoint::deserialize_osz(String::from(line))?;
-                    timing_points.push(tp);
+                    timing_points.push(Rc::new(RefCell::new(tp)));
                 }
                 "Version" => {
                     if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(line) {
@@ -142,7 +145,7 @@ impl OszDeserializer<OsuFormat> for Beatmap {
 
         // associate hit objects with timing sections
         timing_points.sort_unstable_by(|tp1, tp2| tp1.cmp(tp2));
-        hit_objects.sort_unstable_by(|o1, o2| o1.start_time.cmp(&o2.start_time));
+        hit_objects.sort_unstable_by(|o1, o2| o1.borrow().start_time.cmp(&o2.borrow().start_time));
 
         let mut beatmap = Beatmap {
             version,
@@ -193,7 +196,7 @@ impl OszDeserializer<OsuFormat> for Beatmap {
     }
 }
 
-impl<'map> OszSerializer<OsuFormat> for Beatmap<'map> {
+impl OszSerializer<OsuFormat> for Beatmap {
     fn serialize_osz(&self) -> Result<OsuFormat, Error> {
         let mut lines = vec![];
 
@@ -270,7 +273,7 @@ impl<'map> OszSerializer<OsuFormat> for Beatmap<'map> {
         // timing points
         lines.push("[TimingPoints]".to_string());
         for timing_point in self.timing_points.iter() {
-            lines.push(timing_point.serialize_osz()?);
+            lines.push(timing_point.borrow().serialize_osz()?);
         }
         lines.push("".to_string());
 
@@ -281,7 +284,7 @@ impl<'map> OszSerializer<OsuFormat> for Beatmap<'map> {
         // hit objects
         lines.push("[HitObjects]".to_string());
         for hit_object in self.hit_objects.iter() {
-            lines.push(hit_object.serialize_osz()?);
+            lines.push(hit_object.borrow().serialize_osz()?);
         }
         lines.push("".to_string());
 

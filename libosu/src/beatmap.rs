@@ -1,4 +1,5 @@
-use std::collections::BTreeMap;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use failure::Error;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
@@ -54,30 +55,41 @@ pub struct Beatmap {
     pub beatmap_id: i32,
     pub beatmap_set_id: i32,
 
-    pub hit_objects: Vec<HitObject>,
-    pub timing_points: Vec<TimingPoint>,
+    pub hit_objects: Vec<Rc<RefCell<HitObject>>>,
+    pub timing_points: Vec<Rc<RefCell<TimingPoint>>>,
 }
 
 impl Beatmap {
     pub(crate) fn associate_hitobjects(&mut self) {
         let mut curr = 1;
-        for obj in self.hit_objects.iter_mut() {
+        for obj_ref in self.hit_objects.iter() {
             if curr >= self.timing_points.len() {
                 break;
             }
+            let obj = obj_ref.borrow();
             let obj_time = obj.start_time.into_milliseconds();
             // should we advance?
-            let next_time = self.timing_points[curr].time.into_milliseconds();
+            let next_time = self.timing_points[curr].borrow().time.into_milliseconds();
             if obj_time >= next_time {
                 curr += 1;
             }
             // assign timing point
-            let tp = &self.timing_points[curr - 1];
-            let (measure, frac) = obj.start_time
-                .approximate(tp.time, tp.get_bpm(), tp.get_meter());
-            obj.start_time = TimeLocation::Relative(tp, measure, frac);
+            let tp = &self.timing_points[curr - 1].borrow();
+
+            let bpm = tp.get_bpm();
+            let meter = tp.get_meter();
+            let (measures, frac) = obj.start_time.approximate(&tp.time, bpm, meter);
+            let mut obj_mut = (**obj_ref).borrow_mut();
+            obj_mut.start_time = TimeLocation::Relative {
+                time: Box::new(tp.time.clone()),
+                bpm: tp.get_bpm(),
+                meter: tp.get_meter(),
+                measures,
+                frac,
+            };
         }
     }
+
     /// Returns a list of this beatmap's hitsounds.
     ///
     /// This will also return hitsounds that occur on parts of objects, for example on slider
@@ -85,13 +97,14 @@ impl Beatmap {
     /// is the moment that the spinner ends.
     pub fn get_hitsounds(&self) -> Result<Vec<Hitsound>, Error> {
         let mut hitsounds = Vec::new();
-        for obj in self.hit_objects.iter() {
+        for obj_ref in self.hit_objects.iter() {
+            let obj = obj_ref.borrow();
             match obj.kind {
                 HitObjectKind::Slider { .. } => {
                     // TODO: calculate middle hitsounds
-                    hitsounds.push(obj.hitsound);
+                    hitsounds.push(obj.hitsound.clone());
                 }
-                _ => hitsounds.push(obj.hitsound),
+                _ => hitsounds.push(obj.hitsound.clone()),
             }
         }
         Ok(hitsounds)
@@ -106,7 +119,7 @@ impl Serialize for Beatmap {
         let mut state = serializer.serialize_struct("Beatmap", 1)?;
         state.serialize_field("version", &self.version)?;
 
-        state.serialize_field("timing_points", &self.timing_points)?;
+        // state.serialize_field("timing_points", &self.timing_points)?;
         state.end()
     }
 }
