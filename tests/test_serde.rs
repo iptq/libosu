@@ -35,7 +35,7 @@ macro_rules! test_serde {
                 assert_eq!(stage1, stage2);
                 // panic!();
 
-                let json = json!(beatmap).to_string();
+                json!(beatmap).to_string();
             }
         )*
     };

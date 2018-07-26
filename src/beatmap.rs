@@ -61,6 +61,7 @@ pub struct Beatmap {
 
 impl Beatmap {
     pub(crate) fn associate_hitobjects(&mut self) {
+        /*
         let mut curr = 1;
         for obj_ref in self.hit_objects.iter() {
             if curr >= self.timing_points.len() {
@@ -88,6 +89,7 @@ impl Beatmap {
                 frac,
             };
         }
+        */
     }
 
     /// Returns a list of this beatmap's hitsounds.
