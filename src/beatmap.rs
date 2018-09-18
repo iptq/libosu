@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use failure::Error;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
@@ -6,17 +8,16 @@ use HitObjectKind;
 use Hitsound;
 use Mode;
 use SampleSet;
+use TimeLocation;
 use TimingPoint;
 
-#[derive(Debug)]
-pub struct BeatmapSet {}
-
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Difficulty {
     pub hp_drain_rate: f32,
     pub circle_size: f32,
     pub overall_difficulty: f32,
     pub approach_rate: f32,
+    pub slider_multiplier: f32,
 }
 
 /// Represents a single beatmap.
@@ -33,6 +34,8 @@ pub struct Beatmap {
     pub mode: Mode,
     pub letterbox_in_breaks: bool,
     pub widescreen_storyboard: bool,
+
+    pub difficulty: Difficulty,
 
     pub bookmarks: Vec<i32>,
     pub distance_spacing: f64,
@@ -51,8 +54,8 @@ pub struct Beatmap {
     pub beatmap_id: i32,
     pub beatmap_set_id: i32,
 
-    pub hit_objects: Vec<HitObject>,
-    pub timing_points: Vec<TimingPoint>,
+    pub hit_objects: BTreeSet<HitObject>,
+    pub timing_points: BTreeSet<TimingPoint>,
 }
 
 impl Beatmap {
@@ -69,6 +72,8 @@ impl Beatmap {
             mode: Mode::Osu,
             letterbox_in_breaks: false,
             widescreen_storyboard: false,
+
+            difficulty: Difficulty::default(),
 
             bookmarks: Vec::new(),
             distance_spacing: 0.0,
@@ -87,8 +92,8 @@ impl Beatmap {
             beatmap_id: 0,
             beatmap_set_id: -1,
 
-            hit_objects: Vec::new(),
-            timing_points: Vec::new(),
+            hit_objects: BTreeSet::new(),
+            timing_points: BTreeSet::new(),
         }
     }
 
@@ -124,8 +129,39 @@ impl Beatmap {
         */
     }
 
+    pub fn locate_timing_point(&self, time: &TimeLocation) -> Option<TimingPoint> {
+        // TODO: make this efficient
+        let mut tp = None;
+        for timing_point in self.timing_points.iter() {
+            if &timing_point.time < time {
+                tp = Some(timing_point.clone());
+            }
+        }
+        tp
+    }
+
+    pub fn locate_hitobject(&self, time: &TimeLocation) -> Option<HitObject> {
+        for mut hit_object in self.hit_objects.iter() {
+            if &hit_object.start_time == time {
+                return Some(hit_object.clone());
+            }
+
+            if let HitObjectKind::Slider { .. } = hit_object.kind {}
+        }
+        None
+    }
+
+    pub fn set_hitsound(&mut self, time: &TimeLocation, hitsound: &Hitsound) {
+        if let Some(hit_object) = self.locate_hitobject(&time) {
+            if let Some(mut hit_object) = self.hit_objects.take(&hit_object) {
+                hit_object.set_hitsound(hitsound);
+                self.hit_objects.insert(hit_object);
+            }
+        }
+    }
+
     pub fn get_hitobjects(&self) -> Vec<HitObject> {
-        self.hit_objects.clone()
+        self.hit_objects.iter().cloned().collect::<Vec<_>>()
     }
 
     /// Returns a list of this beatmap's hitsounds.
@@ -133,16 +169,16 @@ impl Beatmap {
     /// This will also return hitsounds that occur on parts of objects, for example on slider
     /// bodies or slider ends. If a hitsound occurs on a spinner, the only "sound" that's counted
     /// is the moment that the spinner ends.
-    pub fn get_hitsounds(&self) -> Result<Vec<Hitsound>, Error> {
+    pub fn get_hitsounds(&self) -> Result<Vec<(TimeLocation, Hitsound)>, Error> {
         let mut hitsounds = Vec::new();
-        for obj_ref in self.hit_objects.iter() {
-            let obj = obj_ref;
+        for obj in self.hit_objects.iter() {
+            let start_time = obj.start_time.clone();
             match obj.kind {
                 HitObjectKind::Slider { .. } => {
                     // TODO: calculate middle hitsounds
-                    hitsounds.push(obj.hitsound.clone());
+                    hitsounds.push((start_time, obj.hitsound.clone()));
                 }
-                _ => hitsounds.push(obj.hitsound.clone()),
+                _ => hitsounds.push((start_time, obj.hitsound.clone())),
             }
         }
         Ok(hitsounds)

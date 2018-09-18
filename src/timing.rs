@@ -252,6 +252,10 @@ impl TimingPoint {
             _ => panic!("The ancestor should always be an Uninherited timing point."),
         }
     }
+
+    pub fn get_beat_duration(&self) -> f64 {
+        return 60_000.0 / self.get_bpm();
+    }
 }
 
 impl Eq for TimingPoint {}

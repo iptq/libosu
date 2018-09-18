@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use serde::ser::*;
 
 use Hitsound;
@@ -31,6 +33,10 @@ pub enum HitObjectKind {
         control: Vec<Point<i32>>,
         /// The number of times this slider should repeat.
         repeats: u32,
+        /// How long this slider is in pixels.
+        pixel_length: u32,
+        /// The number of milliseconds long that this slider lasts.
+        duration: u32,
     },
     /// Spinner.
     Spinner {
@@ -54,6 +60,12 @@ pub struct HitObject {
     pub hitsound: Hitsound,
 }
 
+impl HitObject {
+    pub fn set_hitsound(&mut self, hitsound: &Hitsound) {
+        self.hitsound = hitsound.clone();
+    }
+}
+
 impl Serialize for HitObject {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -61,5 +73,25 @@ impl Serialize for HitObject {
     {
         let state = serializer.serialize_struct("HitObject", 0)?;
         state.end()
+    }
+}
+
+impl Ord for HitObject {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.start_time.cmp(&other.start_time)
+    }
+}
+
+impl PartialOrd for HitObject {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Eq for HitObject {}
+
+impl PartialEq for HitObject {
+    fn eq(&self, other: &Self) -> bool {
+        self.start_time == other.start_time
     }
 }

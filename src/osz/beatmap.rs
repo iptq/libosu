@@ -64,11 +64,11 @@ impl Beatmap {
             match section.as_ref() {
                 "HitObjects" => {
                     let obj = HitObject::deserialize_osz(&beatmap, String::from(line))?;
-                    beatmap.hit_objects.push(obj);
+                    beatmap.hit_objects.insert(obj);
                 }
                 "TimingPoints" => {
                     let tp = TimingPoint::deserialize_osz(String::from(line))?;
-                    beatmap.timing_points.push(tp);
+                    beatmap.timing_points.insert(tp);
                 }
                 "Version" => {
                     if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(line) {
@@ -140,6 +140,22 @@ impl Beatmap {
                         "BeatmapID" => kvalue!(captures[beatmap.beatmap_id]: parse(i32)),
                         "BeatmapSetID" => kvalue!(captures[beatmap.beatmap_set_id]: parse(i32)),
 
+                        "HPDrainRate" => {
+                            kvalue!(captures[beatmap.difficulty.hp_drain_rate]: parse(f32))
+                        }
+                        "CircleSize" => {
+                            kvalue!(captures[beatmap.difficulty.circle_size]: parse(f32))
+                        }
+                        "OverallDifficulty" => {
+                            kvalue!(captures[beatmap.difficulty.overall_difficulty]: parse(f32))
+                        }
+                        "ApproachRate" => {
+                            kvalue!(captures[beatmap.difficulty.approach_rate]: parse(f32))
+                        }
+                        "SliderMultiplier" => {
+                            kvalue!(captures[beatmap.difficulty.slider_multiplier]: parse(f32))
+                        }
+
                         _ => (),
                     }
                 },
@@ -150,10 +166,6 @@ impl Beatmap {
                 "Could not find osu! file format version line. Check your beatmap and try again."
             );
         }
-
-        // associate hit objects with timing sections
-        beatmap.timing_points.sort_unstable_by(|tp1, tp2| tp1.cmp(tp2));
-        beatmap.hit_objects.sort_unstable_by(|o1, o2| o1.start_time.cmp(&o2.start_time));
 
         beatmap.associate_hitobjects();
         Ok(beatmap)

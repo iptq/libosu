@@ -11,10 +11,7 @@ use SliderSplineKind;
 use TimeLocation;
 
 impl HitObject {
-    pub fn deserialize_osz(
-        parent: &Beatmap,
-        input: String,
-    ) -> Result<HitObject, Error> {
+    pub fn deserialize_osz(parent: &Beatmap, input: String) -> Result<HitObject, Error> {
         let parts = input.split(",").collect::<Vec<_>>();
 
         let x = parts[0].parse::<i32>()?;
@@ -37,6 +34,17 @@ impl HitObject {
             let repeats = parts[6].parse::<u32>()?;
             let slider_type = ctl_parts.remove(0);
 
+            // slider duration = pixelLength / (100.0 * SliderMultiplier) * BeatDuration
+            // from the osu wiki
+            let pixel_length = parts[7].parse::<u32>()?;
+            let beat_duration = parent
+                .locate_timing_point(&start_time)
+                .unwrap()
+                .get_beat_duration();
+            let duration = (pixel_length as f64 * beat_duration
+                / (100.0 * parent.difficulty.slider_multiplier as f64))
+                as u32;
+
             HitObjectKind::Slider {
                 kind: match slider_type {
                     "L" => SliderSplineKind::Linear,
@@ -50,9 +58,10 @@ impl HitObject {
                     .map(|s| {
                         let p = s.split(":").collect::<Vec<_>>();
                         Point(p[0].parse::<i32>().unwrap(), p[1].parse::<i32>().unwrap())
-                    })
-                    .collect(),
+                    }).collect(),
                 repeats,
+                pixel_length,
+                duration,
             }
         } else if (obj_type & 8) == 8 {
             let end_time = parts[5].parse::<i32>()?;
