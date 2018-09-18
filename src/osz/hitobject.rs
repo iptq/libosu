@@ -1,7 +1,7 @@
 use failure::Error;
 
-use osz::*;
 use Additions;
+use Beatmap;
 use HitObject;
 use HitObjectKind;
 use Hitsound;
@@ -10,9 +10,11 @@ use SampleSet;
 use SliderSplineKind;
 use TimeLocation;
 
-impl OszDeserializer<OsuFormat> for HitObject {
-    type Output = HitObject;
-    fn deserialize_osz(input: OsuFormat) -> Result<Self::Output, Error> {
+impl HitObject {
+    pub fn deserialize_osz(
+        parent: &Beatmap,
+        input: String,
+    ) -> Result<HitObject, Error> {
         let parts = input.split(",").collect::<Vec<_>>();
 
         let x = parts[0].parse::<i32>()?;
@@ -83,15 +85,14 @@ impl OszDeserializer<OsuFormat> for HitObject {
 
         Ok(hit_obj)
     }
-}
 
-impl OszSerializer<OsuFormat> for HitObject {
-    fn serialize_osz(&self) -> Result<OsuFormat, Error> {
+    pub fn serialize_osz(&self) -> Result<String, Error> {
         let obj_type = match &self.kind {
             &HitObjectKind::Circle => 1,
             &HitObjectKind::Slider { .. } => 2,
             &HitObjectKind::Spinner { .. } => 8,
-        } | if self.new_combo { 4 } else { 0 } | self.skip_color;
+        } | if self.new_combo { 4 } else { 0 }
+            | self.skip_color;
 
         let mut line = format!(
             "{},{},{},{},{}",

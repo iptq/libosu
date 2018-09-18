@@ -2,15 +2,13 @@ use std::collections::BTreeSet;
 
 use failure::Error;
 
-use osz::*;
 use SampleSet;
 use TimeLocation;
 use TimingPoint;
 use TimingPointKind;
 
-impl OszDeserializer<OsuFormat> for TimingPoint {
-    type Output = TimingPoint;
-    fn deserialize_osz(input: OsuFormat) -> Result<Self::Output, Error> {
+impl TimingPoint {
+    pub fn deserialize_osz(input: String) -> Result<TimingPoint, Error> {
         let parts = input.split(",").collect::<Vec<_>>();
 
         let timestamp = parts[0].parse::<i32>()?;
@@ -53,10 +51,8 @@ impl OszDeserializer<OsuFormat> for TimingPoint {
 
         Ok(timing_point)
     }
-}
 
-impl OszSerializer<OsuFormat> for TimingPoint {
-    fn serialize_osz(&self) -> Result<OsuFormat, Error> {
+    pub fn serialize_osz(&self) -> Result<String, Error> {
         let mpb;
         let inherited;
         match &self.kind {

@@ -7,6 +7,9 @@ use serde::ser::*;
 
 use SampleSet;
 
+/// The number of milliseconds that a timestamp is allowed to be off by.
+const THRESHOLD: i32 = 3;
+
 /// A struct representing a _precise_ location in time.
 ///
 /// This enum represents a timestamp by either an absolute timestamp (milliseconds), or a tuple
@@ -173,7 +176,7 @@ impl TimeLocation {
 
                 // now see how accurate the first one is
                 let (i, d, n) = distances.first().unwrap();
-                if *n < 3 {
+                if *n < THRESHOLD {
                     // yay accurate
                     return (measures as u32, Ratio::new(*i as u32, *d as u32));
                 }

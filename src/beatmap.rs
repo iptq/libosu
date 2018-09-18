@@ -1,6 +1,3 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use failure::Error;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
@@ -9,7 +6,6 @@ use HitObjectKind;
 use Hitsound;
 use Mode;
 use SampleSet;
-use TimeLocation;
 use TimingPoint;
 
 #[derive(Debug)]
@@ -55,11 +51,47 @@ pub struct Beatmap {
     pub beatmap_id: i32,
     pub beatmap_set_id: i32,
 
-    pub hit_objects: Vec<Rc<RefCell<HitObject>>>,
-    pub timing_points: Vec<Rc<RefCell<TimingPoint>>>,
+    pub hit_objects: Vec<HitObject>,
+    pub timing_points: Vec<TimingPoint>,
 }
 
 impl Beatmap {
+    pub fn new() -> Self {
+        Beatmap {
+            version: 0,
+
+            audio_filename: String::new(),
+            audio_leadin: 0,
+            preview_time: 0,
+            countdown: false,
+            sample_set: SampleSet::None,
+            stack_leniency: 0.7,
+            mode: Mode::Osu,
+            letterbox_in_breaks: false,
+            widescreen_storyboard: false,
+
+            bookmarks: Vec::new(),
+            distance_spacing: 0.0,
+            beat_divisor: 1,
+            grid_size: 1,
+            timeline_zoom: 0.0,
+
+            title: String::new(),
+            title_unicode: String::new(),
+            artist: String::new(),
+            artist_unicode: String::new(),
+            creator: String::new(),
+            difficulty_name: String::new(),
+            source: String::new(),
+            tags: Vec::new(),
+            beatmap_id: 0,
+            beatmap_set_id: -1,
+
+            hit_objects: Vec::new(),
+            timing_points: Vec::new(),
+        }
+    }
+
     pub(crate) fn associate_hitobjects(&mut self) {
         /*
         let mut curr = 1;
@@ -92,6 +124,10 @@ impl Beatmap {
         */
     }
 
+    pub fn get_hitobjects(&self) -> Vec<HitObject> {
+        self.hit_objects.clone()
+    }
+
     /// Returns a list of this beatmap's hitsounds.
     ///
     /// This will also return hitsounds that occur on parts of objects, for example on slider
@@ -100,7 +136,7 @@ impl Beatmap {
     pub fn get_hitsounds(&self) -> Result<Vec<Hitsound>, Error> {
         let mut hitsounds = Vec::new();
         for obj_ref in self.hit_objects.iter() {
-            let obj = obj_ref.borrow();
+            let obj = obj_ref;
             match obj.kind {
                 HitObjectKind::Slider { .. } => {
                     // TODO: calculate middle hitsounds

@@ -1,10 +1,6 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use failure::Error;
 use regex::Regex;
 
-use osz::*;
 use Beatmap;
 use HitObject;
 use Mode;
@@ -21,50 +17,35 @@ lazy_static! {
 
 /// Macro for matching beatmap keys easier.
 macro_rules! kvalue {
-    ($captures:ident[$name:ident]: str) => {
+    ($captures:ident[$name:expr]: str) => {
         $name = String::from(&$captures["value"]);
     };
-    ($captures:ident[$name:ident]: parse($type:ident)) => {
+    ($captures:ident[$name:expr] => str) => {
+        String::from(&$captures["value"])
+    };
+    ($captures:ident[$name:expr]: parse(bool)) => {
+        $name = {
+            let val = kvalue!($captures[$name] => parse(u8));
+            if val == 0 {
+                false
+            } else {
+                true
+            }
+        };
+    };
+    ($captures:ident[$name:expr] => parse($type:ident)) => {
+        $captures["value"].parse::<$type>()?
+    };
+    ($captures:ident[$name:expr]: parse($type:ident)) => {
         $name = $captures["value"].parse::<$type>()?;
     };
 }
 
-impl OszDeserializer<OsuFormat> for Beatmap {
-    type Output = Beatmap;
-    fn deserialize_osz(input: OsuFormat) -> Result<Self::Output, Error> {
+impl Beatmap {
+    pub fn deserialize_osz(input: String) -> Result<Beatmap, Error> {
         // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();
-        let mut version = 0;
-
-        let mut audio_filename = String::new();
-        let mut audio_leadin = 0;
-        let mut preview_time = 0;
-        let mut countdown = 0;
-        let mut sample_set = String::new();
-        let mut stack_leniency = 0.0;
-        let mut mode = 0;
-        let mut letterbox_in_breaks = 0;
-        let mut widescreen_storyboard = 0;
-
-        let mut bookmarks = vec![];
-        let mut distance_spacing = 0.0;
-        let mut beat_divisor = 0;
-        let mut grid_size = 0;
-        let mut timeline_zoom = 0.0;
-
-        let mut title = String::new();
-        let mut title_unicode = String::new();
-        let mut artist = String::new();
-        let mut artist_unicode = String::new();
-        let mut creator = String::new();
-        let mut difficulty_name = String::new();
-        let mut source = String::new();
-        let mut tags = vec![];
-        let mut beatmap_id = 0;
-        let mut beatmap_set_id = -1;
-
-        let mut hit_objects = Vec::new();
-        let mut timing_points = Vec::new();
+        let mut beatmap = Beatmap::new();
 
         for line in input.lines() {
             match SECTION_HEADER_RGX.captures(line) {
@@ -82,122 +63,103 @@ impl OszDeserializer<OsuFormat> for Beatmap {
 
             match section.as_ref() {
                 "HitObjects" => {
-                    let obj = HitObject::deserialize_osz(String::from(line))?;
-                    hit_objects.push(Rc::new(RefCell::new(obj)));
+                    let obj = HitObject::deserialize_osz(&beatmap, String::from(line))?;
+                    beatmap.hit_objects.push(obj);
                 }
                 "TimingPoints" => {
                     let tp = TimingPoint::deserialize_osz(String::from(line))?;
-                    timing_points.push(Rc::new(RefCell::new(tp)));
+                    beatmap.timing_points.push(tp);
                 }
                 "Version" => {
                     if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(line) {
-                        version = capture["version"].parse::<u32>()?;
+                        beatmap.version = capture["version"].parse::<u32>()?;
                     }
                 }
                 _ => if let Some(captures) = KEY_VALUE_RGX.captures(line) {
                     match &captures["key"] {
-                        "AudioFilename" => kvalue!(captures[audio_filename]: str),
-                        "AudioLeadIn" => kvalue!(captures[audio_leadin]: parse(u32)),
-                        "PreviewTime" => kvalue!(captures[preview_time]: parse(u32)),
-                        "Countdown" => kvalue!(captures[countdown]: parse(u8)),
-                        "SampleSet" => kvalue!(captures[sample_set]: str),
-                        "StackLeniency" => kvalue!(captures[stack_leniency]: parse(f64)),
-                        "Mode" => kvalue!(captures[mode]: parse(u8)),
-                        "LetterBoxInBreaks" => kvalue!(captures[letterbox_in_breaks]: parse(u8)),
+                        "AudioFilename" => kvalue!(captures[beatmap.audio_filename]: str),
+                        "AudioLeadIn" => kvalue!(captures[beatmap.audio_leadin]: parse(u32)),
+                        "PreviewTime" => kvalue!(captures[beatmap.preview_time]: parse(u32)),
+                        "Countdown" => kvalue!(captures[beatmap.countdown]: parse(bool)),
+                        "SampleSet" => {
+                            beatmap.sample_set = {
+                                let sample_set = kvalue!(captures[beatmap.sample_set] => str);
+                                match sample_set.as_ref() {
+                                    "None" => SampleSet::None,
+                                    "Normal" => SampleSet::Normal,
+                                    "Soft" => SampleSet::Soft,
+                                    "Drum" => SampleSet::Drum,
+                                    _ => bail!("Invalid sample set '{}'.", sample_set),
+                                }
+                            }
+                        }
+                        "StackLeniency" => kvalue!(captures[beatmap.stack_leniency]: parse(f64)),
+                        "Mode" => {
+                            beatmap.mode = {
+                                let mode = kvalue!(captures[beatmap.mode]=> parse(u8));
+                                match mode {
+                                    0 => Mode::Osu,
+                                    1 => Mode::Taiko,
+                                    2 => Mode::Catch,
+                                    3 => Mode::Mania,
+                                    _ => bail!("Invalid game mode: {}", mode),
+                                }
+                            }
+                        }
+                        "LetterBoxInBreaks" => {
+                            kvalue!(captures[beatmap.letterbox_in_breaks]: parse(bool))
+                        }
                         "WidescreenStoryboard" => {
-                            kvalue!(captures[widescreen_storyboard]: parse(u8))
+                            kvalue!(captures[beatmap.widescreen_storyboard]: parse(bool))
                         }
 
                         "Bookmarks" => {
-                            bookmarks = captures["value"]
+                            beatmap.bookmarks = captures["value"]
                                 .split(",")
                                 .map(|n| n.parse::<i32>().unwrap())
                                 .collect()
                         }
-                        "DistanceSpacing" => kvalue!(captures[distance_spacing]: parse(f64)),
-                        "BeatDivisor" => kvalue!(captures[beat_divisor]: parse(u8)),
-                        "GridSize" => kvalue!(captures[grid_size]: parse(u8)),
-                        "TimelineZoom" => kvalue!(captures[timeline_zoom]: parse(f64)),
-
-                        "Title" => kvalue!(captures[title]: str),
-                        "TitleUnicode" => kvalue!(captures[title_unicode]: str),
-                        "Artist" => kvalue!(captures[artist]: str),
-                        "ArtistUnicode" => kvalue!(captures[artist_unicode]: str),
-                        "Creator" => kvalue!(captures[creator]: str),
-                        "Version" => kvalue!(captures[difficulty_name]: str),
-                        "Source" => kvalue!(captures[source]: str),
-                        "Tags" => {
-                            tags = captures["value"].split(" ").map(|s| s.to_owned()).collect()
+                        "DistanceSpacing" => {
+                            kvalue!(captures[beatmap.distance_spacing]: parse(f64))
                         }
-                        "BeatmapID" => kvalue!(captures[beatmap_id]: parse(i32)),
-                        "BeatmapSetID" => kvalue!(captures[beatmap_set_id]: parse(i32)),
+                        "BeatDivisor" => kvalue!(captures[beatmap.beat_divisor]: parse(u8)),
+                        "GridSize" => kvalue!(captures[beatmap.grid_size]: parse(u8)),
+                        "TimelineZoom" => kvalue!(captures[beatmap.timeline_zoom]: parse(f64)),
+
+                        "Title" => kvalue!(captures[beatmap.title]: str),
+                        "TitleUnicode" => kvalue!(captures[beatmap.title_unicode]: str),
+                        "Artist" => kvalue!(captures[beatmap.artist]: str),
+                        "ArtistUnicode" => kvalue!(captures[beatmap.artist_unicode]: str),
+                        "Creator" => kvalue!(captures[beatmap.creator]: str),
+                        "Version" => kvalue!(captures[beatmap.difficulty_name]: str),
+                        "Source" => kvalue!(captures[beatmap.source]: str),
+                        "Tags" => {
+                            beatmap.tags =
+                                captures["value"].split(" ").map(|s| s.to_owned()).collect()
+                        }
+                        "BeatmapID" => kvalue!(captures[beatmap.beatmap_id]: parse(i32)),
+                        "BeatmapSetID" => kvalue!(captures[beatmap.beatmap_set_id]: parse(i32)),
 
                         _ => (),
                     }
                 },
             }
         }
-        if version == 0 {
+        if beatmap.version == 0 {
             bail!(
                 "Could not find osu! file format version line. Check your beatmap and try again."
             );
         }
 
         // associate hit objects with timing sections
-        timing_points.sort_unstable_by(|tp1, tp2| tp1.cmp(tp2));
-        hit_objects.sort_unstable_by(|o1, o2| o1.borrow().start_time.cmp(&o2.borrow().start_time));
+        beatmap.timing_points.sort_unstable_by(|tp1, tp2| tp1.cmp(tp2));
+        beatmap.hit_objects.sort_unstable_by(|o1, o2| o1.start_time.cmp(&o2.start_time));
 
-        let mut beatmap = Beatmap {
-            version,
-            audio_filename,
-            audio_leadin,
-            preview_time,
-            countdown: countdown > 0,
-            sample_set: match sample_set.as_ref() {
-                "None" => SampleSet::None,
-                "Normal" => SampleSet::Normal,
-                "Soft" => SampleSet::Soft,
-                "Drum" => SampleSet::Drum,
-                _ => panic!("Invalid sample set '{}'.", sample_set),
-            },
-            stack_leniency,
-            mode: match mode {
-                0 => Mode::Osu,
-                1 => Mode::Taiko,
-                2 => Mode::Catch,
-                3 => Mode::Mania,
-                _ => panic!("Invalid game mode."),
-            },
-            letterbox_in_breaks: letterbox_in_breaks > 0,
-            widescreen_storyboard: widescreen_storyboard > 0,
-
-            bookmarks,
-            distance_spacing,
-            beat_divisor,
-            grid_size,
-            timeline_zoom,
-
-            title,
-            title_unicode,
-            artist,
-            artist_unicode,
-            creator,
-            difficulty_name,
-            source,
-            tags,
-            beatmap_id,
-            beatmap_set_id,
-
-            hit_objects,
-            timing_points,
-        };
         beatmap.associate_hitobjects();
         Ok(beatmap)
     }
-}
 
-impl OszSerializer<OsuFormat> for Beatmap {
-    fn serialize_osz(&self) -> Result<OsuFormat, Error> {
+    pub fn serialize_osz(&self) -> Result<String, Error> {
         let mut lines = vec![];
 
         // version
@@ -273,7 +235,7 @@ impl OszSerializer<OsuFormat> for Beatmap {
         // timing points
         lines.push("[TimingPoints]".to_string());
         for timing_point in self.timing_points.iter() {
-            lines.push(timing_point.borrow().serialize_osz()?);
+            lines.push(timing_point.serialize_osz()?);
         }
         lines.push("".to_string());
 
@@ -284,7 +246,7 @@ impl OszSerializer<OsuFormat> for Beatmap {
         // hit objects
         lines.push("[HitObjects]".to_string());
         for hit_object in self.hit_objects.iter() {
-            lines.push(hit_object.borrow().serialize_osz()?);
+            lines.push(hit_object.serialize_osz()?);
         }
         lines.push("".to_string());
 
