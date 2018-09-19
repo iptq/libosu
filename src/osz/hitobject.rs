@@ -1,6 +1,7 @@
 use failure::Error;
 
 use Additions;
+use AbsoluteTime;
 use Beatmap;
 use HitObject;
 use HitObjectKind;
@@ -11,7 +12,8 @@ use SliderSplineKind;
 use TimeLocation;
 
 impl HitObject {
-    pub fn deserialize_osz(input: impl AsRef<str>, parent: &Beatmap) -> Result<HitObject, Error> {
+    /// Creates a HitObject from the *.osz format
+    pub fn from_osz(input: impl AsRef<str>, parent: &Beatmap) -> Result<HitObject, Error> {
         let parts = input.as_ref().split(",").collect::<Vec<_>>();
 
         let x = parts[0].parse::<i32>()?;
@@ -20,7 +22,7 @@ impl HitObject {
         let obj_type = parts[3].parse::<i32>()?;
         let addition = parts[4].parse::<u32>()?;
 
-        let start_time = TimeLocation::Absolute(timestamp);
+        let start_time = TimeLocation::Absolute(AbsoluteTime::new(timestamp));
         let extras;
 
         // color is the top 3 bits of the "type" string, since there's a possible of 8 different
@@ -75,7 +77,7 @@ impl HitObject {
             let end_time = parts[5].parse::<i32>()?;
             extras = parts[6];
             HitObjectKind::Spinner {
-                end_time: TimeLocation::Absolute(end_time),
+                end_time: TimeLocation::Absolute(AbsoluteTime::new(end_time)),
             }
         } else {
             bail!("Invalid object type.")
@@ -117,7 +119,8 @@ impl HitObject {
         Ok(hit_obj)
     }
 
-    pub fn serialize_osz(&self) -> Result<String, Error> {
+    /// Serializes this HitObject into the *.osz format.
+    pub fn as_osz(&self) -> Result<String, Error> {
         let obj_type = match &self.kind {
             &HitObjectKind::Circle => 1,
             &HitObjectKind::Slider { .. } => 2,
@@ -164,9 +167,7 @@ impl HitObject {
                     edge_additions,
                 )
             }
-            &HitObjectKind::Spinner { ref end_time } => {
-                format!("{},", end_time.into_milliseconds())
-            }
+            &HitObjectKind::Spinner { ref end_time } => format!("{},", end_time.as_milliseconds()),
             _ => String::new(),
         };
 
@@ -174,7 +175,7 @@ impl HitObject {
             "{},{},{},{},{},{}{}",
             self.pos.0,
             self.pos.1,
-            self.start_time.into_milliseconds(),
+            self.start_time.as_milliseconds(),
             obj_type,
             hitsound,
             type_specific,

@@ -1,3 +1,5 @@
+/// Represents an RGB color.
+// TODO: alpha?
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Color {
     red: u8,

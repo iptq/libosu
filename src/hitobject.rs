@@ -48,19 +48,24 @@ pub enum HitObjectKind {
 /// Represents a single hit object.
 #[derive(Clone, Debug)]
 pub struct HitObject {
+    /// The position on the map at which this hit object is located (head for sliders).
     pub pos: Point<i32>,
+    /// When this hit object occurs during the map.
     pub start_time: TimeLocation,
+    /// The kind of HitObject this represents (circle, slider, spinner).
     pub kind: HitObjectKind,
+    /// Whether or not this object begins a new combo.
     pub new_combo: bool,
     /// Reference to the timing point under which this HitObject belongs.
     pub timing_point: Option<TimingPoint>,
     /// The number of combo colors to skip
     pub skip_color: i32,
-    /// WIP
+    /// The hitsound attached to this hit object.
     pub hitsound: Hitsound,
 }
 
 impl HitObject {
+    /// Replaces the hitsound on this hitobject.
     pub fn set_hitsound(&mut self, hitsound: &Hitsound) {
         self.hitsound = hitsound.clone();
     }

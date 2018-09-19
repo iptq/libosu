@@ -9,6 +9,27 @@ use SampleSet;
 /// The number of milliseconds that a timestamp is allowed to be off by.
 const THRESHOLD: f64 = 3.0;
 
+/// An absolute representation of time.
+#[derive(Clone, Debug)]
+pub struct AbsoluteTime(i32);
+
+impl AbsoluteTime {
+    /// Creates a new AbsoluteTime out of a i32.
+    pub fn new(val: i32) -> Self {
+        AbsoluteTime(val)
+    }
+}
+
+/// A relative representation of time, based on another time location.
+#[derive(Clone, Debug)]
+pub struct RelativeTime {
+    time: Box<TimeLocation>,
+    bpm: f64,
+    meter: u32,
+    measures: u32,
+    frac: Ratio<u32>,
+}
+
 /// A struct representing a _precise_ location in time.
 ///
 /// This enum represents a timestamp by either an absolute timestamp (milliseconds), or a tuple
@@ -23,16 +44,10 @@ const THRESHOLD: f64 = 3.0;
 pub enum TimeLocation {
     /// Absolute timing in terms of number of milliseconds since the beginning of the audio file.
     /// Note that because this is an `i32`, the time is allowed to be negative.
-    Absolute(i32),
+    Absolute(AbsoluteTime),
     /// Relative timing based on an existing TimingPoint. The lifetime of this TimeLocation thus
     /// depends on the lifetime of the map.
-    Relative {
-        time: Box<TimeLocation>,
-        bpm: f64,
-        meter: u32,
-        measures: u32,
-        frac: Ratio<u32>,
-    },
+    Relative(RelativeTime),
 }
 
 /// An enum distinguishing between inherited and uninherited timing points.
@@ -82,23 +97,23 @@ pub struct TimingPoint {
 impl TimeLocation {
     /// Converts any `TimeLocation` into an absolute one.
     pub fn into_absolute(self) -> TimeLocation {
-        TimeLocation::Absolute(self.into_milliseconds())
+        TimeLocation::Absolute(AbsoluteTime::new(self.as_milliseconds()))
     }
 
     /// Converts any `TimeLocation` into an absolute time in milliseconds from the beginning of the
     /// audio file.
-    pub fn into_milliseconds(&self) -> i32 {
+    pub fn as_milliseconds(&self) -> i32 {
         match self {
-            TimeLocation::Absolute(ref val) => *val,
-            TimeLocation::Relative {
+            TimeLocation::Absolute(ref val) => val.0,
+            TimeLocation::Relative(RelativeTime {
                 ref time,
                 ref bpm,
                 ref meter,
                 measures: ref m,
                 frac: ref f,
-            } => {
+            }) => {
                 // the start of the previous timing point
-                let base = time.into_milliseconds();
+                let base = time.as_milliseconds();
 
                 // milliseconds per beat
                 let mpb = 60_000.0 / *bpm;
@@ -124,13 +139,13 @@ impl TimeLocation {
         let bpm = tp.get_bpm();
         let meter = tp.get_meter();
         let (measures, frac) = self.approximate(&tp.time, bpm, meter);
-        TimeLocation::Relative {
+        TimeLocation::Relative(RelativeTime {
             time: Box::new(tp.time.clone()),
             bpm,
             meter,
             measures,
             frac,
-        }
+        })
     }
 
     /// Converts any `TimeLocation` into a relative time tuple given a `TimingPoint`.
@@ -148,11 +163,11 @@ impl TimeLocation {
                 // oh well, let's give this a shot
 
                 // first, let's calculate the measure offset
-                // (using all the stuff from into_milliseconds above)
+                // (using all the stuff from as_milliseconds above)
                 let mpb = 60_000.0 / bpm;
                 let mpm = mpb * (meter as f64);
-                let base = time.into_milliseconds();
-                let cur = *val;
+                let base = time.as_milliseconds();
+                let cur = val.0;
                 let measures = ((cur - base) as f64 / mpm) as i32;
 
                 // approximate time that our measure starts
@@ -190,16 +205,16 @@ impl TimeLocation {
                 // this is probably going to just be some fraction approximation algorithm tho
                 (0, Ratio::from(0))
             }
-            TimeLocation::Relative {
+            TimeLocation::Relative(RelativeTime {
                 ref time,
                 ref bpm,
                 ref meter,
                 ..
-            } => {
+            }) => {
                 // need to reconstruct the TimeLocation because we could be using a different
                 // timing point
                 // TODO: if the timing point is the same, return immediately
-                TimeLocation::Absolute(self.into_milliseconds()).approximate(
+                TimeLocation::Absolute(AbsoluteTime::new(self.as_milliseconds())).approximate(
                     &*time.clone(),
                     *bpm,
                     *meter,
@@ -213,13 +228,13 @@ impl Eq for TimeLocation {}
 
 impl PartialEq for TimeLocation {
     fn eq(&self, other: &TimeLocation) -> bool {
-        self.into_milliseconds() == other.into_milliseconds()
+        self.as_milliseconds() == other.as_milliseconds()
     }
 }
 
 impl Ord for TimeLocation {
     fn cmp(&self, other: &TimeLocation) -> Ordering {
-        self.into_milliseconds().cmp(&other.into_milliseconds())
+        self.as_milliseconds().cmp(&other.as_milliseconds())
     }
 }
 
@@ -231,7 +246,7 @@ impl PartialOrd for TimeLocation {
 
 impl Into<TimeLocation> for i32 {
     fn into(self) -> TimeLocation {
-        TimeLocation::Absolute(self)
+        TimeLocation::Absolute(AbsoluteTime::new(self))
     }
 }
 
@@ -242,6 +257,7 @@ impl<'a> Into<TimeLocation> for &'a TimeLocation {
 }
 
 impl TimingPoint {
+    /// Sets the parent of this TimingPoint to the given TimingPoint.
     pub fn set_parent(&mut self, tp: &TimingPoint) {
         self.time = self.time.clone().into_relative(&tp);
         if let TimingPointKind::Inherited { ref mut parent, .. } = &mut self.kind {
@@ -277,6 +293,7 @@ impl TimingPoint {
         }
     }
 
+    /// Returns the number of milliseconds in a beat for this timing section.
     pub fn get_beat_duration(&self) -> f64 {
         return 60_000.0 / self.get_bpm();
     }

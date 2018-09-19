@@ -2,6 +2,7 @@ use std::ops::BitOr;
 
 /// Integer enumeration of the game's game modes.
 #[derive(Debug, Copy, Clone)]
+#[allow(missing_docs)]
 pub enum Mode {
     Osu = 0,
     Taiko = 1,
@@ -12,6 +13,7 @@ pub enum Mode {
 /// Mod listing with their respective bitwise representation.
 ///
 /// This list is ripped directly from the [osu! wiki](https://github.com/ppy/osu-api/wiki).
+#[allow(missing_docs)]
 pub enum Mods {
     None = 0,
     NoFail = 1,

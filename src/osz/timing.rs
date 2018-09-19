@@ -4,11 +4,13 @@ use failure::Error;
 
 use SampleSet;
 use TimeLocation;
+use AbsoluteTime;
 use TimingPoint;
 use TimingPointKind;
 
 impl TimingPoint {
-    pub fn deserialize_osz(
+    /// Creates a TimingPoint from the *.osz format
+    pub fn from_osz(
         input: impl AsRef<str>,
         parent: &Option<TimingPoint>,
     ) -> Result<TimingPoint, Error> {
@@ -25,7 +27,7 @@ impl TimingPoint {
 
         // calculate bpm from mpb
         let bpm = 60_000.0 / mpb;
-        let time = TimeLocation::Absolute(timestamp);
+        let time = TimeLocation::Absolute(AbsoluteTime::new(timestamp));
 
         let timing_point = TimingPoint {
             kind: if inherited {
@@ -61,14 +63,15 @@ impl TimingPoint {
         Ok(timing_point)
     }
 
-    pub fn serialize_osz(&self) -> Result<String, Error> {
+    /// Serializes this TimingPoint into the *.osz format.
+    pub fn as_osz(&self) -> Result<String, Error> {
         let inherited = match &self.kind {
             &TimingPointKind::Inherited { .. } => 0,
             &TimingPointKind::Uninherited { .. } => 1,
         };
         let line = format!(
             "{},{},{},{},{},{},{},{}",
-            self.time.into_milliseconds(),
+            self.time.as_milliseconds(),
             self.mpb,
             self.get_meter(),
             self.sample_set.clone() as i32,

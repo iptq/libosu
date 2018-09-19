@@ -43,10 +43,11 @@ macro_rules! kvalue {
 }
 
 impl Beatmap {
-    pub fn deserialize_osz(input: impl AsRef<str>) -> Result<Beatmap, Error> {
+    /// Creates a Beatmap from the *.osz format
+    pub fn from_osz(input: impl AsRef<str>) -> Result<Beatmap, Error> {
         // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();
-        let mut beatmap = Beatmap::new();
+        let mut beatmap = Beatmap::default();
         let mut timing_points = Vec::new();
 
         let mut timing_point_lines = Vec::new();
@@ -174,7 +175,7 @@ impl Beatmap {
         // parse timing points
         let mut prev = None;
         for line in timing_point_lines {
-            let tp = TimingPoint::deserialize_osz(line, &prev)?;
+            let tp = TimingPoint::from_osz(line, &prev)?;
             match tp.kind {
                 TimingPointKind::Uninherited { .. } => prev = Some(tp.clone()),
                 _ => (),
@@ -196,7 +197,7 @@ impl Beatmap {
         }
 
         for line in hit_object_lines {
-            let obj = HitObject::deserialize_osz(line, &beatmap)?;
+            let obj = HitObject::from_osz(line, &beatmap)?;
             beatmap.hit_objects.insert(obj);
         }
 
@@ -204,7 +205,8 @@ impl Beatmap {
         Ok(beatmap)
     }
 
-    pub fn serialize_osz(&self) -> Result<String, Error> {
+    /// Serializes this Beatmap into the *.osz format.
+    pub fn as_osz(&self) -> Result<String, Error> {
         let mut lines = vec![];
 
         // version
@@ -286,7 +288,7 @@ impl Beatmap {
         // timing points
         lines.push("[TimingPoints]".to_string());
         for timing_point in self.timing_points.iter() {
-            lines.push(timing_point.serialize_osz()?);
+            lines.push(timing_point.as_osz()?);
         }
         lines.push("".to_string());
 
@@ -297,7 +299,7 @@ impl Beatmap {
         // hit objects
         lines.push("[HitObjects]".to_string());
         for hit_object in self.hit_objects.iter() {
-            lines.push(hit_object.serialize_osz()?);
+            lines.push(hit_object.as_osz()?);
         }
         lines.push("".to_string());
 

@@ -26,14 +26,22 @@ pub struct Additions(pub u32);
 /// A hitsound "item" represents a single "hitsound".
 #[derive(Clone, Debug)]
 pub struct Hitsound {
+    /// The time at which this hitsound occurs.
     pub time: TimeLocation,
+    /// The sample (normal/soft/drum) this hitsound uses.
     pub sample: SampleSet,
+    /// The additions (whistle, finish, clap) attached to this hitsound.
     pub additions: Additions,
 
+    /// TODO: additional field
     pub sample_set: i32,
+    /// TODO: additional field
     pub addition_set: i32,
+    /// TODO: additional field
     pub custom_index: i32,
+    /// TODO: additional field
     pub sample_volume: i32,
+    /// TODO: additional field
     pub filename: String,
 }
 

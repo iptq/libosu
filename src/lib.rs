@@ -6,6 +6,8 @@
 //! Please note that until this crate hits `1.0`, none of the APIs in this crate will be stable, so
 //! take care when using this crate.
 
+#![deny(missing_docs)]
+
 #[macro_use]
 extern crate failure;
 #[macro_use]
@@ -23,6 +25,7 @@ mod hitobject;
 mod hitsounds;
 mod osz;
 mod point;
+mod replay;
 mod timing;
 
 pub use beatmap::*;
@@ -32,6 +35,7 @@ pub use hitobject::*;
 pub use hitsounds::*;
 pub use osz::*;
 pub use point::*;
+pub use replay::*;
 pub use timing::*;
 
 /// Says "hello there"
