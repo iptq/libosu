@@ -21,9 +21,9 @@ macro_rules! test_serde {
                 // stage 1
                 let stage1 = beatmap.serialize_osz().expect("couldn't serialize");
 
-                let mut file = File::create(format!("tests/out/{}.stage1.osu", $id)).expect("couldn't open file");
-                file.write_all(stage1.as_bytes()).expect("couldn't write");
-                eprintln!("STAGE 2 --------------------");
+                // let mut file = File::create(format!("tests/out/{}.stage1.osu", $id)).expect("couldn't open file");
+                // file.write_all(stage1.as_bytes()).expect("couldn't write");
+                // eprintln!("STAGE 2 --------------------");
 
                 // ok parse again
                 let beatmap1 = Beatmap::deserialize_osz(stage1.clone()).expect("couldn't parse");
