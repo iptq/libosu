@@ -16,8 +16,15 @@ use TimingPoint;
 #[derive(Debug, Default)]
 pub struct Difficulty {
     /// HP Drain Rate
+    ///
+    /// The wiki doesn't have a solid definition of this field yet.
     pub hp_drain_rate: f32,
     /// Circle Size
+    ///
+    /// This is a value between 0 and 10 representing how big circles should appear on screen.
+    /// The radius in osu!pixels is defined by the formula `32 * (1 - 0.7 * (CircleSize - 5) / 5)`, alternatively written `54.4 - 4.48 * CircleSize`.
+    ///
+    /// In osu!mania, this actually defines the number of columns (keys).
     pub circle_size: f32,
     /// Overall Difficulty
     pub overall_difficulty: f32,
@@ -35,9 +42,9 @@ pub struct Beatmap {
 
     /// The name of the audio file to use, relative to the beatmap file.
     pub audio_filename: String,
-    /// TODO: unknown field
+    /// The amount of time (in milliseconds) added before the audio file begins playing. Useful for audio files that begin immediately.
     pub audio_leadin: u32,
-    /// TODO: unknown field
+    /// When (in milliseconds) the audio file should begin playing when selected in the song selection menu.
     pub preview_time: u32,
     /// Whether or not to show the countdown
     pub countdown: bool,
