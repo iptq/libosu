@@ -8,8 +8,11 @@ use TimingPoint;
 use TimingPointKind;
 
 impl TimingPoint {
-    pub fn deserialize_osz(input: String) -> Result<TimingPoint, Error> {
-        let parts = input.split(",").collect::<Vec<_>>();
+    pub fn deserialize_osz(
+        input: impl AsRef<str>,
+        parent: &Option<TimingPoint>,
+    ) -> Result<TimingPoint, Error> {
+        let parts = input.as_ref().split(",").collect::<Vec<_>>();
 
         let timestamp = parts[0].parse::<i32>()?;
         let mpb = parts[1].parse::<f64>()?;
@@ -17,16 +20,18 @@ impl TimingPoint {
         let sample_set = parts[3].parse::<i32>()?;
         let sample_index = parts[4].parse::<u32>()?;
         let volume = parts[5].parse::<u16>()?;
-        let inherited = parts[6].parse::<i32>()? > 0;
+        let inherited = parts[6].parse::<i32>()? == 0;
         let kiai = parts[7].parse::<i32>()? > 0;
 
         // calculate bpm from mpb
         let bpm = 60_000.0 / mpb;
+        let time = TimeLocation::Absolute(timestamp);
 
         let timing_point = TimingPoint {
             kind: if inherited {
+                assert!(parent.is_some());
                 TimingPointKind::Inherited {
-                    parent: None,
+                    parent: parent.clone().map(|tp| Box::new(tp)),
                     slider_velocity: 0.0, // TODO: calculate this from mpb
                 }
             } else {
@@ -44,32 +49,28 @@ impl TimingPoint {
                 3 => SampleSet::Drum,
                 _ => panic!("Invalid sample set '{}'.", sample_set),
             },
+            mpb,
             sample_index,
             volume,
-            time: TimeLocation::Absolute(timestamp),
+            time: match parent {
+                Some(parent) => time.into_relative(parent),
+                None => time,
+            },
         };
 
         Ok(timing_point)
     }
 
     pub fn serialize_osz(&self) -> Result<String, Error> {
-        let mpb;
-        let inherited;
-        match &self.kind {
-            &TimingPointKind::Inherited { .. } => {
-                mpb = 0.0;
-                inherited = 1;
-            }
-            &TimingPointKind::Uninherited { ref bpm, .. } => {
-                mpb = 60_000.0 / *bpm;
-                inherited = 0;
-            }
+        let inherited = match &self.kind {
+            &TimingPointKind::Inherited { .. } => 0,
+            &TimingPointKind::Uninherited { .. } => 1,
         };
         let line = format!(
             "{},{},{},{},{},{},{},{}",
             self.time.into_milliseconds(),
-            mpb,
-            0,
+            self.mpb,
+            self.get_meter(),
             self.sample_set.clone() as i32,
             self.sample_index,
             self.volume,

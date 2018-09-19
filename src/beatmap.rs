@@ -3,6 +3,7 @@ use std::collections::BTreeSet;
 use failure::Error;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
+use Color;
 use HitObject;
 use HitObjectKind;
 use Hitsound;
@@ -54,8 +55,9 @@ pub struct Beatmap {
     pub beatmap_id: i32,
     pub beatmap_set_id: i32,
 
+    pub colors: Vec<Color>,
     pub hit_objects: BTreeSet<HitObject>,
-    pub timing_points: BTreeSet<TimingPoint>,
+    pub timing_points: Vec<TimingPoint>,
 }
 
 impl Beatmap {
@@ -92,8 +94,9 @@ impl Beatmap {
             beatmap_id: 0,
             beatmap_set_id: -1,
 
+            colors: Vec::new(),
             hit_objects: BTreeSet::new(),
-            timing_points: BTreeSet::new(),
+            timing_points: Vec::new(),
         }
     }
 

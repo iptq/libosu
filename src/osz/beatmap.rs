@@ -6,6 +6,7 @@ use HitObject;
 use Mode;
 use SampleSet;
 use TimingPoint;
+use TimingPointKind;
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =
@@ -42,12 +43,16 @@ macro_rules! kvalue {
 }
 
 impl Beatmap {
-    pub fn deserialize_osz(input: String) -> Result<Beatmap, Error> {
+    pub fn deserialize_osz(input: impl AsRef<str>) -> Result<Beatmap, Error> {
         // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();
         let mut beatmap = Beatmap::new();
+        let mut timing_points = Vec::new();
 
-        for line in input.lines() {
+        let mut timing_point_lines = Vec::new();
+        let mut hit_object_lines = Vec::new();
+
+        for line in input.as_ref().lines() {
             match SECTION_HEADER_RGX.captures(line) {
                 Some(captures) => {
                     section = String::from(&captures["name"]);
@@ -63,12 +68,10 @@ impl Beatmap {
 
             match section.as_ref() {
                 "HitObjects" => {
-                    let obj = HitObject::deserialize_osz(&beatmap, String::from(line))?;
-                    beatmap.hit_objects.insert(obj);
+                    hit_object_lines.push(line);
                 }
                 "TimingPoints" => {
-                    let tp = TimingPoint::deserialize_osz(String::from(line))?;
-                    beatmap.timing_points.insert(tp);
+                    timing_point_lines.push(line);
                 }
                 "Version" => {
                     if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(line) {
@@ -166,6 +169,36 @@ impl Beatmap {
                 "Could not find osu! file format version line. Check your beatmap and try again."
             );
         }
+        eprintln!("len: {}", timing_point_lines.len());
+
+        // parse timing points
+        let mut prev = None;
+        for line in timing_point_lines {
+            let tp = TimingPoint::deserialize_osz(line, &prev)?;
+            match tp.kind {
+                TimingPointKind::Uninherited { .. } => prev = Some(tp.clone()),
+                _ => (),
+            }
+            timing_points.push(tp);
+        }
+
+        // set their parents now
+        timing_points.sort();
+        if let Some(mut prev) = timing_points.first().cloned() {
+            for mut tp in timing_points.into_iter() {
+                use TimingPointKind::*;
+                match tp.kind {
+                    Inherited { .. } => tp.set_parent(&prev),
+                    Uninherited { .. } => prev = tp.clone(),
+                };
+                beatmap.timing_points.push(tp);
+            }
+        }
+
+        for line in hit_object_lines {
+            let obj = HitObject::deserialize_osz(line, &beatmap)?;
+            beatmap.hit_objects.insert(obj);
+        }
 
         beatmap.associate_hitobjects();
         Ok(beatmap)
@@ -197,7 +230,7 @@ impl Beatmap {
         lines.push(format!("StackLeniency: {}", self.stack_leniency));
         lines.push(format!("Mode: {}", self.mode as u32));
         lines.push(format!(
-            "LetterBoxInBreaks: {}",
+            "LetterboxInBreaks: {}",
             if self.letterbox_in_breaks { 1 } else { 0 }
         ));
         lines.push(format!(
@@ -238,7 +271,13 @@ impl Beatmap {
 
         // difficulty
         lines.push("[Difficulty]".to_string());
-        lines.push("".to_string());
+        lines.push(format!("HPDrainRate:{}", self.difficulty.hp_drain_rate));
+        lines.push(format!("CircleSize:{}", self.difficulty.circle_size));
+        lines.push(format!(
+            "OverallDifficulty:{}",
+            self.difficulty.overall_difficulty
+        ));
+        lines.push(format!("ApproachRate:{}", self.difficulty.approach_rate));
 
         // events
         lines.push("[Events]".to_string());

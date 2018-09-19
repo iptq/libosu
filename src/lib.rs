@@ -17,6 +17,7 @@ extern crate serde;
 extern crate serde_derive;
 
 mod beatmap;
+mod color;
 mod enums;
 mod hitobject;
 mod hitsounds;
@@ -25,6 +26,7 @@ mod point;
 mod timing;
 
 pub use beatmap::*;
+pub use color::*;
 pub use enums::*;
 pub use hitobject::*;
 pub use hitsounds::*;

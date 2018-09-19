@@ -12,6 +12,7 @@ documentation = "https://docs.rs/libosu/"
 
 [dev-dependencies]
 serde_json = "1.0"
+difference = "2.0"
 
 [dependencies]
 failure = "0.1.1"

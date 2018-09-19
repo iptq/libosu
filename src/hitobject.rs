@@ -34,7 +34,7 @@ pub enum HitObjectKind {
         /// The number of times this slider should repeat.
         repeats: u32,
         /// How long this slider is in pixels.
-        pixel_length: u32,
+        pixel_length: f64,
         /// The number of milliseconds long that this slider lasts.
         duration: u32,
     },

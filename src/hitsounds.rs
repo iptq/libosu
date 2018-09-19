@@ -29,6 +29,12 @@ pub struct Hitsound {
     pub time: TimeLocation,
     pub sample: SampleSet,
     pub additions: Additions,
+
+    pub sample_set: i32,
+    pub addition_set: i32,
+    pub custom_index: i32,
+    pub sample_volume: i32,
+    pub filename: String,
 }
 
 impl BitOr for Additions {

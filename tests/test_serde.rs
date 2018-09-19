@@ -4,9 +4,7 @@ extern crate serde;
 extern crate serde_json;
 
 use std::fs::File;
-use std::io::Read;
-
-use serde::{Deserialize, Serialize};
+use std::io::{Read, Write};
 
 use libosu::*;
 
@@ -18,10 +16,14 @@ macro_rules! test_serde {
                 let mut file = File::open(format!("tests/files/{}.osu", $id)).expect("couldn't open file");
                 let mut contents = String::new();
                 file.read_to_string(&mut contents).expect("couldn't read file");
-                let beatmap = Beatmap::deserialize_osz(contents).expect("couldn't parse");
+                let beatmap = Beatmap::deserialize_osz(&contents).expect("couldn't parse");
 
                 // stage 1
                 let stage1 = beatmap.serialize_osz().expect("couldn't serialize");
+
+                let mut file = File::create(format!("tests/out/{}.stage1.osu", $id)).expect("couldn't open file");
+                file.write_all(stage1.as_bytes()).expect("couldn't write");
+                eprintln!("STAGE 2 --------------------");
 
                 // ok parse again
                 let beatmap1 = Beatmap::deserialize_osz(stage1.clone()).expect("couldn't parse");

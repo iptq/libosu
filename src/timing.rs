@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 use std::collections::BTreeSet;
-use std::rc::Rc;
 
 use num_rational::Ratio;
 use serde::ser::*;
@@ -8,7 +7,7 @@ use serde::ser::*;
 use SampleSet;
 
 /// The number of milliseconds that a timestamp is allowed to be off by.
-const THRESHOLD: i32 = 3;
+const THRESHOLD: f64 = 3.0;
 
 /// A struct representing a _precise_ location in time.
 ///
@@ -46,13 +45,13 @@ pub enum TimingPointKind {
         /// The number of beats in a single measure
         meter: u32,
         /// List of inherited timing points that belong to this section.
-        children: BTreeSet<Rc<TimingPoint>>,
+        children: BTreeSet<TimingPoint>,
     },
     /// Inherited timing point
     Inherited {
         /// The uninherited timing point to which this timing point belongs.
         /// This field is an option because parsing and tree-building occur in different stages.
-        parent: Option<Rc<TimingPoint>>,
+        parent: Option<Box<TimingPoint>>,
         /// Slider velocity multiplier
         slider_velocity: f64,
     },
@@ -74,6 +73,8 @@ pub struct TimingPoint {
     pub sample_index: u32,
     /// Volume of this timing section.
     pub volume: u16,
+    /// Milliseconds per beat
+    pub mpb: f64,
     /// The type of this timing point. See `TimingPointKind`.
     pub kind: TimingPointKind,
 }
@@ -155,15 +156,19 @@ impl TimeLocation {
                 let measures = ((cur - base) as f64 / mpm) as i32;
 
                 // approximate time that our measure starts
-                let measure_start = base + (measures as f64 * mpm) as i32;
-                let offset = cur - measure_start;
+                let measure_start = base as f64 + (measures as f64 * mpm);
+                let offset = cur as f64 - measure_start;
 
                 // now, enumerate several well-established snappings
-                let mut snappings = BTreeSet::new();
+                let mut snappings = Vec::new();
                 for d in vec![1, 2, 3, 4, 6, 8, 12, 16] {
                     for i in 0..d {
-                        let snap = (mpm * i as f64 / d as f64) as i32;
-                        snappings.insert((i, d, snap));
+                        let snap = mpm * i as f64 / d as f64;
+                        snappings.push((i, d, snap));
+
+                        // for the other side
+                        let snap = mpm * (i + d) as f64 / d as f64;
+                        snappings.push((i + d, d, snap));
                     }
                 }
 
@@ -172,7 +177,7 @@ impl TimeLocation {
                     .into_iter()
                     .map(|(i, d, n)| (i, d, (offset - n).abs()))
                     .collect::<Vec<_>>();
-                distances.sort_unstable_by(|(_, _, n1), (_, _, n2)| n1.cmp(n2));
+                distances.sort_by(|(_, _, n1), (_, _, n2)| n1.partial_cmp(n2).unwrap());
 
                 // now see how accurate the first one is
                 let (i, d, n) = distances.first().unwrap();
@@ -225,6 +230,13 @@ impl PartialOrd for TimeLocation {
 }
 
 impl TimingPoint {
+    pub fn set_parent(&mut self, tp: &TimingPoint) {
+        self.time = self.time.clone().into_relative(&tp);
+        if let TimingPointKind::Inherited { ref mut parent, .. } = &mut self.kind {
+            *parent = Some(Box::new(tp.clone()));
+        }
+    }
+
     /// Gets the closest parent that is an uninherited timing point.
     pub fn get_uninherited_ancestor(&self) -> &TimingPoint {
         match &self.kind {
