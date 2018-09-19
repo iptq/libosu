@@ -132,20 +132,22 @@ impl Beatmap {
         */
     }
 
-    pub fn locate_timing_point(&self, time: &TimeLocation) -> Option<TimingPoint> {
+    pub fn locate_timing_point(&self, time: impl Into<TimeLocation>) -> Option<TimingPoint> {
         // TODO: make this efficient
         let mut tp = None;
+        let time = time.into();
         for timing_point in self.timing_points.iter() {
-            if &timing_point.time < time {
+            if &timing_point.time < &time {
                 tp = Some(timing_point.clone());
             }
         }
         tp
     }
 
-    pub fn locate_hitobject(&self, time: &TimeLocation) -> Option<HitObject> {
+    pub fn locate_hitobject(&self, time: impl Into<TimeLocation>) -> Option<HitObject> {
+        let time = time.into();
         for mut hit_object in self.hit_objects.iter() {
-            if &hit_object.start_time == time {
+            if &hit_object.start_time == &time {
                 return Some(hit_object.clone());
             }
 
@@ -154,8 +156,8 @@ impl Beatmap {
         None
     }
 
-    pub fn set_hitsound(&mut self, time: &TimeLocation, hitsound: &Hitsound) {
-        if let Some(hit_object) = self.locate_hitobject(&time) {
+    pub fn set_hitsound(&mut self, time: impl Into<TimeLocation>, hitsound: &Hitsound) {
+        if let Some(hit_object) = self.locate_hitobject(time) {
             if let Some(mut hit_object) = self.hit_objects.take(&hit_object) {
                 hit_object.set_hitsound(hitsound);
                 self.hit_objects.insert(hit_object);
@@ -172,14 +174,17 @@ impl Beatmap {
     /// This will also return hitsounds that occur on parts of objects, for example on slider
     /// bodies or slider ends. If a hitsound occurs on a spinner, the only "sound" that's counted
     /// is the moment that the spinner ends.
-    pub fn get_hitsounds(&self) -> Result<Vec<(TimeLocation, Hitsound)>, Error> {
+    pub fn get_hitsounds(&self) -> Result<Vec<(i32, Hitsound)>, Error> {
         let mut hitsounds = Vec::new();
         for obj in self.hit_objects.iter() {
-            let start_time = obj.start_time.clone();
+            let start_time = obj.start_time.clone().into_milliseconds();
             match obj.kind {
-                HitObjectKind::Slider { .. } => {
+                HitObjectKind::Slider { ref repeats, ref duration, .. } => {
                     // TODO: calculate middle hitsounds
-                    hitsounds.push((start_time, obj.hitsound.clone()));
+                    for i in 0..(repeats + 1) {
+                        let time = start_time + (i * duration) as i32;
+                        hitsounds.push((time, obj.hitsound.clone()));
+                    }
                 }
                 _ => hitsounds.push((start_time, obj.hitsound.clone())),
             }

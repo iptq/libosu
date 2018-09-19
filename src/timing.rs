@@ -229,6 +229,18 @@ impl PartialOrd for TimeLocation {
     }
 }
 
+impl Into<TimeLocation> for i32 {
+    fn into(self) -> TimeLocation {
+        TimeLocation::Absolute(self)
+    }
+}
+
+impl<'a> Into<TimeLocation> for &'a TimeLocation {
+    fn into(self) -> TimeLocation {
+        self.clone()
+    }
+}
+
 impl TimingPoint {
     pub fn set_parent(&mut self, tp: &TimingPoint) {
         self.time = self.time.clone().into_relative(&tp);
