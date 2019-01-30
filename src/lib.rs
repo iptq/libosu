@@ -18,6 +18,8 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
+#[cfg(feature = "api")]
+mod api;
 mod beatmap;
 mod color;
 mod enums;
@@ -28,6 +30,8 @@ mod point;
 mod replay;
 mod timing;
 
+#[cfg(feature = "api")]
+pub use api::{APIError, ApprovedStatus, API, UserScore, UserLookup};
 pub use beatmap::*;
 pub use color::*;
 pub use enums::*;

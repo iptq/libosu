@@ -1,15 +1,9 @@
 use failure::Error;
 
-use Additions;
-use AbsoluteTime;
-use Beatmap;
-use HitObject;
-use HitObjectKind;
-use Hitsound;
-use Point;
-use SampleSet;
-use SliderSplineKind;
-use TimeLocation;
+use crate::{
+    AbsoluteTime, Additions, Beatmap, HitObject, HitObjectKind, Hitsound, Point, SampleSet,
+    SliderSplineKind, TimeLocation,
+};
 
 impl HitObject {
     /// Creates a HitObject from the *.osz format
@@ -68,7 +62,8 @@ impl HitObject {
                     .map(|s| {
                         let p = s.split(":").collect::<Vec<_>>();
                         Point(p[0].parse::<i32>().unwrap(), p[1].parse::<i32>().unwrap())
-                    }).collect(),
+                    })
+                    .collect(),
                 repeats,
                 pixel_length,
                 duration,

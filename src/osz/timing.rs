@@ -2,11 +2,7 @@ use std::collections::BTreeSet;
 
 use failure::Error;
 
-use SampleSet;
-use TimeLocation;
-use AbsoluteTime;
-use TimingPoint;
-use TimingPointKind;
+use crate::{AbsoluteTime, SampleSet, TimeLocation, TimingPoint, TimingPointKind};
 
 impl TimingPoint {
     /// Creates a TimingPoint from the *.osz format

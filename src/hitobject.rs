@@ -2,10 +2,7 @@ use std::cmp::Ordering;
 
 use serde::ser::*;
 
-use Hitsound;
-use Point;
-use TimeLocation;
-use TimingPoint;
+use crate::{Hitsound, Point, TimeLocation, TimingPoint};
 
 /// Distinguishes between different types of slider splines.
 #[derive(Clone, Debug)]

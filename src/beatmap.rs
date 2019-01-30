@@ -3,14 +3,9 @@ use std::collections::BTreeSet;
 use failure::Error;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
-use Color;
-use HitObject;
-use HitObjectKind;
-use Hitsound;
-use Mode;
-use SampleSet;
-use TimeLocation;
-use TimingPoint;
+use crate::{
+    Color, HitObject, HitObjectKind, Hitsound, Mode, SampleSet, TimeLocation, TimingPoint,
+};
 
 /// Difficulty settings defined by the map.
 #[derive(Debug, Default)]

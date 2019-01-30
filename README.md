@@ -4,6 +4,7 @@ libosu
 [![CI](https://travis-ci.org/iptq/libosu.svg?branch=master)](https://travis-ci.org/iptq/libosu)
 [![Crates.io](https://img.shields.io/crates/d/libosu.svg)](https://crates.io/crates/libosu)
 [![Documentation](https://docs.rs/libosu/badge.svg)](https://docs.rs/libosu)
+[![dependency status](https://deps.rs/repo/github/iptq/libosu/status.svg)](https://deps.rs/repo/github/iptq/libosu)
 [![Discord](https://img.shields.io/discord/419098645783379978.svg)](https://discord.gg/MpXXvsD)
 
 

@@ -1,12 +1,7 @@
 use failure::Error;
 use regex::Regex;
 
-use Beatmap;
-use HitObject;
-use Mode;
-use SampleSet;
-use TimingPoint;
-use TimingPointKind;
+use crate::{Beatmap, HitObject, Mode, SampleSet, TimingPoint, TimingPointKind};
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =
@@ -79,90 +74,94 @@ impl Beatmap {
                         beatmap.version = capture["version"].parse::<u32>()?;
                     }
                 }
-                _ => if let Some(captures) = KEY_VALUE_RGX.captures(line) {
-                    match &captures["key"] {
-                        "AudioFilename" => kvalue!(captures[beatmap.audio_filename]: str),
-                        "AudioLeadIn" => kvalue!(captures[beatmap.audio_leadin]: parse(u32)),
-                        "PreviewTime" => kvalue!(captures[beatmap.preview_time]: parse(u32)),
-                        "Countdown" => kvalue!(captures[beatmap.countdown]: parse(bool)),
-                        "SampleSet" => {
-                            beatmap.sample_set = {
-                                let sample_set = kvalue!(captures[beatmap.sample_set] => str);
-                                match sample_set.as_ref() {
-                                    "None" => SampleSet::None,
-                                    "Normal" => SampleSet::Normal,
-                                    "Soft" => SampleSet::Soft,
-                                    "Drum" => SampleSet::Drum,
-                                    _ => bail!("Invalid sample set '{}'.", sample_set),
+                _ => {
+                    if let Some(captures) = KEY_VALUE_RGX.captures(line) {
+                        match &captures["key"] {
+                            "AudioFilename" => kvalue!(captures[beatmap.audio_filename]: str),
+                            "AudioLeadIn" => kvalue!(captures[beatmap.audio_leadin]: parse(u32)),
+                            "PreviewTime" => kvalue!(captures[beatmap.preview_time]: parse(u32)),
+                            "Countdown" => kvalue!(captures[beatmap.countdown]: parse(bool)),
+                            "SampleSet" => {
+                                beatmap.sample_set = {
+                                    let sample_set = kvalue!(captures[beatmap.sample_set] => str);
+                                    match sample_set.as_ref() {
+                                        "None" => SampleSet::None,
+                                        "Normal" => SampleSet::Normal,
+                                        "Soft" => SampleSet::Soft,
+                                        "Drum" => SampleSet::Drum,
+                                        _ => bail!("Invalid sample set '{}'.", sample_set),
+                                    }
                                 }
                             }
-                        }
-                        "StackLeniency" => kvalue!(captures[beatmap.stack_leniency]: parse(f64)),
-                        "Mode" => {
-                            beatmap.mode = {
-                                let mode = kvalue!(captures[beatmap.mode]=> parse(u8));
-                                match mode {
-                                    0 => Mode::Osu,
-                                    1 => Mode::Taiko,
-                                    2 => Mode::Catch,
-                                    3 => Mode::Mania,
-                                    _ => bail!("Invalid game mode: {}", mode),
+                            "StackLeniency" => {
+                                kvalue!(captures[beatmap.stack_leniency]: parse(f64))
+                            }
+                            "Mode" => {
+                                beatmap.mode = {
+                                    let mode = kvalue!(captures[beatmap.mode]=> parse(u8));
+                                    match mode {
+                                        0 => Mode::Osu,
+                                        1 => Mode::Taiko,
+                                        2 => Mode::Catch,
+                                        3 => Mode::Mania,
+                                        _ => bail!("Invalid game mode: {}", mode),
+                                    }
                                 }
                             }
-                        }
-                        "LetterBoxInBreaks" => {
-                            kvalue!(captures[beatmap.letterbox_in_breaks]: parse(bool))
-                        }
-                        "WidescreenStoryboard" => {
-                            kvalue!(captures[beatmap.widescreen_storyboard]: parse(bool))
-                        }
+                            "LetterBoxInBreaks" => {
+                                kvalue!(captures[beatmap.letterbox_in_breaks]: parse(bool))
+                            }
+                            "WidescreenStoryboard" => {
+                                kvalue!(captures[beatmap.widescreen_storyboard]: parse(bool))
+                            }
 
-                        "Bookmarks" => {
-                            beatmap.bookmarks = captures["value"]
-                                .split(",")
-                                .map(|n| n.parse::<i32>().unwrap())
-                                .collect()
-                        }
-                        "DistanceSpacing" => {
-                            kvalue!(captures[beatmap.distance_spacing]: parse(f64))
-                        }
-                        "BeatDivisor" => kvalue!(captures[beatmap.beat_divisor]: parse(u8)),
-                        "GridSize" => kvalue!(captures[beatmap.grid_size]: parse(u8)),
-                        "TimelineZoom" => kvalue!(captures[beatmap.timeline_zoom]: parse(f64)),
+                            "Bookmarks" => {
+                                beatmap.bookmarks = captures["value"]
+                                    .split(",")
+                                    .map(|n| n.parse::<i32>().unwrap())
+                                    .collect()
+                            }
+                            "DistanceSpacing" => {
+                                kvalue!(captures[beatmap.distance_spacing]: parse(f64))
+                            }
+                            "BeatDivisor" => kvalue!(captures[beatmap.beat_divisor]: parse(u8)),
+                            "GridSize" => kvalue!(captures[beatmap.grid_size]: parse(u8)),
+                            "TimelineZoom" => kvalue!(captures[beatmap.timeline_zoom]: parse(f64)),
 
-                        "Title" => kvalue!(captures[beatmap.title]: str),
-                        "TitleUnicode" => kvalue!(captures[beatmap.title_unicode]: str),
-                        "Artist" => kvalue!(captures[beatmap.artist]: str),
-                        "ArtistUnicode" => kvalue!(captures[beatmap.artist_unicode]: str),
-                        "Creator" => kvalue!(captures[beatmap.creator]: str),
-                        "Version" => kvalue!(captures[beatmap.difficulty_name]: str),
-                        "Source" => kvalue!(captures[beatmap.source]: str),
-                        "Tags" => {
-                            beatmap.tags =
-                                captures["value"].split(" ").map(|s| s.to_owned()).collect()
-                        }
-                        "BeatmapID" => kvalue!(captures[beatmap.beatmap_id]: parse(i32)),
-                        "BeatmapSetID" => kvalue!(captures[beatmap.beatmap_set_id]: parse(i32)),
+                            "Title" => kvalue!(captures[beatmap.title]: str),
+                            "TitleUnicode" => kvalue!(captures[beatmap.title_unicode]: str),
+                            "Artist" => kvalue!(captures[beatmap.artist]: str),
+                            "ArtistUnicode" => kvalue!(captures[beatmap.artist_unicode]: str),
+                            "Creator" => kvalue!(captures[beatmap.creator]: str),
+                            "Version" => kvalue!(captures[beatmap.difficulty_name]: str),
+                            "Source" => kvalue!(captures[beatmap.source]: str),
+                            "Tags" => {
+                                beatmap.tags =
+                                    captures["value"].split(" ").map(|s| s.to_owned()).collect()
+                            }
+                            "BeatmapID" => kvalue!(captures[beatmap.beatmap_id]: parse(i32)),
+                            "BeatmapSetID" => kvalue!(captures[beatmap.beatmap_set_id]: parse(i32)),
 
-                        "HPDrainRate" => {
-                            kvalue!(captures[beatmap.difficulty.hp_drain_rate]: parse(f32))
-                        }
-                        "CircleSize" => {
-                            kvalue!(captures[beatmap.difficulty.circle_size]: parse(f32))
-                        }
-                        "OverallDifficulty" => {
-                            kvalue!(captures[beatmap.difficulty.overall_difficulty]: parse(f32))
-                        }
-                        "ApproachRate" => {
-                            kvalue!(captures[beatmap.difficulty.approach_rate]: parse(f32))
-                        }
-                        "SliderMultiplier" => {
-                            kvalue!(captures[beatmap.difficulty.slider_multiplier]: parse(f32))
-                        }
+                            "HPDrainRate" => {
+                                kvalue!(captures[beatmap.difficulty.hp_drain_rate]: parse(f32))
+                            }
+                            "CircleSize" => {
+                                kvalue!(captures[beatmap.difficulty.circle_size]: parse(f32))
+                            }
+                            "OverallDifficulty" => {
+                                kvalue!(captures[beatmap.difficulty.overall_difficulty]: parse(f32))
+                            }
+                            "ApproachRate" => {
+                                kvalue!(captures[beatmap.difficulty.approach_rate]: parse(f32))
+                            }
+                            "SliderMultiplier" => {
+                                kvalue!(captures[beatmap.difficulty.slider_multiplier]: parse(f32))
+                            }
 
-                        _ => (),
+                            _ => (),
+                        }
                     }
-                },
+                }
             }
         }
         if beatmap.version == 0 {

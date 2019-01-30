@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 use num_rational::Ratio;
 use serde::ser::*;
 
-use SampleSet;
+use crate::SampleSet;
 
 /// The number of milliseconds that a timestamp is allowed to be off by.
 const THRESHOLD: f64 = 3.0;

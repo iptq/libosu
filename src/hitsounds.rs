@@ -1,6 +1,6 @@
 use std::ops::BitOr;
 
-use TimeLocation;
+use crate::TimeLocation;
 
 /// A set of hitsound samples.
 ///
