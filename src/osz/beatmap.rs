@@ -197,10 +197,10 @@ impl Beatmap {
 
         for line in hit_object_lines {
             let obj = HitObject::from_osz(line, &beatmap)?;
-            beatmap.hit_objects.insert(obj);
+            beatmap.hit_objects.push(obj);
         }
 
-        beatmap.associate_hitobjects();
+        // beatmap.associate_hitobjects();
         Ok(beatmap)
     }
 

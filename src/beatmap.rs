@@ -92,7 +92,7 @@ pub struct Beatmap {
     /// Overridden combo colors.
     pub colors: Vec<Color>,
     /// The set of hit objects.
-    pub hit_objects: BTreeSet<HitObject>,
+    pub hit_objects: Vec<HitObject>,
     /// The set of timing points.
     pub timing_points: Vec<TimingPoint>,
 }
@@ -132,7 +132,7 @@ impl Default for Beatmap {
             beatmap_set_id: -1,
 
             colors: Vec::new(),
-            hit_objects: BTreeSet::new(),
+            hit_objects: Vec::new(),
             timing_points: Vec::new(),
         }
     }
@@ -198,14 +198,14 @@ impl Beatmap {
     }
 
     /// Set a hitsound at the given time.
-    pub fn set_hitsound(&mut self, time: impl Into<TimeLocation>, hitsound: &Hitsound) {
-        if let Some(hit_object) = self.locate_hitobject(time) {
-            if let Some(mut hit_object) = self.hit_objects.take(&hit_object) {
-                hit_object.set_hitsound(hitsound);
-                self.hit_objects.insert(hit_object);
-            }
-        }
-    }
+    // pub fn set_hitsound(&mut self, time: impl Into<TimeLocation>, hitsound: &Hitsound) {
+    //     if let Some(hit_object) = self.locate_hitobject(time) {
+    //         if let Some(mut hit_object) = self.hit_objects.take(&hit_object) {
+    //             hit_object.set_hitsound(hitsound);
+    //             self.hit_objects.insert(hit_object);
+    //         }
+    //     }
+    // }
 
     /// Get a list of all hit objects.
     pub fn get_hitobjects(&self) -> Vec<HitObject> {
