@@ -1,7 +1,7 @@
 use std::ops::BitOr;
 
 /// Integer enumeration of the game's game modes.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[allow(missing_docs)]
 pub enum Mode {
     Osu = 0,
