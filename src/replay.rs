@@ -178,7 +178,7 @@ impl Replay {
         &self,
         reader: R,
     ) -> Result<ReplayActionParser<io::BufReader<XzDecoder<io::Take<R>>>>, Error> {
-        read_compressed_replay_actions(reader.take(self.replay_data_length as u64))
+        create_decompressing_replay_action_parser(reader.take(self.replay_data_length as u64))
     }
 
     /// Parse a replay file (.osr)
@@ -374,7 +374,7 @@ impl<'a, R: io::BufRead> Iterator for ReplayActionParserIter<'a, R> {
 }
 
 /// A parser for decompressed replay actions
-/// to read compressed replay actions see `read_compressed_replay_actions`
+/// to read compressed replay actions see `create_decompressing_replay_action_parser`
 pub struct ReplayActionParser<R: io::BufRead> {
     inner: R,
 }
@@ -397,7 +397,7 @@ impl<R: io::BufRead> ReplayActionParser<R> {
 }
 
 /// Create a parser for LZMA compressed replay actions
-fn read_compressed_replay_actions<R: io::BufRead>(
+pub fn create_decompressing_replay_action_parser<R: io::BufRead>(
     reader: R,
 ) -> Result<ReplayActionParser<io::BufReader<XzDecoder<R>>>, Error> {
     Ok(ReplayActionParser::new(io::BufReader::new(
@@ -480,7 +480,7 @@ fn test_read_replay_actions() {
     let replay = Replay::parse_header(&mut osr).unwrap();
 
     let actions: Vec<_> =
-        read_compressed_replay_actions(osr.take(replay.replay_data_length as u64))
+        create_decompressing_replay_action_parser(osr.take(replay.replay_data_length as u64))
             .unwrap()
             .iter()
             .map(|x| match x {
