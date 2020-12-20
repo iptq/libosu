@@ -1,7 +1,8 @@
 use std::ops::BitOr;
+use num_derive::FromPrimitive;
 
 /// Integer enumeration of the game's game modes.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
 #[allow(missing_docs)]
 pub enum Mode {
     Osu = 0,
@@ -13,6 +14,7 @@ pub enum Mode {
 /// Mod listing with their respective bitwise representation.
 ///
 /// This list is ripped directly from the [osu! wiki](https://github.com/ppy/osu-api/wiki).
+#[derive(Debug)]
 #[allow(missing_docs)]
 pub enum Mods {
     None = 0,
@@ -53,4 +55,47 @@ impl BitOr for Mods {
     fn bitor(self, other: Self) -> Self::Output {
         return self as u32 | other as u32;
     }
+}
+
+/// Integer enumeration of the user's permission
+#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[allow(missing_docs)]
+pub enum UserPermission {
+    None,
+    Normal,
+    Moderator,
+    Supporter,
+    Friend,
+    Peppy,
+    WorldCupStaff,
+}
+
+/// Integer enumeration of the ranked statuses.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[allow(missing_docs)]
+pub enum RankedStatus {
+    Unknown,
+    Unsubmitted,
+    Unranked,
+    Unused,
+    Ranked,
+    Approved,
+    Qualified,
+    Loved,
+}
+
+/// Rank grades
+#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[allow(missing_docs)]
+pub enum Grade {
+    SS,
+    SH,
+    SSH,
+    S,
+    A,
+    B,
+    C,
+    D,
+    F,
+    None,
 }

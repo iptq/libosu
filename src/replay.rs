@@ -212,12 +212,9 @@ impl Replay {
 
 macro_rules! read_num_le_fn {
     ($name:ident => $typ:ident) => {
-        fn $name<R: io::Read>(reader: &mut R) -> Result<$typ, Error> {
+        pub(crate) fn $name<R: io::Read>(reader: &mut R) -> Result<$typ, Error> {
             let mut buf: [u8; std::mem::size_of::<$typ>()] = [0; std::mem::size_of::<$typ>()];
-            let read_count = reader.read(&mut buf)?;
-            if read_count < buf.len() {
-                bail!("EOF reading {}", stringify!($typ));
-            }
+            reader.read_exact(&mut buf)?;
             Ok($typ::from_le_bytes(buf))
         }
     };
@@ -231,6 +228,7 @@ read_num_le_fn!(read_u8 => u8);
 read_num_le_fn!(read_u16le => u16);
 read_num_le_fn!(read_u32le => u32);
 read_num_le_fn!(read_u64le => u64);
+read_num_le_fn!(read_f32le => f32);
 read_num_le_fn!(read_f64le => f64);
 
 /// Read an unsigned LEB128 encoded number
@@ -239,10 +237,7 @@ fn read_uleb128<R: io::Read>(reader: &mut R) -> Result<u64, Error> {
     let mut buf: [u8; 1] = [0];
     let mut byte_index = 0;
 
-    let read_count = reader.read(&mut buf)?;
-    if read_count < 1 {
-        bail!("EOF reading byte {} uleb128", byte_index);
-    }
+    reader.read_exact(&mut buf)?;
 
     let mut total = (buf[0] & 0b01111111) as u64;
 
@@ -252,10 +247,7 @@ fn read_uleb128<R: io::Read>(reader: &mut R) -> Result<u64, Error> {
             bail!("ULEB128 number may overflow u64");
         }
 
-        let read_count = reader.read(&mut buf)?;
-        if read_count < 1 {
-            bail!("EOF reading byte {} uleb128", byte_index);
-        }
+        reader.read_exact(&mut buf)?;
 
         total += ((buf[0] & 0b01111111) as u64) << (7 * byte_index)
     }
@@ -264,12 +256,9 @@ fn read_uleb128<R: io::Read>(reader: &mut R) -> Result<u64, Error> {
 }
 
 /// read an string from an osu! replay.
-fn read_replay_string<R: io::Read>(reader: &mut R) -> Result<String, Error> {
+pub(crate) fn read_replay_string<R: io::Read>(reader: &mut R) -> Result<String, Error> {
     let mut empty_string_byte_buffer: [u8; 1] = [0];
-    let read_count = reader.read(&mut empty_string_byte_buffer)?;
-    if read_count < 1 {
-        bail!("EOF when attempting to read string length");
-    }
+    reader.read_exact(&mut empty_string_byte_buffer)?;
 
     // 0 means the string is not present
     if empty_string_byte_buffer[0] == 0 {
@@ -289,10 +278,7 @@ fn read_replay_string<R: io::Read>(reader: &mut R) -> Result<String, Error> {
     }
 
     let mut read_buffer = vec![0u8; length as usize];
-    let read_count = reader.read(read_buffer.as_mut())?;
-    if read_count < 1 {
-        bail!("EOF when attempting to read string of length {}", length);
-    }
+    reader.read_exact(read_buffer.as_mut())?;
 
     Ok(String::from_utf8(read_buffer)?)
 }

@@ -25,18 +25,20 @@ mod color;
 mod enums;
 mod hitobject;
 mod hitsounds;
+mod osudb;
 mod osz;
 mod point;
 mod replay;
 mod timing;
 
 #[cfg(feature = "api")]
-pub use api::{APIError, ApprovedStatus, API, UserScore, UserLookup};
+pub use api::{APIError, ApprovedStatus, UserLookup, UserScore, API};
 pub use beatmap::*;
 pub use color::*;
 pub use enums::*;
 pub use hitobject::*;
 pub use hitsounds::*;
+pub use osudb::*;
 pub use osz::*;
 pub use point::*;
 pub use replay::*;

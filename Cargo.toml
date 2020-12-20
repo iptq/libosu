@@ -29,7 +29,13 @@ xz2 = "0.1.6"
 hyper = { version = "0.12", optional = true }
 hyper-tls = { version = "0.3", optional = true }
 tokio = { version = "0.1", optional = true }
+num-derive = "0.3.3"
+num = "0.3.1"
+num-traits = "0.2.14"
 
 [features]
 default = ["api"]
 api = ["hyper", "hyper-tls", "tokio"]
+
+[profile.test]
+opt-level = 3
