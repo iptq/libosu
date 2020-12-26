@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use failure::Error;
+use anyhow::Result;
 
 use crate::{AbsoluteTime, SampleSet, TimeLocation, TimingPoint, TimingPointKind};
 
@@ -9,7 +9,7 @@ impl TimingPoint {
     pub fn from_osz(
         input: impl AsRef<str>,
         parent: &Option<TimingPoint>,
-    ) -> Result<TimingPoint, Error> {
+    ) -> Result<TimingPoint> {
         let parts = input.as_ref().split(",").collect::<Vec<_>>();
 
         let timestamp = parts[0].parse::<i32>()?;
@@ -60,7 +60,7 @@ impl TimingPoint {
     }
 
     /// Serializes this TimingPoint into the *.osz format.
-    pub fn as_osz(&self) -> Result<String, Error> {
+    pub fn as_osz(&self) -> Result<String> {
         let inherited = match &self.kind {
             &TimingPointKind::Inherited { .. } => 0,
             &TimingPointKind::Uninherited { .. } => 1,

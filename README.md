@@ -22,6 +22,7 @@ The following features are available through adding features in `Cargo.toml`,
 and are not included by default since they may bring in extra dependencies:
 
 - `apiv1`: Bindings for the osu! API v1.
+- `replay`: osu! Replay parser
 
 Getting Started
 ---------------

@@ -1,4 +1,4 @@
-use failure::Error;
+use anyhow::Result;
 use regex::Regex;
 
 use crate::{Beatmap, HitObject, Mode, SampleSet, TimingPoint, TimingPointKind};
@@ -39,7 +39,7 @@ macro_rules! kvalue {
 
 impl Beatmap {
     /// Creates a Beatmap from the *.osz format
-    pub fn from_osz(input: impl AsRef<str>) -> Result<Beatmap, Error> {
+    pub fn from_osz(input: impl AsRef<str>) -> Result<Beatmap> {
         // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();
         let mut beatmap = Beatmap::default();
@@ -205,7 +205,7 @@ impl Beatmap {
     }
 
     /// Serializes this Beatmap into the *.osz format.
-    pub fn as_osz(&self) -> Result<String, Error> {
+    pub fn as_osz(&self) -> Result<String> {
         let mut lines = vec![];
 
         // version

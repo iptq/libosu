@@ -9,14 +9,11 @@
 #![deny(missing_docs)]
 
 #[macro_use]
-extern crate failure;
+extern crate anyhow;
 #[macro_use]
 extern crate lazy_static;
-extern crate num_rational;
-extern crate regex;
-extern crate serde;
 #[macro_use]
-extern crate serde_derive;
+extern crate serde;
 
 #[cfg(feature = "apiv1")]
 mod apiv1;
@@ -25,8 +22,9 @@ mod color;
 mod enums;
 mod hitobject;
 mod hitsounds;
-mod osz;
+mod parsing;
 mod point;
+#[cfg(feature = "replay")]
 mod replay;
 mod timing;
 
@@ -37,8 +35,9 @@ pub use color::*;
 pub use enums::*;
 pub use hitobject::*;
 pub use hitsounds::*;
-pub use osz::*;
+pub use parsing::*;
 pub use point::*;
+#[cfg(feature = "replay")]
 pub use replay::*;
 pub use timing::*;
 

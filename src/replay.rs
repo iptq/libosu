@@ -1,5 +1,6 @@
-use failure::Error;
 use std::io::{self};
+
+use anyhow::Result;
 use std::str::FromStr;
 use xz2::bufread::XzDecoder;
 use xz2::stream::Stream;

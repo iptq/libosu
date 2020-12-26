@@ -1,4 +1,4 @@
-use failure::Error;
+use anyhow::Result;
 
 use crate::{
     AbsoluteTime, Additions, Beatmap, HitObject, HitObjectKind, Hitsound, Point, SampleSet,
@@ -7,7 +7,7 @@ use crate::{
 
 impl HitObject {
     /// Creates a HitObject from the *.osz format
-    pub fn from_osz(input: impl AsRef<str>, parent: &Beatmap) -> Result<HitObject, Error> {
+    pub fn from_osz(input: impl AsRef<str>, parent: &Beatmap) -> Result<HitObject> {
         let parts = input.as_ref().split(",").collect::<Vec<_>>();
 
         let x = parts[0].parse::<i32>()?;
@@ -115,7 +115,7 @@ impl HitObject {
     }
 
     /// Serializes this HitObject into the *.osz format.
-    pub fn as_osz(&self) -> Result<String, Error> {
+    pub fn as_osz(&self) -> Result<String> {
         let obj_type = match &self.kind {
             &HitObjectKind::Circle => 1,
             &HitObjectKind::Slider { .. } => 2,

@@ -1,4 +1,4 @@
-use failure::Error;
+use anyhow::Result;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use crate::{
@@ -183,7 +183,7 @@ impl Beatmap {
     /// This will also return hitsounds that occur on parts of objects, for example on slider
     /// bodies or slider ends. If a hitsound occurs on a spinner, the only "sound" that's counted
     /// is the moment that the spinner ends.
-    pub fn get_hitsounds(&self) -> Result<Vec<(i32, Hitsound)>, Error> {
+    pub fn get_hitsounds(&self) -> Result<Vec<(i32, Hitsound)>> {
         let mut hitsounds = Vec::new();
         for obj in self.hit_objects.iter() {
             let start_time = obj.start_time.clone().as_milliseconds();
