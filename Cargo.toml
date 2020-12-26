@@ -1,10 +1,10 @@
 [package]
 name = "libosu"
-version = "0.0.8"
-authors = ["michael <iptq@protonmail.com>"]
+version = "0.0.9"
+authors = ["Michael Zhang <mail@mzhang.io>"]
 edition = "2018"
 
-description = "General-purpose osu! library with bindings for other languages."
+description = "General-purpose osu! library."
 license = "MIT"
 readme = "README.md"
 keywords = ["osu"]
@@ -31,5 +31,5 @@ hyper-tls = { version = "0.3", optional = true }
 tokio = { version = "0.1", optional = true }
 
 [features]
-default = ["api"]
-api = ["hyper", "hyper-tls", "tokio"]
+default = []
+apiv1 = ["hyper", "hyper-tls", "tokio"]

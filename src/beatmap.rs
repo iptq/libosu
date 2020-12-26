@@ -1,5 +1,3 @@
-use std::collections::BTreeSet;
-
 use failure::Error;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
@@ -139,38 +137,6 @@ impl Default for Beatmap {
 }
 
 impl Beatmap {
-    pub(crate) fn associate_hitobjects(&mut self) {
-        /*
-        let mut curr = 1;
-        for obj_ref in self.hit_objects.iter() {
-            if curr >= self.timing_points.len() {
-                break;
-            }
-            let obj = obj_ref.borrow();
-            let obj_time = obj.start_time.into_milliseconds();
-            // should we advance?
-            let next_time = self.timing_points[curr].borrow().time.into_milliseconds();
-            if obj_time >= next_time {
-                curr += 1;
-            }
-            // assign timing point
-            let tp = &self.timing_points[curr - 1].borrow();
-
-            let bpm = tp.get_bpm();
-            let meter = tp.get_meter();
-            let (measures, frac) = obj.start_time.approximate(&tp.time, bpm, meter);
-            let mut obj_mut = (**obj_ref).borrow_mut();
-            obj_mut.start_time = TimeLocation::Relative {
-                time: Box::new(tp.time.clone()),
-                bpm: tp.get_bpm(),
-                meter: tp.get_meter(),
-                measures,
-                frac,
-            };
-        }
-        */
-    }
-
     /// Returns the timing point associated with the timing section to which the given time belongs.`
     pub fn locate_timing_point(&self, time: impl Into<TimeLocation>) -> Option<TimingPoint> {
         // TODO: make this efficient
@@ -187,7 +153,7 @@ impl Beatmap {
     /// Returns the hitobject located at the given time.
     pub fn locate_hitobject(&self, time: impl Into<TimeLocation>) -> Option<HitObject> {
         let time = time.into();
-        for mut hit_object in self.hit_objects.iter() {
+        for hit_object in self.hit_objects.iter() {
             if &hit_object.start_time == &time {
                 return Some(hit_object.clone());
             }
