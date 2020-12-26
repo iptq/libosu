@@ -5,7 +5,7 @@ use std::str::FromStr;
 use xz2::bufread::XzDecoder;
 use xz2::stream::Stream;
 
-use crate::{read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string, Mode};
+use crate::{read_f64le, read_u64le, read_u32le, read_u8, read_uleb128_string, read_u16le, Mode};
 
 // write a parser for the life graph
 // /// A point in the life graph
@@ -319,182 +319,190 @@ pub fn create_decompressing_replay_action_parser<R: io::BufRead>(
     )))
 }
 
-#[test]
-fn test_read_uleb128() {
-    let mut num = io::Cursor::new([0xE5, 0x8E, 0x26]);
-    assert_eq!(read_uleb128(&mut num).unwrap(), 624485u64);
-}
+#[cfg(test)]
+mod tests {
+    use std::io;
 
-#[test]
-fn test_read_uleb128_string() {
-    let text = "Hello World";
-    let mut replay_string = vec![0x0Bu8];
-    replay_string.push(text.len() as u8);
-    replay_string.extend(text.bytes());
+    use crate::*;
 
-    let mut reader = io::Cursor::new(replay_string);
-    assert_eq!(read_uleb128_string(&mut reader).unwrap(), text.to_string());
+    #[test]
+    fn test_read_uleb128() {
+        let mut num = io::Cursor::new([0xE5, 0x8E, 0x26]);
+        assert_eq!(read_uleb128(&mut num).unwrap(), 624485u64);
+    }
 
-    let mut reader_empty = io::Cursor::new(vec![0x00]);
-    assert_eq!(
-        read_uleb128_string(&mut reader_empty).unwrap(),
-        String::new()
-    );
+    #[test]
+    fn test_read_uleb128_string() {
+        let text = "Hello World";
+        let mut replay_string = vec![0x0Bu8];
+        replay_string.push(text.len() as u8);
+        replay_string.extend(text.bytes());
 
-    let mut reader_zero_length = io::Cursor::new(vec![0x0B, 0x00]);
-    assert_eq!(
-        read_uleb128_string(&mut reader_zero_length).unwrap(),
-        String::new()
-    );
-}
+        let mut reader = io::Cursor::new(replay_string);
+        assert_eq!(read_uleb128_string(&mut reader).unwrap(), text.to_string());
 
-#[test]
-fn test_replay_parse_header() {
-    use super::Mods;
-    use std::fs::File;
+        let mut reader_empty = io::Cursor::new(vec![0x00]);
+        assert_eq!(
+            read_uleb128_string(&mut reader_empty).unwrap(),
+            String::new()
+        );
 
-    let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
-    let header = Replay::parse_header(&mut osr).unwrap();
+        let mut reader_zero_length = io::Cursor::new(vec![0x0B, 0x00]);
+        assert_eq!(
+            read_uleb128_string(&mut reader_zero_length).unwrap(),
+            String::new()
+        );
+    }
 
-    assert_eq!(header.mode, Mode::Osu);
-    assert_eq!(header.version, 20200304);
-    assert_eq!(
-        header.beatmap_hash,
-        "4190b795c2847f9eae06a0651493d6e2".to_string()
-    );
-    assert_eq!(header.player_username, "FGSky".to_string());
-    assert_eq!(
-        header.replay_hash,
-        "e8983dbdb53360e5d19cbe5de5de49a7".to_string()
-    );
+    #[test]
+    fn test_replay_parse_header() {
+        use std::fs::File;
 
-    assert_eq!(header.count_300, 330);
-    assert_eq!(header.count_100, 24);
-    assert_eq!(header.count_50, 0);
-    assert_eq!(header.count_geki, 87);
-    assert_eq!(header.count_katu, 21);
-    assert_eq!(header.count_miss, 2);
+        let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
+        let header = Replay::parse_header(&mut osr).unwrap();
 
-    assert_eq!(header.score, 7756117);
-    assert_eq!(header.max_combo, 527);
-    assert_eq!(header.perfect, false);
-    assert_eq!(
-        header.mods,
-        (Mods::Flashlight | Mods::Hidden) | (Mods::DoubleTime | Mods::HardRock)
-    );
-}
+        assert_eq!(header.mode, Mode::Osu);
+        assert_eq!(header.version, 20200304);
+        assert_eq!(
+            header.beatmap_hash,
+            "4190b795c2847f9eae06a0651493d6e2".to_string()
+        );
+        assert_eq!(header.player_username, "FGSky".to_string());
+        assert_eq!(
+            header.replay_hash,
+            "e8983dbdb53360e5d19cbe5de5de49a7".to_string()
+        );
 
-#[test]
-fn test_read_replay_actions() {
-    use std::fs::File;
-    use std::io::Read;
+        assert_eq!(header.count_300, 330);
+        assert_eq!(header.count_100, 24);
+        assert_eq!(header.count_50, 0);
+        assert_eq!(header.count_geki, 87);
+        assert_eq!(header.count_katu, 21);
+        assert_eq!(header.count_miss, 2);
 
-    let mut osr =
-        io::BufReader::new(File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap());
-    let replay = Replay::parse_header(&mut osr).unwrap();
+        assert_eq!(header.score, 7756117);
+        assert_eq!(header.max_combo, 527);
+        assert_eq!(header.perfect, false);
+        assert_eq!(
+            header.mods,
+            (Mods::Flashlight | Mods::Hidden) | (Mods::DoubleTime | Mods::HardRock)
+        );
+    }
 
-    let actions: Vec<_> =
-        create_decompressing_replay_action_parser(osr.take(replay.replay_data_length as u64))
-            .unwrap()
+    #[test]
+    fn test_read_replay_actions() {
+        use std::fs::File;
+        use std::io::Read;
+
+        let mut osr = io::BufReader::new(
+            File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap(),
+        );
+        let replay = Replay::parse_header(&mut osr).unwrap();
+
+        let actions: Vec<_> =
+            create_decompressing_replay_action_parser(osr.take(replay.replay_data_length as u64))
+                .unwrap()
+                .iter()
+                .map(|x| match x {
+                    Ok(v) => v,
+                    Err(e) => panic!("read replay action error: {}", e),
+                })
+                .collect();
+
+        let seed_action = actions.last().unwrap();
+        assert_eq!(seed_action.time, -12345);
+        assert_eq!(seed_action.x, 0.0);
+        assert_eq!(seed_action.y, 0.0);
+        assert_eq!(seed_action.buttons, 16516643);
+    }
+
+    #[test]
+    fn test_replay_parse_skip_actions() {
+        use std::fs::File;
+        {
+            let mut osr = File::open(
+                "tests/files/ - nekodex - new beginnings [tutorial] (2020-12-16) Osu.osr",
+            )
+            .unwrap();
+            let replay = Replay::parse_skip_actions(&mut osr).unwrap();
+            assert_eq!(replay.score_id, 0);
+            assert_eq!(replay.target_practice_total_accuracy, None);
+        }
+
+        {
+            let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
+            let replay = Replay::parse_skip_actions(&mut osr).unwrap();
+            assert_eq!(replay.score_id, 3017707256);
+            assert_eq!(replay.target_practice_total_accuracy, None);
+        }
+    }
+
+    #[test]
+    fn test_replay_action_parser() {
+        let actions_text = "1|32.1|300.734|0,32|500.5123|0|10,-12345|0|0|734243";
+
+        let reader = io::Cursor::new(actions_text);
+        let actions: Vec<_> = ReplayActionParser::new(reader)
             .iter()
-            .map(|x| match x {
-                Ok(v) => v,
-                Err(e) => panic!("read replay action error: {}", e),
-            })
+            .map(|x| x.unwrap())
             .collect();
 
-    let seed_action = actions.last().unwrap();
-    assert_eq!(seed_action.time, -12345);
-    assert_eq!(seed_action.x, 0.0);
-    assert_eq!(seed_action.y, 0.0);
-    assert_eq!(seed_action.buttons, 16516643);
-}
+        assert_eq!(actions.len(), 3);
 
-#[test]
-fn test_replay_parse_skip_actions() {
-    use std::fs::File;
-    {
-        let mut osr =
-            File::open("tests/files/ - nekodex - new beginnings [tutorial] (2020-12-16) Osu.osr")
-                .unwrap();
-        let replay = Replay::parse_skip_actions(&mut osr).unwrap();
-        assert_eq!(replay.score_id, 0);
-        assert_eq!(replay.target_practice_total_accuracy, None);
+        assert_eq!(actions[0].time, 1);
+        assert_eq!(actions[0].x, 32.1);
+        assert_eq!(actions[0].y, 300.734);
+        assert_eq!(actions[0].buttons, 0);
+
+        assert_eq!(actions[1].time, 32);
+        assert_eq!(actions[1].x, 500.5123);
+        assert_eq!(actions[1].y, 0.0);
+        assert_eq!(actions[1].buttons, 10);
+
+        assert_eq!(actions[2].time, -12345);
+        assert_eq!(actions[2].x, 0.0);
+        assert_eq!(actions[2].y, 0.0);
+        assert_eq!(actions[2].buttons, 734243);
     }
 
-    {
-        let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
-        let replay = Replay::parse_skip_actions(&mut osr).unwrap();
-        assert_eq!(replay.score_id, 3017707256);
+    #[test]
+    fn test_replay_parse() {
+        use std::fs::File;
+
+        let osr = File::open("tests/files/replay-osu_1816113_2892542031.osr").unwrap();
+        let replay = Replay::parse(io::BufReader::new(osr)).unwrap();
+        dbg!(replay.actions.len());
+        assert_eq!(replay.mode, Mode::Osu);
+        assert_eq!(replay.version, 20190906);
+        assert_eq!(
+            replay.beatmap_hash,
+            "edd35ab673c5f73029cc8eda6faefe00".to_string()
+        );
+        assert_eq!(replay.player_username, "Vaxei".to_string());
+        assert_eq!(
+            replay.replay_hash,
+            "139c99f18fc78555cd8f30a963aadf0a".to_string()
+        );
+
+        assert_eq!(replay.count_300, 2977);
+        assert_eq!(replay.count_100, 38);
+        assert_eq!(replay.count_50, 0);
+        assert_eq!(replay.count_geki, 605);
+        assert_eq!(replay.count_katu, 30);
+        assert_eq!(replay.count_miss, 0);
+
+        assert_eq!(replay.score, 364_865_850);
+        assert_eq!(replay.max_combo, 4078);
+        assert_eq!(replay.perfect, false);
+        assert_eq!(replay.mods, 0);
+
+        let seed_action = replay.actions.last().unwrap();
+        assert_eq!(seed_action.time, -12345);
+        assert_eq!(seed_action.x, 0.0);
+        assert_eq!(seed_action.y, 0.0);
+        assert_eq!(seed_action.buttons, 7364804);
+
+        assert_eq!(replay.score_id, 2892542031);
         assert_eq!(replay.target_practice_total_accuracy, None);
     }
-}
-
-#[test]
-fn test_replay_action_parser() {
-    let actions_text = "1|32.1|300.734|0,32|500.5123|0|10,-12345|0|0|734243";
-
-    let reader = io::Cursor::new(actions_text);
-    let actions: Vec<_> = ReplayActionParser::new(reader)
-        .iter()
-        .map(|x| x.unwrap())
-        .collect();
-
-    assert_eq!(actions.len(), 3);
-
-    assert_eq!(actions[0].time, 1);
-    assert_eq!(actions[0].x, 32.1);
-    assert_eq!(actions[0].y, 300.734);
-    assert_eq!(actions[0].buttons, 0);
-
-    assert_eq!(actions[1].time, 32);
-    assert_eq!(actions[1].x, 500.5123);
-    assert_eq!(actions[1].y, 0.0);
-    assert_eq!(actions[1].buttons, 10);
-
-    assert_eq!(actions[2].time, -12345);
-    assert_eq!(actions[2].x, 0.0);
-    assert_eq!(actions[2].y, 0.0);
-    assert_eq!(actions[2].buttons, 734243);
-}
-
-#[test]
-fn test_replay_parse() {
-    use std::fs::File;
-
-    let osr = File::open("tests/files/replay-osu_1816113_2892542031.osr").unwrap();
-    let replay = Replay::parse(io::BufReader::new(osr)).unwrap();
-    dbg!(replay.actions.len());
-    assert_eq!(replay.mode, Mode::Osu);
-    assert_eq!(replay.version, 20190906);
-    assert_eq!(
-        replay.beatmap_hash,
-        "edd35ab673c5f73029cc8eda6faefe00".to_string()
-    );
-    assert_eq!(replay.player_username, "Vaxei".to_string());
-    assert_eq!(
-        replay.replay_hash,
-        "139c99f18fc78555cd8f30a963aadf0a".to_string()
-    );
-
-    assert_eq!(replay.count_300, 2977);
-    assert_eq!(replay.count_100, 38);
-    assert_eq!(replay.count_50, 0);
-    assert_eq!(replay.count_geki, 605);
-    assert_eq!(replay.count_katu, 30);
-    assert_eq!(replay.count_miss, 0);
-
-    assert_eq!(replay.score, 364_865_850);
-    assert_eq!(replay.max_combo, 4078);
-    assert_eq!(replay.perfect, false);
-    assert_eq!(replay.mods, 0);
-
-    let seed_action = replay.actions.last().unwrap();
-    assert_eq!(seed_action.time, -12345);
-    assert_eq!(seed_action.x, 0.0);
-    assert_eq!(seed_action.y, 0.0);
-    assert_eq!(seed_action.buttons, 7364804);
-
-    assert_eq!(replay.score_id, 2892542031);
-    assert_eq!(replay.target_practice_total_accuracy, None);
 }
