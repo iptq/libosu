@@ -5,7 +5,7 @@
 
 use std::fmt;
 
-use futures::stream::{StreamExt, TryStreamExt};
+use futures::stream::TryStreamExt;
 use hyper::{
     client::{Client, HttpConnector},
     Body,
@@ -65,13 +65,13 @@ impl API {
             self.api_key,
             user,
             mode,
-            limit.unwrap_or_else(|| 10),
+            limit.unwrap_or(10),
         )
         .parse()
         .unwrap();
 
         let mut resp = self.client.get(uri).await?;
-        let mut body = resp.body_mut();
+        let body = resp.body_mut();
         // TODO: is there a more elegant way to do this
         let mut result = Vec::new();
         loop {

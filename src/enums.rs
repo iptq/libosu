@@ -73,7 +73,7 @@ pub enum UserPermission {
 impl BitOr for UserPermission {
     type Output = u8;
     fn bitor(self, other: Self) -> Self::Output {
-        return self as Self::Output | other as Self::Output;
+        self as Self::Output | other as Self::Output
     }
 }
 

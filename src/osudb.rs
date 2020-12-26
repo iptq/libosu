@@ -4,7 +4,7 @@ use anyhow::Error;
 
 use crate::{
     read_f32le, read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string,
-    Grade, Mode, RankedStatus, UserPermission,
+    Grade, Mode, RankedStatus,
 };
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -298,25 +298,26 @@ impl OsuDBBeatmap {
 impl OsuDB {
     /// Parse the osu!.db data from a reader.
     pub fn parse(mut reader: impl io::BufRead) -> Result<OsuDB, Error> {
-        let version;
-        let beatmap_count;
+        let version = read_u32le(&mut reader)?;
+        let folder_count = read_u32le(&mut reader)?;
+        let account_unlocked = read_u8(&mut reader)? > 0;
+        let unlocked_date = read_u64le(&mut reader)?;
+        let player_name = read_uleb128_string(&mut reader)?;
+        let beatmap_count = read_u32le(&mut reader)?;
+        let beatmaps = (0..beatmap_count)
+            .map(|_| OsuDBBeatmap::parse(&mut reader, version))
+            .collect::<Result<Vec<_>, _>>()?;
+        let permissions = read_u8(&mut reader)?;
+
         Ok(OsuDB {
-            version: {
-                version = read_u32le(&mut reader)?;
-                version
-            },
-            folder_count: read_u32le(&mut reader)?,
-            account_unlocked: read_u8(&mut reader)? > 0,
-            unlocked_date: read_u64le(&mut reader)?,
-            player_name: read_uleb128_string(&mut reader)?,
-            beatmap_count: {
-                beatmap_count = read_u32le(&mut reader)?;
-                beatmap_count
-            },
-            beatmaps: (0..beatmap_count)
-                .map(|_| OsuDBBeatmap::parse(&mut reader, version))
-                .collect::<Result<Vec<_>, Error>>()?,
-            permissions: read_u8(&mut reader)?,
+            version,
+            folder_count,
+            account_unlocked,
+            unlocked_date,
+            player_name,
+            beatmap_count,
+            beatmaps,
+            permissions,
         })
     }
 }
