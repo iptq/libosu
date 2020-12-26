@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
-use crate::{Additions, Point, SampleInfo, TimeLocation, TimingPoint};
+use crate::hitsounds::{Additions, SampleInfo, SampleSet};
+use crate::{Point, TimeLocation, TimingPoint};
 
 /// Distinguishes between different types of slider splines.
 #[derive(Clone, Debug)]
@@ -34,9 +35,9 @@ pub enum HitObjectKind {
         duration: u32,
         /// Hitsounds on each repeat of the slider
         /// TODO: fix this
-        edge_hitsounds: Vec<u32>,
+        edge_hitsounds: Vec<Additions>,
         /// Additions on each repeat of the slider
-        edge_additions: Vec<String>,
+        edge_additions: Vec<(SampleSet, SampleSet)>,
     },
     /// Spinner.
     Spinner {

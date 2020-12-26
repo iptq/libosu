@@ -165,7 +165,7 @@ impl Beatmap {
         None
     }
 
-    /// Set a hitsound at the given time.
+    // /// Set a hitsound at the given time.
     // pub fn set_hitsound(&mut self, time: impl Into<TimeLocation>, hitsound: &Hitsound) {
     //     if let Some(hit_object) = self.locate_hitobject(time) {
     //         if let Some(mut hit_object) = self.hit_objects.take(&hit_object) {
@@ -174,11 +174,6 @@ impl Beatmap {
     //         }
     //     }
     // }
-
-    /// Get a list of all hit objects.
-    pub fn get_hitobjects(&self) -> Vec<HitObject> {
-        self.hit_objects.clone()
-    }
 
     /// Returns a list of this beatmap's hitsounds.
     ///

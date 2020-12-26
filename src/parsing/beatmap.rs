@@ -1,7 +1,7 @@
 use regex::Regex;
 
+use crate::parsing::{Error, Result};
 use crate::{Beatmap, Color, HitObject, Mode, SampleSet, TimingPoint, TimingPointKind};
-use crate::parsing::{Result, Error};
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =

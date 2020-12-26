@@ -1,9 +1,9 @@
 mod beatmap;
+mod errors;
 mod hitobject;
 mod timing;
-mod errors;
 
 pub use self::beatmap::*;
+pub use self::errors::{Error, Result};
 pub use self::hitobject::*;
 pub use self::timing::*;
-pub use self::errors::{Result, Error};

@@ -1,10 +1,10 @@
 use num_traits::FromPrimitive;
 
+use crate::parsing::{Error, Result};
 use crate::{
     AbsoluteTime, Additions, Beatmap, HitObject, HitObjectKind, Point, SampleInfo, SampleSet,
     SliderSplineKind, TimeLocation,
 };
-use crate::parsing::{Result, Error};
 
 impl HitObject {
     /// Creates a HitObject from the *.osz format
@@ -37,11 +37,6 @@ impl HitObject {
                 let mut ctl_parts = parts[5].split('|').collect::<Vec<_>>();
                 let repeats = parts[6].parse::<u32>()?;
                 let slider_type = ctl_parts.remove(0);
-                sample_info = if parts.len() > 10 {
-                    parse_hitsample(parts[10])?
-                } else {
-                    SampleInfo::default()
-                };
 
                 // slider duration = pixelLength / (100.0 * SliderMultiplier) * BeatDuration
                 // from the osu wiki
@@ -57,19 +52,33 @@ impl HitObject {
                 let edge_hitsounds = if parts.len() > 8 {
                     parts[8]
                         .split('|')
-                        .map(|n| n.parse::<u32>())
+                        .map(|n| n.parse::<u32>().map(|b| Additions::from_bits(b).unwrap()))
                         .collect::<Result<Vec<_>, _>>()?
                 } else {
-                    vec![0]
+                    vec![Additions::empty()]
                 };
 
                 let edge_additions = if parts.len() > 9 {
                     parts[9]
                         .split('|')
-                        .map(|s| s.to_string())
-                        .collect::<Vec<_>>()
+                        .map(|s| {
+                            let s2 = s.split(':').collect::<Vec<_>>();
+                            let normal = s2[0].parse::<u32>()?;
+                            let additions = s2[1].parse::<u32>()?;
+                            Ok((
+                                SampleSet::from_u32(normal).unwrap(),
+                                SampleSet::from_u32(additions).unwrap(),
+                            ))
+                        })
+                        .collect::<Result<Vec<_>>>()?
                 } else {
-                    vec!["0:0".to_string()]
+                    vec![(SampleSet::None, SampleSet::None)]
+                };
+
+                sample_info = if parts.len() > 10 {
+                    parse_hitsample(parts[10])?
+                } else {
+                    SampleInfo::default()
                 };
 
                 HitObjectKind::Slider {
@@ -144,10 +153,14 @@ impl HitObject {
             } => {
                 let edge_hitsounds = edge_hitsounds
                     .iter()
-                    .map(|f| f.to_string())
+                    .map(|f| f.bits().to_string())
                     .collect::<Vec<_>>()
                     .join("|");
-                let edge_additions = edge_additions.join("|");
+                let edge_additions = edge_additions
+                    .iter()
+                    .map(|f| format!("{}:{}", f.0 as u32, f.1 as u32))
+                    .collect::<Vec<_>>()
+                    .join("|");
                 format!(
                     "{}|{},{},{},{},{},",
                     match kind {
