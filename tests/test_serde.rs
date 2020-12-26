@@ -1,11 +1,7 @@
-extern crate libosu;
-extern crate serde;
-#[macro_use]
-extern crate serde_json;
-
 use std::fs::File;
 use std::io::Read;
 
+use difference::Changeset;
 use libosu::*;
 
 macro_rules! test_serde {
@@ -16,28 +12,12 @@ macro_rules! test_serde {
                 let mut file = File::open(format!("tests/files/{}.osu", $id)).expect("couldn't open file");
                 let mut contents = String::new();
                 file.read_to_string(&mut contents).expect("couldn't read file");
+
                 let beatmap = Beatmap::from_osz(&contents).expect("couldn't parse");
+                let reexported = beatmap.as_osz().expect("couldn't serialize");
 
-                // stage 1
-                let stage1 = beatmap.as_osz().expect("couldn't serialize");
-
-                // let mut file = File::create(format!("tests/out/{}.stage1.osu", $id)).expect("couldn't open file");
-                // file.write_all(stage1.as_bytes()).expect("couldn't write");
-                // eprintln!("STAGE 2 --------------------");
-
-                // ok parse again
-                let beatmap1 = Beatmap::from_osz(stage1.clone()).expect("couldn't parse");
-
-                // stage 2
-                let stage2 = beatmap1.as_osz().expect("couldn't serialize");
-
-                println!("{}", stage2);
-                println!("{:?}", beatmap);
-
-                assert_eq!(stage1, stage2);
-                // panic!();
-
-                json!(beatmap).to_string();
+                let cs = Changeset::new(&contents, &reexported, "\n");
+                assert_eq!(contents, reexported, "difference: {}", cs);
             }
         )*
     };

@@ -34,6 +34,9 @@ pub enum HitObjectKind {
         pixel_length: f64,
         /// The number of milliseconds long that this slider lasts.
         duration: u32,
+        /// Hitsounds on each repeat of the slider
+        /// TODO: fix this
+        edge_hitsounds: Vec<u32>,
     },
     /// Spinner.
     Spinner {
