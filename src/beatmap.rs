@@ -2,11 +2,11 @@ use anyhow::Result;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use crate::{
-    Color, HitObject, HitObjectKind, Hitsound, Mode, SampleSet, TimeLocation, TimingPoint,
+    Additions, Color, HitObject, HitObjectKind, Mode, SampleSet, TimeLocation, TimingPoint,
 };
 
 /// Difficulty settings defined by the map.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Difficulty {
     /// HP Drain Rate
     ///
@@ -25,10 +25,12 @@ pub struct Difficulty {
     pub approach_rate: f32,
     /// Slider Multiplier
     pub slider_multiplier: f32,
+    /// Slider tick rate
+    pub slider_tick_rate: u32,
 }
 
 /// Represents a single beatmap.
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Beatmap {
     /// The osu! file format being used
     pub version: u32,
@@ -183,7 +185,7 @@ impl Beatmap {
     /// This will also return hitsounds that occur on parts of objects, for example on slider
     /// bodies or slider ends. If a hitsound occurs on a spinner, the only "sound" that's counted
     /// is the moment that the spinner ends.
-    pub fn get_hitsounds(&self) -> Result<Vec<(i32, Hitsound)>> {
+    pub fn get_hitsounds(&self) -> Result<Vec<(i32, Additions)>> {
         let mut hitsounds = Vec::new();
         for obj in self.hit_objects.iter() {
             let start_time = obj.start_time.clone().as_milliseconds();
@@ -196,10 +198,10 @@ impl Beatmap {
                     // TODO: calculate middle hitsounds
                     for i in 0..(repeats + 1) {
                         let time = start_time + (i * duration) as i32;
-                        hitsounds.push((time, obj.hitsound.clone()));
+                        hitsounds.push((time, obj.additions));
                     }
                 }
-                _ => hitsounds.push((start_time, obj.hitsound.clone())),
+                _ => hitsounds.push((start_time, obj.additions)),
             }
         }
         Ok(hitsounds)

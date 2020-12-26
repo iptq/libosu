@@ -1,8 +1,6 @@
 use std::cmp::Ordering;
 
-use serde::ser::*;
-
-use crate::{Hitsound, Point, TimeLocation, TimingPoint};
+use crate::{Additions, Point, SampleInfo, TimeLocation, TimingPoint};
 
 /// Distinguishes between different types of slider splines.
 #[derive(Clone, Debug)]
@@ -34,6 +32,11 @@ pub enum HitObjectKind {
         pixel_length: f64,
         /// The number of milliseconds long that this slider lasts.
         duration: u32,
+        /// Hitsounds on each repeat of the slider
+        /// TODO: fix this
+        edge_hitsounds: Vec<u32>,
+        /// Additions on each repeat of the slider
+        edge_additions: Vec<String>,
     },
     /// Spinner.
     Spinner {
@@ -57,25 +60,10 @@ pub struct HitObject {
     pub timing_point: Option<TimingPoint>,
     /// The number of combo colors to skip
     pub skip_color: i32,
-    /// The hitsound attached to this hit object.
-    pub hitsound: Hitsound,
-}
-
-impl HitObject {
-    /// Replaces the hitsound on this hitobject.
-    pub fn set_hitsound(&mut self, hitsound: &Hitsound) {
-        self.hitsound = hitsound.clone();
-    }
-}
-
-impl Serialize for HitObject {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let state = serializer.serialize_struct("HitObject", 0)?;
-        state.end()
-    }
+    /// The hitsound additions attached to this hit object.
+    pub additions: Additions,
+    /// The sample used to play the hitsound assigned to this hit object.
+    pub sample_info: SampleInfo,
 }
 
 impl Ord for HitObject {
