@@ -1,6 +1,6 @@
 /// Represents an RGB color.
 // TODO: alpha?
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Color {
     /// red from 0-255
     pub red: u8,

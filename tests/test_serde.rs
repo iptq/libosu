@@ -15,9 +15,9 @@ macro_rules! test_serde {
 
                 let beatmap = Beatmap::from_osz(&contents).expect("couldn't parse");
                 let reexported = beatmap.as_osz().expect("couldn't serialize");
+                let beatmap2 = Beatmap::from_osz(&reexported).expect("couldn't parse");
 
-                let cs = Changeset::new(&contents, &reexported, "\n");
-                assert_eq!(contents, reexported, "difference: {}", cs);
+                assert_eq!(beatmap, beatmap2);
             }
         )*
     };

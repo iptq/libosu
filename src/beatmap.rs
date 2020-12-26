@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// Difficulty settings defined by the map.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Difficulty {
     /// HP Drain Rate
     ///
@@ -30,7 +30,7 @@ pub struct Difficulty {
 }
 
 /// Represents a single beatmap.
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Beatmap {
     /// The osu! file format being used
     pub version: u32,

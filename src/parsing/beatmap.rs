@@ -114,7 +114,16 @@ impl Beatmap {
 
                             "Bookmarks" => {
                                 beatmap.bookmarks = captures["value"]
+                                    .trim()
                                     .split(',')
+                                    .filter_map(|s| {
+                                        let s = s.trim();
+                                        if s.is_empty() {
+                                            None
+                                        } else {
+                                            Some(s)
+                                        }
+                                    })
                                     .map(|n| n.parse::<i32>().unwrap())
                                     .collect()
                             }
@@ -164,11 +173,12 @@ impl Beatmap {
                 }
             }
         }
-        if beatmap.version == 0 {
-            bail!(
-                "Could not find osu! file format version line. Check your beatmap and try again."
-            );
-        }
+
+        // if beatmap.version == 0 {
+        //     bail!(
+        //         "Could not find osu! file format version line. Check your beatmap and try again."
+        //     );
+        // }
         eprintln!("len: {}", timing_point_lines.len());
 
         // parse timing points
