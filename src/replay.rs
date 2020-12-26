@@ -5,7 +5,10 @@ use std::str::FromStr;
 use xz2::bufread::XzDecoder;
 use xz2::stream::Stream;
 
-use crate::Mode;
+use crate::{
+    Mode,
+    read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string,
+};
 
 // write a parser for the life graph
 // /// A point in the life graph
@@ -142,9 +145,9 @@ impl Replay {
                 ),
             },
             version: read_u32le(reader)?,
-            beatmap_hash: read_replay_string(reader)?,
-            player_username: read_replay_string(reader)?,
-            replay_hash: read_replay_string(reader)?,
+            beatmap_hash: read_uleb128_string(reader)?,
+            player_username: read_uleb128_string(reader)?,
+            replay_hash: read_uleb128_string(reader)?,
             count_300: read_u16le(reader)?,
             count_100: read_u16le(reader)?,
             count_50: read_u16le(reader)?,
@@ -155,7 +158,7 @@ impl Replay {
             max_combo: read_u16le(reader)?,
             perfect: read_u8(reader)? == 1,
             mods: read_u32le(reader)?,
-            life_graph: read_replay_string(reader)?,
+            life_graph: read_uleb128_string(reader)?,
             timestamp: read_u64le(reader)?,
             replay_data_length: read_u32le(reader)?,
 
@@ -209,93 +212,6 @@ impl Replay {
         replay.parse_tail(&mut reader)?;
         Ok(replay)
     }
-}
-
-macro_rules! read_num_le_fn {
-    ($name:ident => $typ:ident) => {
-        fn $name<R: io::Read>(reader: &mut R) -> Result<$typ, Error> {
-            let mut buf: [u8; std::mem::size_of::<$typ>()] = [0; std::mem::size_of::<$typ>()];
-            let read_count = reader.read(&mut buf)?;
-            if read_count < buf.len() {
-                bail!("EOF reading {}", stringify!($typ));
-            }
-            Ok($typ::from_le_bytes(buf))
-        }
-    };
-}
-
-// conviences functions to read a number from an `io::Read`
-//   another option here is to use the `byteorder` crate, which has a nicer implementation of this.
-//   but since we only need 5 functions and the implementation is _really_ simple this is fine.
-
-read_num_le_fn!(read_u8 => u8);
-read_num_le_fn!(read_u16le => u16);
-read_num_le_fn!(read_u32le => u32);
-read_num_le_fn!(read_u64le => u64);
-read_num_le_fn!(read_f64le => f64);
-
-/// Read an unsigned LEB128 encoded number
-/// Although the number is variable width, this will only read up to a 63 bit number (9 bytes)
-fn read_uleb128<R: io::Read>(reader: &mut R) -> Result<u64, Error> {
-    let mut buf: [u8; 1] = [0];
-    let mut byte_index = 0;
-
-    let read_count = reader.read(&mut buf)?;
-    if read_count < 1 {
-        bail!("EOF reading byte {} uleb128", byte_index);
-    }
-
-    let mut total = (buf[0] & 0b01111111) as u64;
-
-    while (buf[0] & 0b10000000) == 0b10000000 {
-        byte_index += 1;
-        if byte_index > 9 {
-            bail!("ULEB128 number may overflow u64");
-        }
-
-        let read_count = reader.read(&mut buf)?;
-        if read_count < 1 {
-            bail!("EOF reading byte {} uleb128", byte_index);
-        }
-
-        total += ((buf[0] & 0b01111111) as u64) << (7 * byte_index)
-    }
-
-    Ok(total)
-}
-
-/// read an string from an osu! replay.
-fn read_replay_string<R: io::Read>(reader: &mut R) -> Result<String, Error> {
-    let mut empty_string_byte_buffer: [u8; 1] = [0];
-    let read_count = reader.read(&mut empty_string_byte_buffer)?;
-    if read_count < 1 {
-        bail!("EOF when attempting to read string length");
-    }
-
-    // 0 means the string is not present
-    if empty_string_byte_buffer[0] == 0 {
-        return Ok(String::new());
-    }
-
-    if empty_string_byte_buffer[0] != 0x0B {
-        bail!(
-            "expected string to start with either 0x0B or 0x00, got {:x}",
-            empty_string_byte_buffer[0]
-        );
-    }
-
-    let length = read_uleb128(reader)?;
-    if length == 0 {
-        return Ok(String::new());
-    }
-
-    let mut read_buffer = vec![0u8; length as usize];
-    let read_count = reader.read(read_buffer.as_mut())?;
-    if read_count < 1 {
-        bail!("EOF when attempting to read string of length {}", length);
-    }
-
-    Ok(String::from_utf8(read_buffer)?)
 }
 
 /// An iterator over actions as they are parsed
@@ -413,24 +329,24 @@ fn test_read_uleb128() {
 }
 
 #[test]
-fn test_read_replay_string() {
+fn test_read_uleb128_string() {
     let text = "Hello World";
     let mut replay_string = vec![0x0Bu8];
     replay_string.push(text.len() as u8);
     replay_string.extend(text.bytes());
 
     let mut reader = io::Cursor::new(replay_string);
-    assert_eq!(read_replay_string(&mut reader).unwrap(), text.to_string());
+    assert_eq!(read_uleb128_string(&mut reader).unwrap(), text.to_string());
 
     let mut reader_empty = io::Cursor::new(vec![0x00]);
     assert_eq!(
-        read_replay_string(&mut reader_empty).unwrap(),
+        read_uleb128_string(&mut reader_empty).unwrap(),
         String::new()
     );
 
     let mut reader_zero_length = io::Cursor::new(vec![0x0B, 0x00]);
     assert_eq!(
-        read_replay_string(&mut reader_zero_length).unwrap(),
+        read_uleb128_string(&mut reader_zero_length).unwrap(),
         String::new()
     );
 }
