@@ -1,10 +1,10 @@
-use anyhow::Result;
 use num_traits::FromPrimitive;
 
 use crate::{
     AbsoluteTime, Additions, Beatmap, HitObject, HitObjectKind, Point, SampleInfo, SampleSet,
     SliderSplineKind, TimeLocation,
 };
+use crate::parsing::{Result, Error};
 
 impl HitObject {
     /// Creates a HitObject from the *.osz format
@@ -78,7 +78,7 @@ impl HitObject {
                         "B" => SliderSplineKind::Bezier,
                         "C" => SliderSplineKind::Catmull,
                         "P" => SliderSplineKind::Perfect,
-                        _ => bail!("Invalid slider type."),
+                        s => return Err(Error::InvalidSliderType(s.to_owned())),
                     },
                     control: ctl_parts
                         .into_iter()
@@ -102,8 +102,8 @@ impl HitObject {
                     end_time: TimeLocation::Absolute(AbsoluteTime::new(end_time)),
                 }
             }
-            _ => {
-                bail!("Invalid object type.")
+            o => {
+                return Err(Error::InvalidObjectType(o));
             }
         };
 

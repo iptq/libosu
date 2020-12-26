@@ -1,7 +1,7 @@
-use anyhow::Result;
 use regex::Regex;
 
 use crate::{Beatmap, Color, HitObject, Mode, SampleSet, TimingPoint, TimingPointKind};
+use crate::parsing::{Result, Error};
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =
@@ -86,7 +86,7 @@ impl Beatmap {
                                         "Normal" => SampleSet::Normal,
                                         "Soft" => SampleSet::Soft,
                                         "Drum" => SampleSet::Drum,
-                                        _ => bail!("Invalid sample set '{}'.", sample_set),
+                                        s => return Err(Error::InvalidSampleSet(s.to_owned())),
                                     }
                                 }
                             }
@@ -101,7 +101,7 @@ impl Beatmap {
                                         1 => Mode::Taiko,
                                         2 => Mode::Catch,
                                         3 => Mode::Mania,
-                                        _ => bail!("Invalid game mode: {}", mode),
+                                        _ => return Err(Error::InvalidGameMode(mode)),
                                     }
                                 }
                             }

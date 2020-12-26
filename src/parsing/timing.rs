@@ -1,8 +1,7 @@
 use std::collections::BTreeSet;
 
-use anyhow::Result;
-
 use crate::{AbsoluteTime, SampleSet, TimeLocation, TimingPoint, TimingPointKind};
+use crate::parsing::Result;
 
 impl TimingPoint {
     /// Creates a TimingPoint from the *.osz format

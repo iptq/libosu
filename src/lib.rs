@@ -43,7 +43,6 @@ pub use enums::*;
 pub use hitobject::*;
 pub use hitsounds::*;
 pub use osudb::*;
-pub use parsing::*;
 pub use point::*;
 #[cfg(feature = "replay")]
 pub use replay::*;
