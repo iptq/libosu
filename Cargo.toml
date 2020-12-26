@@ -32,10 +32,11 @@ hyper = { version = "0.13.9", features = ["stream"], optional = true }
 hyper-tls = { version = "0.4.3", optional = true }
 tokio = { version = "1.0.1", optional = true }
 xz2 = { version = "0.1.6", optional = true }
+http = { version = "0.2.2", optional = true }
 
 [features]
 default = []
-apiv1 = ["hyper", "hyper-tls", "tokio"]
+apiv1 = ["hyper", "hyper-tls", "tokio", "http"]
 replay = ["xz2"]
 
 # Used to check for clippy lints

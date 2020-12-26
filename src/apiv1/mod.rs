@@ -3,31 +3,26 @@
 //!
 //! Documentation: https://github.com/ppy/osu-api/wiki
 
+mod errors;
+mod models;
+
+use std::convert::TryInto;
 use std::fmt;
 
 use futures::stream::TryStreamExt;
 use hyper::{
     client::{Client, HttpConnector},
-    Body,
+    Body, Uri,
 };
 use hyper_tls::HttpsConnector;
+use serde::de::DeserializeOwned;
 
 use crate::Mode;
 
+pub use self::errors::{Error, Result};
+pub use self::models::*;
+
 const API_BASE: &str = "https://osu.ppy.sh/api";
-
-/// An error that could occur when using the API.
-#[allow(missing_docs)]
-#[derive(Debug, Error)]
-pub enum APIError {
-    #[error("hyper error: {0}")]
-    Hyper(#[from] hyper::Error),
-
-    #[error("serde_json error: {0}")]
-    Json(#[from] serde_json::Error),
-}
-
-pub type Result<T, E = APIError> = std::result::Result<T, E>;
 
 /// A struct used for interfacing with the osu! API.
 pub struct API {
@@ -46,6 +41,30 @@ impl API {
         }
     }
 
+    /// Make a GET request to an arbitrary endpoint of the OSU API
+    pub async fn get<T>(&self, url: impl AsRef<str>) -> Result<T>
+    where
+        T: DeserializeOwned,
+    {
+        let full_url: Uri = format!("{}{}", API_BASE, url.as_ref()).try_into()?;
+        let mut resp = self.client.get(full_url).await?;
+        let body = resp.body_mut();
+
+        // TODO: is there a more elegant way to do this
+        let mut result = Vec::new();
+        loop {
+            let next = match body.try_next().await {
+                Ok(Some(v)) => v,
+                Ok(None) => break,
+                Err(e) => return Err(e.into()),
+            };
+            result.extend(next);
+        }
+
+        let result = serde_json::from_slice(result.as_ref())?;
+        Ok(result)
+    }
+
     /// Gets all recent
     pub async fn get_user_recent(
         &self,
@@ -60,50 +79,14 @@ impl API {
         };
 
         let uri = format!(
-            "{}/get_user_recent?k={}&u={}&m={}&limit={}",
-            API_BASE,
+            "/get_user_recent?k={}&u={}&m={}&limit={}",
             self.api_key,
             user,
             mode,
             limit.unwrap_or(10),
-        )
-        .parse()
-        .unwrap();
-
-        let mut resp = self.client.get(uri).await?;
-        let body = resp.body_mut();
-        // TODO: is there a more elegant way to do this
-        let mut result = Vec::new();
-        loop {
-            let next = match body.try_next().await {
-                Ok(Some(v)) => v,
-                Ok(None) => break,
-                Err(e) => return Err(e.into()),
-            };
-            result.extend(next);
-        }
-        serde_json::from_slice(&result).map_err(APIError::from)
+        );
+        self.get(uri).await
     }
-}
-
-/// A score as returned from the osu! API.
-#[derive(Serialize, Deserialize)]
-#[allow(missing_docs)]
-pub struct UserScore {
-    pub beatmap_id: String,
-    pub score: String,
-    pub max_combo: String,
-    pub count_50: String,
-    pub count_100: String,
-    pub count_300: String,
-    pub count_miss: String,
-    pub count_katu: String,
-    pub count_geki: String,
-    pub perfect: String,
-    pub enabled_mods: String,
-    pub user_id: String,
-    pub date: String,
-    pub rank: String,
 }
 
 /// A method of looking up a user in the API.
@@ -134,17 +117,4 @@ impl From<u32> for UserLookup {
     fn from(n: u32) -> Self {
         UserLookup::Id(n)
     }
-}
-
-/// The approved status of a beatmap.
-#[allow(missing_docs)]
-#[derive(Debug)]
-pub enum ApprovedStatus {
-    StatusGraveyard,
-    StatusWIP,
-    StatusPending,
-    StatusRanked,
-    StatusApproved,
-    StatusQualified,
-    StatusLoved,
 }

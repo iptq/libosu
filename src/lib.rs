@@ -32,7 +32,7 @@ mod replay;
 mod timing;
 
 #[cfg(feature = "apiv1")]
-pub use apiv1::{APIError, ApprovedStatus, UserLookup, UserScore, API};
+pub use apiv1::*;
 pub use beatmap::*;
 pub use color::*;
 pub use enums::*;
