@@ -33,3 +33,7 @@ xz2 = { version = "0.1.6", optional = true }
 default = []
 apiv1 = ["hyper", "hyper-tls", "tokio"]
 replay = ["xz2"]
+
+# Used to check for clippy lints
+# See: https://github.com/rust-lang/cargo/issues/8075#issuecomment-610259732
+clippy = []

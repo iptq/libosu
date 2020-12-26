@@ -8,7 +8,7 @@ use crate::{
 impl HitObject {
     /// Creates a HitObject from the *.osz format
     pub fn from_osz(input: impl AsRef<str>, parent: &Beatmap) -> Result<HitObject> {
-        let parts = input.as_ref().split(",").collect::<Vec<_>>();
+        let parts = input.as_ref().split(',').collect::<Vec<_>>();
 
         let x = parts[0].parse::<i32>()?;
         let y = parts[1].parse::<i32>()?;
@@ -28,7 +28,7 @@ impl HitObject {
             extras = parts[5];
             HitObjectKind::Circle
         } else if (obj_type & 2) == 2 {
-            let mut ctl_parts = parts[5].split("|").collect::<Vec<_>>();
+            let mut ctl_parts = parts[5].split('|').collect::<Vec<_>>();
             let repeats = parts[6].parse::<u32>()?;
             let slider_type = ctl_parts.remove(0);
 
@@ -60,7 +60,7 @@ impl HitObject {
                 control: ctl_parts
                     .into_iter()
                     .map(|s| {
-                        let p = s.split(":").collect::<Vec<_>>();
+                        let p = s.split(':').collect::<Vec<_>>();
                         Point(p[0].parse::<i32>().unwrap(), p[1].parse::<i32>().unwrap())
                     })
                     .collect(),
@@ -78,7 +78,7 @@ impl HitObject {
             bail!("Invalid object type.")
         };
 
-        let extra_parts = extras.split(":").collect::<Vec<_>>();
+        let extra_parts = extras.split(':').collect::<Vec<_>>();
         let sample_set = extra_parts[0].parse::<i32>()?;
         let addition_set = extra_parts[1].parse::<i32>()?;
         let custom_index = extra_parts[2].parse::<i32>()?;
@@ -89,8 +89,8 @@ impl HitObject {
         let hitsound = Hitsound {
             additions: Additions(addition),
             sample: SampleSet::Normal, // TODO
-            time: match &kind {
-                &HitObjectKind::Spinner { ref end_time } => end_time.clone(),
+            time: match kind {
+                HitObjectKind::Spinner { ref end_time } => end_time.clone(),
                 _ => start_time.clone(),
             },
 
@@ -102,7 +102,7 @@ impl HitObject {
         };
 
         let hit_obj = HitObject {
-            kind: kind,
+            kind,
             pos: Point(x, y),
             new_combo,
             hitsound,
@@ -116,10 +116,10 @@ impl HitObject {
 
     /// Serializes this HitObject into the *.osz format.
     pub fn as_osz(&self) -> Result<String> {
-        let obj_type = match &self.kind {
-            &HitObjectKind::Circle => 1,
-            &HitObjectKind::Slider { .. } => 2,
-            &HitObjectKind::Spinner { .. } => 8,
+        let obj_type = match self.kind {
+            HitObjectKind::Circle => 1,
+            HitObjectKind::Slider { .. } => 2,
+            HitObjectKind::Spinner { .. } => 8,
         } | if self.new_combo { 4 } else { 0 }
             | self.skip_color;
 
@@ -134,7 +134,7 @@ impl HitObject {
         );
 
         let type_specific = match &self.kind {
-            &HitObjectKind::Slider {
+            HitObjectKind::Slider {
                 ref kind,
                 ref repeats,
                 ref control,
@@ -146,10 +146,10 @@ impl HitObject {
                 format!(
                     "{}|{},{},{},{},{},",
                     match kind {
-                        &SliderSplineKind::Linear => "L",
-                        &SliderSplineKind::Bezier => "B",
-                        &SliderSplineKind::Catmull => "C",
-                        &SliderSplineKind::Perfect => "P",
+                        SliderSplineKind::Linear => "L",
+                        SliderSplineKind::Bezier => "B",
+                        SliderSplineKind::Catmull => "C",
+                        SliderSplineKind::Perfect => "P",
                     },
                     control
                         .iter()

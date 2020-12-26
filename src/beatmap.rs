@@ -143,7 +143,7 @@ impl Beatmap {
         let mut tp = None;
         let time = time.into();
         for timing_point in self.timing_points.iter() {
-            if &timing_point.time < &time {
+            if timing_point.time < time {
                 tp = Some(timing_point.clone());
             }
         }
@@ -154,7 +154,7 @@ impl Beatmap {
     pub fn locate_hitobject(&self, time: impl Into<TimeLocation>) -> Option<HitObject> {
         let time = time.into();
         for hit_object in self.hit_objects.iter() {
-            if &hit_object.start_time == &time {
+            if hit_object.start_time == time {
                 return Some(hit_object.clone());
             }
 
@@ -175,7 +175,7 @@ impl Beatmap {
 
     /// Get a list of all hit objects.
     pub fn get_hitobjects(&self) -> Vec<HitObject> {
-        self.hit_objects.iter().cloned().collect::<Vec<_>>()
+        self.hit_objects.clone()
     }
 
     /// Returns a list of this beatmap's hitsounds.

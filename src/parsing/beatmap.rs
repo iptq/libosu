@@ -22,11 +22,7 @@ macro_rules! kvalue {
     ($captures:ident[$name:expr]: parse(bool)) => {
         $name = {
             let val = kvalue!($captures[$name] => parse(u8));
-            if val == 0 {
-                false
-            } else {
-                true
-            }
+            !(val == 0)
         };
     };
     ($captures:ident[$name:expr] => parse($type:ident)) => {
@@ -49,16 +45,13 @@ impl Beatmap {
         let mut hit_object_lines = Vec::new();
 
         for line in input.as_ref().lines() {
-            match SECTION_HEADER_RGX.captures(line) {
-                Some(captures) => {
-                    section = String::from(&captures["name"]);
-                    continue;
-                }
-                None => (),
+            if let Some(captures) = SECTION_HEADER_RGX.captures(line) {
+                section = String::from(&captures["name"]);
+                continue;
             }
             // println!("\"{}\" {}", section, line);
             //
-            if line.trim().len() == 0 {
+            if line.trim().is_empty() {
                 continue;
             }
 
@@ -117,7 +110,7 @@ impl Beatmap {
 
                             "Bookmarks" => {
                                 beatmap.bookmarks = captures["value"]
-                                    .split(",")
+                                    .split(',')
                                     .map(|n| n.parse::<i32>().unwrap())
                                     .collect()
                             }
@@ -137,7 +130,7 @@ impl Beatmap {
                             "Source" => kvalue!(captures[beatmap.source]: str),
                             "Tags" => {
                                 beatmap.tags =
-                                    captures["value"].split(" ").map(|s| s.to_owned()).collect()
+                                    captures["value"].split(' ').map(|s| s.to_owned()).collect()
                             }
                             "BeatmapID" => kvalue!(captures[beatmap.beatmap_id]: parse(i32)),
                             "BeatmapSetID" => kvalue!(captures[beatmap.beatmap_set_id]: parse(i32)),
@@ -175,9 +168,8 @@ impl Beatmap {
         let mut prev = None;
         for line in timing_point_lines {
             let tp = TimingPoint::from_osz(line, &prev)?;
-            match tp.kind {
-                TimingPointKind::Uninherited { .. } => prev = Some(tp.clone()),
-                _ => (),
+            if let TimingPointKind::Uninherited { .. } = tp.kind {
+                prev = Some(tp.clone());
             }
             timing_points.push(tp);
         }
@@ -221,11 +213,11 @@ impl Beatmap {
         lines.push(format!("Countdown: {}", if self.countdown { 1 } else { 0 }));
         lines.push(format!(
             "SampleSet: {}",
-            match &self.sample_set {
-                &SampleSet::None => "None",
-                &SampleSet::Normal => "Normal",
-                &SampleSet::Soft => "Soft",
-                &SampleSet::Drum => "Drum",
+            match self.sample_set {
+                SampleSet::None => "None",
+                SampleSet::Normal => "Normal",
+                SampleSet::Soft => "Soft",
+                SampleSet::Drum => "Drum",
             }
         ));
         lines.push(format!("StackLeniency: {}", self.stack_leniency));

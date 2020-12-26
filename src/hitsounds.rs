@@ -48,6 +48,6 @@ pub struct Hitsound {
 impl BitOr for Additions {
     type Output = u32;
     fn bitor(self, other: Self) -> Self::Output {
-        return self.0 | other.0;
+        self.0 | other.0
     }
 }

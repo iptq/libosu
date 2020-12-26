@@ -98,7 +98,7 @@ pub struct UserScore {
     pub count_katu: String,
     pub count_geki: String,
     pub perfect: String,
-    pub enabled_mods: String, 
+    pub enabled_mods: String,
     pub user_id: String,
     pub date: String,
     pub rank: String,

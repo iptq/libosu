@@ -6,11 +6,8 @@ use crate::{AbsoluteTime, SampleSet, TimeLocation, TimingPoint, TimingPointKind}
 
 impl TimingPoint {
     /// Creates a TimingPoint from the *.osz format
-    pub fn from_osz(
-        input: impl AsRef<str>,
-        parent: &Option<TimingPoint>,
-    ) -> Result<TimingPoint> {
-        let parts = input.as_ref().split(",").collect::<Vec<_>>();
+    pub fn from_osz(input: impl AsRef<str>, parent: &Option<TimingPoint>) -> Result<TimingPoint> {
+        let parts = input.as_ref().split(',').collect::<Vec<_>>();
 
         let timestamp = parts[0].parse::<i32>()?;
         let mpb = parts[1].parse::<f64>()?;
@@ -29,7 +26,7 @@ impl TimingPoint {
             kind: if inherited {
                 assert!(parent.is_some());
                 TimingPointKind::Inherited {
-                    parent: parent.clone().map(|tp| Box::new(tp)),
+                    parent: parent.clone().map(Box::new),
                     slider_velocity: 0.0, // TODO: calculate this from mpb
                 }
             } else {
@@ -61,9 +58,9 @@ impl TimingPoint {
 
     /// Serializes this TimingPoint into the *.osz format.
     pub fn as_osz(&self) -> Result<String> {
-        let inherited = match &self.kind {
-            &TimingPointKind::Inherited { .. } => 0,
-            &TimingPointKind::Uninherited { .. } => 1,
+        let inherited = match self.kind {
+            TimingPointKind::Inherited { .. } => 0,
+            TimingPointKind::Uninherited { .. } => 1,
         };
         let line = format!(
             "{},{},{},{},{},{},{},{}",

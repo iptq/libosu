@@ -176,7 +176,8 @@ impl TimeLocation {
 
                 // now, enumerate several well-established snappings
                 let mut snappings = Vec::new();
-                for d in vec![1, 2, 3, 4, 6, 8, 12, 16] {
+                for d in &[1, 2, 3, 4, 6, 8, 12, 16] {
+                    let d = *d;
                     for i in 0..d {
                         let snap = mpm * i as f64 / d as f64;
                         snappings.push((i, d, snap));
@@ -267,9 +268,9 @@ impl TimingPoint {
 
     /// Gets the closest parent that is an uninherited timing point.
     pub fn get_uninherited_ancestor(&self) -> &TimingPoint {
-        match &self.kind {
-            &TimingPointKind::Uninherited { .. } => self,
-            &TimingPointKind::Inherited { ref parent, .. } => match parent {
+        match self.kind {
+            TimingPointKind::Uninherited { .. } => self,
+            TimingPointKind::Inherited { ref parent, .. } => match parent {
                 Some(_parent) => _parent.get_uninherited_ancestor(),
                 None => panic!("Inherited timing point does not have a parent."),
             },
@@ -278,8 +279,8 @@ impl TimingPoint {
     /// Gets the BPM of this timing section by climbing the timing section tree.
     pub fn get_bpm(&self) -> f64 {
         let ancestor = self.get_uninherited_ancestor();
-        match &ancestor.kind {
-            &TimingPointKind::Uninherited { ref bpm, .. } => *bpm,
+        match ancestor.kind {
+            TimingPointKind::Uninherited { ref bpm, .. } => *bpm,
             _ => panic!("The ancestor should always be an Uninherited timing point."),
         }
     }
@@ -287,15 +288,15 @@ impl TimingPoint {
     /// Gets the meter of this timing section by climbing the timing section tree.
     pub fn get_meter(&self) -> u32 {
         let ancestor = self.get_uninherited_ancestor();
-        match &ancestor.kind {
-            &TimingPointKind::Uninherited { ref meter, .. } => *meter,
+        match ancestor.kind {
+            TimingPointKind::Uninherited { ref meter, .. } => *meter,
             _ => panic!("The ancestor should always be an Uninherited timing point."),
         }
     }
 
     /// Returns the number of milliseconds in a beat for this timing section.
     pub fn get_beat_duration(&self) -> f64 {
-        return 60_000.0 / self.get_bpm();
+        60_000.0 / self.get_bpm()
     }
 }
 
