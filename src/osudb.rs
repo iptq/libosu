@@ -2,9 +2,9 @@ use std::io;
 
 use failure::Error;
 
-use crate::{Grade, Mode, RankedStatus,  UserPermission, read_replay_string, replay::{read_f32le, read_f64le, read_u16le, read_u32le, read_u64le, read_u8}};
+use crate::{Grade, Mode, RankedStatus, UserPermission, read_replay_string, replay::{read_f32le, read_f64le, read_u16le, read_u32le, read_u64le, read_u8}};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 /// Timing point for beatmap in osu!.db
 pub struct OsuDBBeatmapTimingPoint {
     bpm: f64,
@@ -12,7 +12,7 @@ pub struct OsuDBBeatmapTimingPoint {
     is_uninherited: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 /// Beatmap located in osu!.db, they are different from normal beatmaps
 pub struct OsuDBBeatmap {
     /// Size in bytes of the beatmap entry. Only present if version is less than 20191106.
@@ -163,7 +163,7 @@ pub struct OsuDBBeatmap {
     pub mania_scrollspeed: u8,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// osu!.db object  
 pub struct OsuDB {
     /// osu! game mode that this replay was recorded for
@@ -184,7 +184,7 @@ pub struct OsuDB {
     /// The cached beatmaps     
     pub beatmaps: Vec<OsuDBBeatmap>,
     /// The permissions of the user
-    pub permissions: UserPermission,
+    pub permissions: u8,
 }
 
 impl OsuDBBeatmap {
@@ -312,16 +312,245 @@ impl OsuDB {
             beatmaps: (0..beatmap_count)
                 .map(|_| OsuDBBeatmap::parse(&mut reader, version))
                 .collect::<Result<Vec<_>, Error>>()?,
-            permissions: num::FromPrimitive::from_u8(read_u8(&mut reader)?).unwrap(),
+            permissions: read_u8(&mut reader)?,
         })
     }
 }
 
-// Can't provide a proper test at the moment, will have to figure something out.
+// Thanks vernonlim for the osu.db file
 #[test]
 fn test_osudb_parse() {
     use std::fs::File;
 
-    let osr = File::open("C:\\Program Files\\osu!\\osu!.db").unwrap();
+    let osr = File::open("tests/files/osu.db").unwrap();
     let db = OsuDB::parse(io::BufReader::new(osr)).unwrap();
+
+    assert_eq!(db.version, 20201210);
+    assert_eq!(db.player_name, "vernonlim");
+    assert_eq!(db.folder_count, 62);
+    assert_eq!(db.account_unlocked, true);
+    assert_eq!(db.unlocked_date, 0);
+    assert_eq!(db.beatmap_count, 245);
+    assert_eq!(db.beatmaps.len(), 245);
+    assert_eq!(db.beatmaps.first(), Some(&OsuDBBeatmap {
+        size: None,
+        artist_name: "Drop".to_owned(),
+        artist_name_unicode: "Drop".to_owned(),
+        song_title: "TRICK or TREAT".to_owned(),
+        song_title_unicode: "TRICK or TREAT".to_owned(),
+        creator_name: "SUKIJames".to_owned(),
+        difficulty: "FUTSUU".to_owned(),
+        audio_file_name: "audio.mp3".to_owned(),
+        hash: "7956380054f6a8023fa7614e18ffe1b6".to_owned(),
+        beatmap_file_name: "Drop - TRICK or TREAT (SUKIJames) [FUTSUU].osu".to_owned(),
+        ranked_status: RankedStatus::Ranked,
+        hitcircle_count: 93,
+        slider_count: 0,
+        spinner_count: 1,
+        modification_date: 637441288088683788,
+        approach_rate: 10.0,
+        circle_size: 3.0,
+        hp_drain: 8.5,
+        overall_difficulty: 4.0,
+        slider_velocity: 1.4,
+        std_star_rating: vec![],
+        std_taiko_rating: vec![
+            (
+                0,
+                2.2660608625099203,
+            ),
+            (
+                64,
+                2.8621242901351933,
+            ),
+            (
+                256,
+                1.9135948603059216,
+            ),
+            (
+                2,
+                2.2660608625099203,
+            ),
+            (
+                66,
+                2.8621242901351933,
+            ),
+            (
+                258,
+                1.9135948603059216,
+            ),
+            (
+                16,
+                2.2660608625099203,
+            ),
+            (
+                80,
+                2.8621242901351933,
+            ),
+            (
+                272,
+                1.9135948603059216,
+            ),
+        ],
+        std_ctb_rating: vec![],
+        std_mania_rating: vec![],
+        drain_time: 31,
+        total_time: 34109,
+        preview_time: 5,
+        timing_points: vec![
+            OsuDBBeatmapTimingPoint {
+                bpm: 566.037735849057,
+                offset: 147.0,
+                is_uninherited: true,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 147.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 9203.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 10335.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 10618.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 10901.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 11184.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 12599.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 12882.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 13165.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 13731.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 15996.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 16562.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 17128.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 18260.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 27316.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 29580.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 29863.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 30713.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 31279.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 31845.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 32411.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 32977.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 33543.0,
+                is_uninherited: false,
+            },
+            OsuDBBeatmapTimingPoint {
+                bpm: -71.4285714285714,
+                offset: 34109.0,
+                is_uninherited: false,
+            },
+        ],
+        beatmap_id: 1989137,
+        beatmap_set_id: 952626,
+        thread_id: 0,
+        std_grade: Grade::None,
+        taiko_grade: Grade::None,
+        ctb_grade: Grade::None,
+        mania_grade: Grade::None,
+        beatmap_offset: 0,
+        stack_leniency: 0.2,
+        mode: Mode::Taiko,
+        source: "".to_owned(),
+        tags: "stingy hatsuki yura 葉月ゆら HATU-019 wicked m3-34 instrument instrumental halloween".to_owned(),
+        online_offset: 0,
+        title_font: "".to_owned(),
+        is_unplayed: true,
+        last_played: 0,
+        is_osz2: false,
+        folder_name: "952626 Drop - TRICK or TREAT".to_owned(),
+        last_checked: 637441576105762815,
+        ignore_beatmap_sounds: false,
+        ignore_beatmap_skin: false,
+        disable_storyboard: false,
+        disable_video: false,
+        visual_override: false,
+        unknown: None,
+        unknown_modification_date: 0,
+        mania_scrollspeed: 0,
+    }));
+    assert_eq!(db.permissions, UserPermission::Normal | UserPermission::Supporter);
 }

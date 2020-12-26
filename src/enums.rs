@@ -58,16 +58,23 @@ impl BitOr for Mods {
 }
 
 /// Integer enumeration of the user's permission
-#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[allow(missing_docs)]
 pub enum UserPermission {
-    None,
-    Normal,
-    Moderator,
-    Supporter,
-    Friend,
-    Peppy,
-    WorldCupStaff,
+    None = 0,
+    Normal = 1,
+    Moderator = 2,
+    Supporter = 4,
+    Friend = 8,
+    Peppy = 16,
+    WorldCupStaff = 32,
+}
+
+impl BitOr for UserPermission {
+    type Output = u8;
+    fn bitor(self, other: Self) -> Self::Output {
+        return self as Self::Output | other as Self::Output;
+    }
 }
 
 /// Integer enumeration of the ranked statuses.
