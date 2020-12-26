@@ -4,7 +4,7 @@ extern crate serde;
 extern crate serde_json;
 
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Read;
 
 use libosu::*;
 

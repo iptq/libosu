@@ -322,22 +322,30 @@ impl OsuDB {
     }
 }
 
-// Thanks vernonlim for the osu.db file
-#[test]
-fn test_osudb_parse() {
-    use std::fs::File;
+#[cfg(test)]
+mod tests {
+    use std::io::BufReader;
 
-    let osr = File::open("tests/files/osu.db").unwrap();
-    let db = OsuDB::parse(io::BufReader::new(osr)).unwrap();
+    use crate::{Grade, Mode, RankedStatus, UserPermission};
 
-    assert_eq!(db.version, 20201210);
-    assert_eq!(db.player_name, "vernonlim");
-    assert_eq!(db.folder_count, 62);
-    assert_eq!(db.account_unlocked, true);
-    assert_eq!(db.unlocked_date, 0);
-    assert_eq!(db.beatmap_count, 245);
-    assert_eq!(db.beatmaps.len(), 245);
-    assert_eq!(db.beatmaps.first(), Some(&OsuDBBeatmap {
+    use super::{OsuDB, OsuDBBeatmap, OsuDBBeatmapTimingPoint};
+
+    // Thanks vernonlim for the osu.db file
+    #[test]
+    fn test_osudb_parse() {
+        use std::fs::File;
+
+        let osr = File::open("tests/files/osu.db").unwrap();
+        let db = OsuDB::parse(BufReader::new(osr)).unwrap();
+
+        assert_eq!(db.version, 20201210);
+        assert_eq!(db.player_name, "vernonlim");
+        assert_eq!(db.folder_count, 62);
+        assert_eq!(db.account_unlocked, true);
+        assert_eq!(db.unlocked_date, 0);
+        assert_eq!(db.beatmap_count, 245);
+        assert_eq!(db.beatmaps.len(), 245);
+        assert_eq!(db.beatmaps.first(), Some(&OsuDBBeatmap {
         size: None,
         artist_name: "Drop".to_owned(),
         artist_name_unicode: "Drop".to_owned(),
@@ -557,8 +565,9 @@ fn test_osudb_parse() {
         unknown_modification_date: 0,
         mania_scrollspeed: 0,
     }));
-    assert_eq!(
-        db.permissions,
-        UserPermission::Normal | UserPermission::Supporter
-    );
+        assert_eq!(
+            db.permissions,
+            UserPermission::Normal | UserPermission::Supporter
+        );
+    }
 }
