@@ -1,10 +1,10 @@
 [package]
 name = "libosu"
-version = "0.0.8"
-authors = ["michael <iptq@protonmail.com>"]
+version = "0.0.9"
+authors = ["Michael Zhang <mail@mzhang.io>"]
 edition = "2018"
 
-description = "General-purpose osu! library with bindings for other languages."
+description = "General-purpose osu! library."
 license = "MIT"
 readme = "README.md"
 keywords = ["osu"]
@@ -12,30 +12,31 @@ repository = "https://github.com/iptq/libosu.git"
 documentation = "https://docs.rs/libosu/"
 
 [dev-dependencies]
-serde_json = "1.0"
-difference = "2.0"
+serde_json = "1.0.60"
+difference = "2.0.0"
 
 [dependencies]
-failure = "0.1"
-futures = "0.1"
-lazy_static = "1.0"
-num-rational = "0.2"
-regex = "1.1"
-serde = "1.0"
-serde_derive = "1.0"
-serde_json = "1.0"
-xz2 = "0.1.6"
+anyhow = "1.0.36"
+futures = "0.3.8"
+lazy_static = "1.4.0"
+num-rational = "0.3.2"
+regex = "1.4.2"
+serde = { version = "1.0.118", features = ["derive"] }
+serde_json = "1.0.60"
 
-hyper = { version = "0.12", optional = true }
-hyper-tls = { version = "0.3", optional = true }
-tokio = { version = "0.1", optional = true }
+hyper = { version = "0.14.1", optional = true }
+hyper-tls = { version = "0.4.3", optional = true }
+tokio = { version = "1.0.1", optional = true }
+xz2 = { version = "0.1.6", optional = true }
 num-derive = "0.3.3"
 num = "0.3.1"
 num-traits = "0.2.14"
 
 [features]
-default = ["api"]
-api = ["hyper", "hyper-tls", "tokio"]
+default = []
+apiv1 = ["hyper", "hyper-tls", "tokio"]
+replay = ["xz2"]
 
-[profile.test]
-opt-level = 3
+# Used to check for clippy lints
+# See: https://github.com/rust-lang/cargo/issues/8075#issuecomment-610259732
+clippy = []

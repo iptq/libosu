@@ -2,34 +2,45 @@ libosu
 ======
 
 [![CI](https://travis-ci.org/iptq/libosu.svg?branch=master)](https://travis-ci.org/iptq/libosu)
-[![Crates.io](https://img.shields.io/crates/d/libosu.svg)](https://crates.io/crates/libosu)
-[![Documentation](https://docs.rs/libosu/badge.svg)](https://docs.rs/libosu)
-[![dependency status](https://deps.rs/repo/github/iptq/libosu/status.svg)](https://deps.rs/repo/github/iptq/libosu)
-[![Discord](https://img.shields.io/discord/419098645783379978.svg)](https://discord.gg/MpXXvsD)
-
+[![Crates.io](https://img.shields.io/crates/d/libosu.svg)][1]
+[![Documentation](https://docs.rs/libosu/badge.svg)][2]
+[![dependency status](https://deps.rs/repo/github/iptq/libosu/status.svg)][3]
 
 General-purpose osu! library
 
 Installation
 ------------
 
-This package is hosted on [crates.io](https://crates.io). In order to include this library into your project, simply add this line into your `Cargo.toml`:
+This package is hosted on [crates.io][1]. In order to include this library into
+your project, simply add this line into your `Cargo.toml`:
 
 ```rust
 libosu = "*"
 ```
 
-Bindings for other languages are under development, and will be listed here once they become available.
+The following features are available through adding features in `Cargo.toml`,
+and are not included by default since they may bring in extra dependencies:
+
+- `apiv1`: Bindings for the osu! API v1.
+- `replay`: osu! Replay parser
 
 Getting Started
 ---------------
 
-Check out the [API Documentation](https://docs.rs/libosu) for details on how to use the various functions, or check out some of the examples (pending).
+Check out the [API Documentation][2] for details on how to use the various
+functions, or check out some of the examples (pending).
 
 Why Rust?
 ---------
 
-The real question is, why _not_ rust? For a low level language, Rust has many language features such as generics and a rich type system that greatly enhances development. Additionally, its strong emphasis on memory safety means that it can perform at native speeds. Most languages support native library extensions already, so integration into other languages is also possible. One other interesting feature is that Rust already has relatively good support for WebAssembly, which means it could be possible to integrate this library into web applications as well.
+The real question is, why _not_ rust? For a low level language, Rust has many
+language features such as generics and a rich type system that greatly enhances
+development. Additionally, its strong emphasis on memory safety means that it
+can perform at native speeds. Most languages support native library extensions
+already, so integration into other languages is also possible. One other
+interesting feature is that Rust already has relatively good support for
+WebAssembly, which means it could be possible to integrate this library into
+web applications as well.
 
 Contact
 -------
@@ -37,3 +48,7 @@ Contact
 Authors: Michael Zhang
 
 License: MIT
+
+[1]: https://crates.io/crates/libosu
+[2]: https://docs.rs/libosu
+[3]: https://deps.rs/repo/github/iptq/libosu

@@ -1,3 +1,8 @@
+//! osu! API v1
+//! -----------
+//!
+//! Documentation: https://github.com/ppy/osu-api/wiki
+
 use std::fmt;
 
 use futures::{future, Future, Stream};

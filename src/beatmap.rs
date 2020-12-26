@@ -1,6 +1,4 @@
-use std::collections::BTreeSet;
-
-use failure::Error;
+use anyhow::Result;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use crate::{
@@ -139,45 +137,13 @@ impl Default for Beatmap {
 }
 
 impl Beatmap {
-    pub(crate) fn associate_hitobjects(&mut self) {
-        /*
-        let mut curr = 1;
-        for obj_ref in self.hit_objects.iter() {
-            if curr >= self.timing_points.len() {
-                break;
-            }
-            let obj = obj_ref.borrow();
-            let obj_time = obj.start_time.into_milliseconds();
-            // should we advance?
-            let next_time = self.timing_points[curr].borrow().time.into_milliseconds();
-            if obj_time >= next_time {
-                curr += 1;
-            }
-            // assign timing point
-            let tp = &self.timing_points[curr - 1].borrow();
-
-            let bpm = tp.get_bpm();
-            let meter = tp.get_meter();
-            let (measures, frac) = obj.start_time.approximate(&tp.time, bpm, meter);
-            let mut obj_mut = (**obj_ref).borrow_mut();
-            obj_mut.start_time = TimeLocation::Relative {
-                time: Box::new(tp.time.clone()),
-                bpm: tp.get_bpm(),
-                meter: tp.get_meter(),
-                measures,
-                frac,
-            };
-        }
-        */
-    }
-
     /// Returns the timing point associated with the timing section to which the given time belongs.`
     pub fn locate_timing_point(&self, time: impl Into<TimeLocation>) -> Option<TimingPoint> {
         // TODO: make this efficient
         let mut tp = None;
         let time = time.into();
         for timing_point in self.timing_points.iter() {
-            if &timing_point.time < &time {
+            if timing_point.time < time {
                 tp = Some(timing_point.clone());
             }
         }
@@ -187,8 +153,8 @@ impl Beatmap {
     /// Returns the hitobject located at the given time.
     pub fn locate_hitobject(&self, time: impl Into<TimeLocation>) -> Option<HitObject> {
         let time = time.into();
-        for mut hit_object in self.hit_objects.iter() {
-            if &hit_object.start_time == &time {
+        for hit_object in self.hit_objects.iter() {
+            if hit_object.start_time == time {
                 return Some(hit_object.clone());
             }
 
@@ -209,7 +175,7 @@ impl Beatmap {
 
     /// Get a list of all hit objects.
     pub fn get_hitobjects(&self) -> Vec<HitObject> {
-        self.hit_objects.iter().cloned().collect::<Vec<_>>()
+        self.hit_objects.clone()
     }
 
     /// Returns a list of this beatmap's hitsounds.
@@ -217,7 +183,7 @@ impl Beatmap {
     /// This will also return hitsounds that occur on parts of objects, for example on slider
     /// bodies or slider ends. If a hitsound occurs on a spinner, the only "sound" that's counted
     /// is the moment that the spinner ends.
-    pub fn get_hitsounds(&self) -> Result<Vec<(i32, Hitsound)>, Error> {
+    pub fn get_hitsounds(&self) -> Result<Vec<(i32, Hitsound)>> {
         let mut hitsounds = Vec::new();
         for obj in self.hit_objects.iter() {
             let start_time = obj.start_time.clone().as_milliseconds();

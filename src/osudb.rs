@@ -1,8 +1,11 @@
 use std::io;
 
-use failure::Error;
+use anyhow::Error;
 
-use crate::{Grade, Mode, RankedStatus, UserPermission, read_replay_string, replay::{read_f32le, read_f64le, read_u16le, read_u32le, read_u64le, read_u8}};
+use crate::{
+    read_f32le, read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string,
+    Grade, Mode, RankedStatus, UserPermission,
+};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 /// Timing point for beatmap in osu!.db
@@ -200,14 +203,16 @@ impl OsuDBBeatmap {
                     {
                         assert_eq!(read_u8(&mut reader)?, 0x0D);
                         read_f64le(&mut reader)?
-                    }
+                    },
                 ))
             })
             .collect::<Result<Vec<_>, Error>>()?;
         Ok(ratings)
     }
 
-    fn read_timing_points(mut reader: impl io::BufRead) -> Result<Vec<OsuDBBeatmapTimingPoint>, Error> {
+    fn read_timing_points(
+        mut reader: impl io::BufRead,
+    ) -> Result<Vec<OsuDBBeatmapTimingPoint>, Error> {
         let count = read_u32le(&mut reader)?;
         let points = (0..count)
             .map(|_| {
@@ -221,7 +226,6 @@ impl OsuDBBeatmap {
         Ok(points)
     }
 
-
     fn parse(mut reader: impl io::BufRead, version: u32) -> Result<OsuDBBeatmap, Error> {
         Ok(OsuDBBeatmap {
             size: if version < 20191106 {
@@ -229,15 +233,15 @@ impl OsuDBBeatmap {
             } else {
                 None
             },
-            artist_name: read_replay_string(&mut reader)?,
-            artist_name_unicode: read_replay_string(&mut reader)?,
-            song_title: read_replay_string(&mut reader)?,
-            song_title_unicode: read_replay_string(&mut reader)?,
-            creator_name: read_replay_string(&mut reader)?,
-            difficulty: read_replay_string(&mut reader)?,
-            audio_file_name: read_replay_string(&mut reader)?,
-            hash: read_replay_string(&mut reader)?,
-            beatmap_file_name: read_replay_string(&mut reader)?,
+            artist_name: read_uleb128_string(&mut reader)?,
+            artist_name_unicode: read_uleb128_string(&mut reader)?,
+            song_title: read_uleb128_string(&mut reader)?,
+            song_title_unicode: read_uleb128_string(&mut reader)?,
+            creator_name: read_uleb128_string(&mut reader)?,
+            difficulty: read_uleb128_string(&mut reader)?,
+            audio_file_name: read_uleb128_string(&mut reader)?,
+            hash: read_uleb128_string(&mut reader)?,
+            beatmap_file_name: read_uleb128_string(&mut reader)?,
             ranked_status: num::FromPrimitive::from_u8(read_u8(&mut reader)?).unwrap(),
             hitcircle_count: read_u16le(&mut reader)?,
             slider_count: read_u16le(&mut reader)?,
@@ -266,14 +270,14 @@ impl OsuDBBeatmap {
             beatmap_offset: read_u16le(&mut reader)?,
             stack_leniency: read_f32le(&mut reader)?,
             mode: num::FromPrimitive::from_u8(read_u8(&mut reader)?).unwrap(),
-            source: read_replay_string(&mut reader)?,
-            tags: read_replay_string(&mut reader)?,
+            source: read_uleb128_string(&mut reader)?,
+            tags: read_uleb128_string(&mut reader)?,
             online_offset: read_u16le(&mut reader)?,
-            title_font: read_replay_string(&mut reader)?,
+            title_font: read_uleb128_string(&mut reader)?,
             is_unplayed: read_u8(&mut reader)? > 0,
             last_played: read_u64le(&mut reader)?,
             is_osz2: read_u8(&mut reader)? > 0,
-            folder_name: read_replay_string(&mut reader)?,
+            folder_name: read_uleb128_string(&mut reader)?,
             last_checked: read_u64le(&mut reader)?,
             ignore_beatmap_sounds: read_u8(&mut reader)? > 0,
             ignore_beatmap_skin: read_u8(&mut reader)? > 0,
@@ -304,7 +308,7 @@ impl OsuDB {
             folder_count: read_u32le(&mut reader)?,
             account_unlocked: read_u8(&mut reader)? > 0,
             unlocked_date: read_u64le(&mut reader)?,
-            player_name: read_replay_string(&mut reader)?,
+            player_name: read_uleb128_string(&mut reader)?,
             beatmap_count: {
                 beatmap_count = read_u32le(&mut reader)?;
                 beatmap_count
@@ -552,5 +556,8 @@ fn test_osudb_parse() {
         unknown_modification_date: 0,
         mania_scrollspeed: 0,
     }));
-    assert_eq!(db.permissions, UserPermission::Normal | UserPermission::Supporter);
+    assert_eq!(
+        db.permissions,
+        UserPermission::Normal | UserPermission::Supporter
+    );
 }

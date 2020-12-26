@@ -1,5 +1,5 @@
-use std::ops::BitOr;
 use num_derive::FromPrimitive;
+use std::ops::BitOr;
 
 /// Integer enumeration of the game's game modes.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
@@ -53,7 +53,7 @@ pub enum Mods {
 impl BitOr for Mods {
     type Output = u32;
     fn bitor(self, other: Self) -> Self::Output {
-        return self as u32 | other as u32;
+        self as u32 | other as u32
     }
 }
 
