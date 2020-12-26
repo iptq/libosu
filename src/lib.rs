@@ -11,7 +11,11 @@
 #[macro_use]
 extern crate anyhow;
 #[macro_use]
+extern crate bitflags;
+#[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate num_derive;
 #[macro_use]
 extern crate serde;
 #[macro_use]

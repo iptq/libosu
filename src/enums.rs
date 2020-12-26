@@ -1,4 +1,3 @@
-use num_derive::FromPrimitive;
 use std::ops::BitOr;
 
 /// Integer enumeration of the game's game modes.

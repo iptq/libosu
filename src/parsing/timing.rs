@@ -67,7 +67,7 @@ impl TimingPoint {
             self.time.as_milliseconds(),
             self.mpb,
             self.get_meter(),
-            self.sample_set.clone() as i32,
+            self.sample_set as i32,
             self.sample_index,
             self.volume,
             inherited,

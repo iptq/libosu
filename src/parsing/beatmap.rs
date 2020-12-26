@@ -1,7 +1,7 @@
 use anyhow::Result;
 use regex::Regex;
 
-use crate::{Beatmap, HitObject, Mode, SampleSet, TimingPoint, TimingPointKind};
+use crate::{Beatmap, Color, HitObject, Mode, SampleSet, TimingPoint, TimingPointKind};
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =
@@ -66,6 +66,10 @@ impl Beatmap {
                     if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(line) {
                         beatmap.version = capture["version"].parse::<u32>()?;
                     }
+                }
+                "Colours" => {
+                    let color = parse_color(line)?;
+                    beatmap.colors.push(color);
                 }
                 _ => {
                     if let Some(captures) = KEY_VALUE_RGX.captures(line) {
@@ -149,6 +153,9 @@ impl Beatmap {
                             }
                             "SliderMultiplier" => {
                                 kvalue!(captures[beatmap.difficulty.slider_multiplier]: parse(f32))
+                            }
+                            "SliderTickRate" => {
+                                kvalue!(captures[beatmap.difficulty.slider_tick_rate]: parse(u32))
                             }
 
                             _ => (),
@@ -271,6 +278,14 @@ impl Beatmap {
             self.difficulty.overall_difficulty
         ));
         lines.push(format!("ApproachRate:{}", self.difficulty.approach_rate));
+        lines.push(format!(
+            "SliderMultiplier:{}",
+            self.difficulty.slider_multiplier
+        ));
+        lines.push(format!(
+            "SliderTickRate:{}",
+            self.difficulty.slider_tick_rate
+        ));
 
         // events
         lines.push("[Events]".to_string());
@@ -285,6 +300,9 @@ impl Beatmap {
 
         // colors
         lines.push("[Colours]".to_string());
+        for (i, color) in self.colors.iter().enumerate() {
+            lines.push(format!("Combo{} : {}", i + 1, color_str(&color)));
+        }
         lines.push("".to_string());
 
         // hit objects
@@ -296,4 +314,18 @@ impl Beatmap {
 
         Ok(lines.join("\n"))
     }
+}
+
+fn parse_color(line: &str) -> Result<Color> {
+    let mut s = line.split(" : ");
+    s.next();
+    let s = s.next().unwrap().split(',').collect::<Vec<_>>();
+    let red = s[0].parse::<u8>()?;
+    let green = s[1].parse::<u8>()?;
+    let blue = s[2].parse::<u8>()?;
+    Ok(Color { red, green, blue })
+}
+
+fn color_str(color: &Color) -> String {
+    format!("{},{},{}", color.red, color.green, color.blue)
 }
