@@ -14,6 +14,8 @@ extern crate anyhow;
 extern crate lazy_static;
 #[macro_use]
 extern crate serde;
+#[macro_use]
+extern crate thiserror;
 
 #[cfg(feature = "apiv1")]
 mod apiv1;

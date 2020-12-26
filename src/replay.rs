@@ -5,10 +5,7 @@ use std::str::FromStr;
 use xz2::bufread::XzDecoder;
 use xz2::stream::Stream;
 
-use crate::{
-    Mode,
-    read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string,
-};
+use crate::{read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string, Mode};
 
 // write a parser for the life graph
 // /// A point in the life graph
