@@ -1,4 +1,4 @@
-use std::io::{self};
+use std::io;
 
 use anyhow::Result;
 use std::str::FromStr;
@@ -129,7 +129,7 @@ impl Replay {
     ///
     /// The returned struct will be missing the `action`, `score_id`, and `target_practice_total_accuracy` fields.
     /// If you need `score_id` or `target_practice_total_accuracy`, but don't want to parse actions use the `parse_skip_actions` function instead.
-    pub fn parse_header<R: io::Read>(reader: &mut R) -> Result<Replay, Error> {
+    pub fn parse_header<R: io::Read>(reader: &mut R) -> Result<Replay> {
         Ok(Replay {
             mode: match read_u8(reader)? {
                 0 => Mode::Osu,
@@ -165,7 +165,7 @@ impl Replay {
         })
     }
 
-    fn parse_tail<R: io::Read>(&mut self, reader: &mut R) -> Result<(), Error> {
+    fn parse_tail<R: io::Read>(&mut self, reader: &mut R) -> Result<()> {
         self.score_id = read_u64le(reader)?;
         self.target_practice_total_accuracy = if (self.mods & 8388608) != 0 {
             Some(read_f64le(reader)?)
@@ -178,12 +178,12 @@ impl Replay {
     fn create_action_parser<R: io::BufRead>(
         &self,
         reader: R,
-    ) -> Result<ReplayActionParser<io::BufReader<XzDecoder<io::Take<R>>>>, Error> {
+    ) -> Result<ReplayActionParser<io::BufReader<XzDecoder<io::Take<R>>>>> {
         create_decompressing_replay_action_parser(reader.take(self.replay_data_length as u64))
     }
 
     /// Parse a replay file (.osr)
-    pub fn parse<R: io::BufRead>(mut reader: R) -> Result<Replay, Error> {
+    pub fn parse<R: io::BufRead>(mut reader: R) -> Result<Replay> {
         let mut replay = Replay::parse_header(&mut reader)?;
         let mut action_parser = replay.create_action_parser(reader)?;
         for action in action_parser.iter() {
@@ -203,7 +203,7 @@ impl Replay {
     ///
     /// Using this function can be signficantly easier on memory and CPU
     /// if only score information is needed
-    pub fn parse_skip_actions<R: io::Read + io::Seek>(mut reader: R) -> Result<Replay, Error> {
+    pub fn parse_skip_actions<R: io::Read + io::Seek>(mut reader: R) -> Result<Replay> {
         let mut replay = Replay::parse_header(&mut reader)?;
         reader.seek(io::SeekFrom::Current(replay.replay_data_length as i64))?;
         replay.parse_tail(&mut reader)?;
@@ -227,27 +227,27 @@ impl<'a, R: io::BufRead> ReplayActionParserIter<'a, R> {
         }
     }
 
-    fn read_time(&mut self) -> Result<Option<i64>, Error> {
+    fn read_time(&mut self) -> Result<Option<i64>> {
         self.number_buffer.clear();
-        self.reader.read_until('|' as u8, &mut self.number_buffer)?;
-        if self.number_buffer.len() == 0 {
+        self.reader.read_until(b'|', &mut self.number_buffer)?;
+        if self.number_buffer.is_empty() {
             return Ok(None);
         }
         let s = String::from_utf8_lossy(&self.number_buffer[..self.number_buffer.len() - 1]);
         Ok(Some(i64::from_str(&s)?))
     }
 
-    fn read_position(&mut self) -> Result<f32, Error> {
+    fn read_position(&mut self) -> Result<f32> {
         self.number_buffer.clear();
-        self.reader.read_until('|' as u8, &mut self.number_buffer)?;
+        self.reader.read_until(b'|', &mut self.number_buffer)?;
         let s = String::from_utf8_lossy(&self.number_buffer[..self.number_buffer.len() - 1]);
         Ok(f32::from_str(&s)?)
     }
 
-    fn read_buttons(&mut self) -> Result<u32, Error> {
+    fn read_buttons(&mut self) -> Result<u32> {
         self.number_buffer.clear();
-        self.reader.read_until(',' as u8, &mut self.number_buffer)?;
-        if self.number_buffer.last() == Some(&(',' as u8)) {
+        self.reader.read_until(b',', &mut self.number_buffer)?;
+        if self.number_buffer.last() == Some(&b',') {
             self.number_buffer.pop();
         }
 
@@ -257,7 +257,7 @@ impl<'a, R: io::BufRead> ReplayActionParserIter<'a, R> {
 }
 
 impl<'a, R: io::BufRead> Iterator for ReplayActionParserIter<'a, R> {
-    type Item = Result<ReplayAction, Error>;
+    type Item = Result<ReplayAction>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let time = match self.read_time() {
@@ -300,7 +300,7 @@ impl<R: io::BufRead> ReplayActionParser<R> {
     }
 
     /// create an iterator over the parsed replay actions
-    pub fn iter<'a>(&'a mut self) -> ReplayActionParserIter<'a, R> {
+    pub fn iter(&mut self) -> ReplayActionParserIter<R> {
         ReplayActionParserIter::new(&mut self.inner)
     }
 
@@ -313,7 +313,7 @@ impl<R: io::BufRead> ReplayActionParser<R> {
 /// Create a parser for LZMA compressed replay actions
 pub fn create_decompressing_replay_action_parser<R: io::BufRead>(
     reader: R,
-) -> Result<ReplayActionParser<io::BufReader<XzDecoder<R>>>, Error> {
+) -> Result<ReplayActionParser<io::BufReader<XzDecoder<R>>>> {
     Ok(ReplayActionParser::new(io::BufReader::new(
         XzDecoder::new_stream(reader, Stream::new_lzma_decoder(std::u64::MAX)?),
     )))
