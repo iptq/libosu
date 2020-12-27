@@ -2,13 +2,13 @@ use num_traits::FromPrimitive;
 
 use crate::parsing::{Error, Result};
 use crate::{
-    AbsoluteTime, Additions, Beatmap, HitObject, HitObjectKind, Point, SampleInfo, SampleSet,
-    SliderSplineKind, TimeLocation,
+    Additions, HitObject, HitObjectKind, Point, SampleInfo, SampleSet, SliderSplineKind,
+    TimeLocation,
 };
 
 impl HitObject {
     /// Creates a HitObject from the *.osz format
-    pub fn from_osz(input: impl AsRef<str>, parent: &Beatmap) -> Result<HitObject> {
+    pub fn from_osz(input: impl AsRef<str>) -> Result<HitObject> {
         let parts = input.as_ref().split(',').collect::<Vec<_>>();
 
         let x = parts[0].parse::<i32>()?;
@@ -18,7 +18,7 @@ impl HitObject {
         let additions_bits = parts[4].parse::<u32>()?;
         let additions = Additions::from_bits(additions_bits).unwrap();
 
-        let start_time = TimeLocation::Absolute(AbsoluteTime::new(timestamp));
+        let start_time = TimeLocation(timestamp);
 
         // color is the top 3 bits of the "type" string, since there's a possible of 8 different
         // combo colors max
@@ -41,13 +41,6 @@ impl HitObject {
                 // slider duration = pixelLength / (100.0 * SliderMultiplier) * BeatDuration
                 // from the osu wiki
                 let pixel_length = parts[7].parse::<f64>()?;
-                let beat_duration = parent
-                    .locate_timing_point(&start_time)
-                    .unwrap()
-                    .get_beat_duration();
-                let duration = (pixel_length as f64 * beat_duration
-                    / (100.0 * parent.difficulty.slider_multiplier as f64))
-                    as u32;
 
                 let edge_hitsounds = if parts.len() > 8 {
                     parts[8]
@@ -98,7 +91,6 @@ impl HitObject {
                         .collect(),
                     repeats,
                     pixel_length,
-                    duration,
                     edge_hitsounds,
                     edge_additions,
                 }
@@ -108,7 +100,7 @@ impl HitObject {
                 let end_time = parts[5].parse::<i32>()?;
                 sample_info = parse_hitsample(parts[6])?;
                 HitObjectKind::Spinner {
-                    end_time: TimeLocation::Absolute(AbsoluteTime::new(end_time)),
+                    end_time: TimeLocation(end_time),
                 }
             }
             o => {
@@ -180,7 +172,7 @@ impl HitObject {
                     edge_additions,
                 )
             }
-            HitObjectKind::Spinner { ref end_time } => format!("{},", end_time.as_milliseconds()),
+            HitObjectKind::Spinner { ref end_time } => format!("{},", end_time.0),
             _ => String::new(),
         };
 
@@ -188,7 +180,7 @@ impl HitObject {
             "{},{},{},{},{},{}{}",
             self.pos.0,
             self.pos.1,
-            self.start_time.as_milliseconds(),
+            self.start_time.0,
             obj_type,
             self.additions.bits(),
             type_specific,

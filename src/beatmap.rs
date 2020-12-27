@@ -1,9 +1,7 @@
 use anyhow::Result;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
-use crate::{
-    Additions, Color, HitObject, HitObjectKind, Mode, SampleSet, TimeLocation, TimingPoint,
-};
+use crate::{Color, HitObject, HitObjectKind, Mode, SampleSet, TimeLocation, TimingPoint};
 
 /// Difficulty settings defined by the map.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -139,7 +137,7 @@ impl Default for Beatmap {
 }
 
 impl Beatmap {
-    /// Returns the timing point associated with the timing section to which the given time belongs.`
+    /// Returns the timing point associated with the timing section to which the given time belongs.
     pub fn locate_timing_point(&self, time: impl Into<TimeLocation>) -> Option<TimingPoint> {
         // TODO: make this efficient
         let mut tp = None;
@@ -163,43 +161,6 @@ impl Beatmap {
             if let HitObjectKind::Slider { .. } = hit_object.kind {}
         }
         None
-    }
-
-    // /// Set a hitsound at the given time.
-    // pub fn set_hitsound(&mut self, time: impl Into<TimeLocation>, hitsound: &Hitsound) {
-    //     if let Some(hit_object) = self.locate_hitobject(time) {
-    //         if let Some(mut hit_object) = self.hit_objects.take(&hit_object) {
-    //             hit_object.set_hitsound(hitsound);
-    //             self.hit_objects.insert(hit_object);
-    //         }
-    //     }
-    // }
-
-    /// Returns a list of this beatmap's hitsounds.
-    ///
-    /// This will also return hitsounds that occur on parts of objects, for example on slider
-    /// bodies or slider ends. If a hitsound occurs on a spinner, the only "sound" that's counted
-    /// is the moment that the spinner ends.
-    pub fn get_hitsounds(&self) -> Result<Vec<(i32, Additions)>> {
-        let mut hitsounds = Vec::new();
-        for obj in self.hit_objects.iter() {
-            let start_time = obj.start_time.clone().as_milliseconds();
-            match obj.kind {
-                HitObjectKind::Slider {
-                    ref repeats,
-                    ref duration,
-                    ..
-                } => {
-                    // TODO: calculate middle hitsounds
-                    for i in 0..(repeats + 1) {
-                        let time = start_time + (i * duration) as i32;
-                        hitsounds.push((time, obj.additions));
-                    }
-                }
-                _ => hitsounds.push((start_time, obj.additions)),
-            }
-        }
-        Ok(hitsounds)
     }
 }
 

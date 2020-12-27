@@ -1,7 +1,5 @@
-use std::collections::BTreeSet;
-
 use crate::parsing::Result;
-use crate::{AbsoluteTime, SampleSet, TimeLocation, TimingPoint, TimingPointKind};
+use crate::{SampleSet, TimeLocation, TimingPoint, TimingPointKind};
 
 impl TimingPoint {
     /// Creates a TimingPoint from the *.osz format
@@ -19,21 +17,16 @@ impl TimingPoint {
 
         // calculate bpm from mpb
         let bpm = 60_000.0 / mpb;
-        let time = TimeLocation::Absolute(AbsoluteTime::new(timestamp));
+        let time = TimeLocation(timestamp);
 
         let timing_point = TimingPoint {
             kind: if inherited {
                 assert!(parent.is_some());
                 TimingPointKind::Inherited {
-                    parent: parent.clone().map(Box::new),
-                    slider_velocity: 0.0, // TODO: calculate this from mpb
+                    slider_velocity: 100.0 / mpb,
                 }
             } else {
-                TimingPointKind::Uninherited {
-                    bpm,
-                    meter,
-                    children: BTreeSet::new(),
-                }
+                TimingPointKind::Uninherited { bpm, meter }
             },
             kiai,
             sample_set: match sample_set {
@@ -46,10 +39,7 @@ impl TimingPoint {
             mpb,
             sample_index,
             volume,
-            time: match parent {
-                Some(parent) => time.into_relative(parent),
-                None => time,
-            },
+            time,
         };
 
         Ok(timing_point)
@@ -61,11 +51,17 @@ impl TimingPoint {
             TimingPointKind::Inherited { .. } => 0,
             TimingPointKind::Uninherited { .. } => 1,
         };
+        let (beat_length, meter) = match self.kind {
+            TimingPointKind::Inherited {
+                slider_velocity, ..
+            } => (-100.0 / slider_velocity, 0),
+            TimingPointKind::Uninherited { meter, .. } => (self.mpb, meter),
+        };
         let line = format!(
             "{},{},{},{},{},{},{},{}",
-            self.time.as_milliseconds(),
-            self.mpb,
-            self.get_meter(),
+            self.time.0,
+            beat_length,
+            meter,
             self.sample_set as i32,
             self.sample_index,
             self.volume,

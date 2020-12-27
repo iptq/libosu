@@ -193,19 +193,12 @@ impl Beatmap {
 
         // set their parents now
         timing_points.sort();
-        if let Some(mut prev) = timing_points.first().cloned() {
-            for mut tp in timing_points.into_iter() {
-                use TimingPointKind::*;
-                match tp.kind {
-                    Inherited { .. } => tp.set_parent(&prev),
-                    Uninherited { .. } => prev = tp.clone(),
-                };
-                beatmap.timing_points.push(tp);
-            }
+        for tp in timing_points.into_iter() {
+            beatmap.timing_points.push(tp);
         }
 
         for line in hit_object_lines {
-            let obj = HitObject::from_osz(line, &beatmap)?;
+            let obj = HitObject::from_osz(line)?;
             beatmap.hit_objects.push(obj);
         }
 

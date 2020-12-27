@@ -1,54 +1,12 @@
 use std::cmp::Ordering;
-use std::collections::BTreeSet;
 
-use num_rational::Ratio;
 use serde::ser::*;
 
 use crate::SampleSet;
 
-/// The number of milliseconds that a timestamp is allowed to be off by.
-const THRESHOLD: f64 = 3.0;
-
-/// An absolute representation of time.
-#[derive(Clone, Debug)]
-pub struct AbsoluteTime(i32);
-
-impl AbsoluteTime {
-    /// Creates a new AbsoluteTime out of a i32.
-    pub fn new(val: i32) -> Self {
-        AbsoluteTime(val)
-    }
-}
-
-/// A relative representation of time, based on another time location.
-#[derive(Clone, Debug)]
-pub struct RelativeTime {
-    time: Box<TimeLocation>,
-    bpm: f64,
-    meter: u32,
-    measures: u32,
-    frac: Ratio<u32>,
-}
-
-/// A struct representing a _precise_ location in time.
-///
-/// This enum represents a timestamp by either an absolute timestamp (milliseconds), or a tuple
-/// (t, m, f) where _t_ is the `TimingPoint` that it's relative to, _m_ is the measure number
-/// from within this timing section, and _f_ is a fraction (actually implemented with
-/// `num_rational::Ratio`) that represents how far into the measure this note appears.
-///
-/// When possible, prefer to stack measures. The value of _f_ should not ever reach 1; instead, opt
-/// to use measure numbers for whole amounts of measures. For example, 1 measure + 5 / 4 should be
-/// represented as 2 measures + 1 / 4 instead.
-#[derive(Clone, Debug)]
-pub enum TimeLocation {
-    /// Absolute timing in terms of number of milliseconds since the beginning of the audio file.
-    /// Note that because this is an `i32`, the time is allowed to be negative.
-    Absolute(AbsoluteTime),
-    /// Relative timing based on an existing TimingPoint. The lifetime of this TimeLocation thus
-    /// depends on the lifetime of the map.
-    Relative(RelativeTime),
-}
+/// A struct representing a location in time.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct TimeLocation(pub i32);
 
 /// An enum distinguishing between inherited and uninherited timing points.
 #[derive(Clone, Debug)]
@@ -59,14 +17,9 @@ pub enum TimingPointKind {
         bpm: f64,
         /// The number of beats in a single measure
         meter: u32,
-        /// List of inherited timing points that belong to this section.
-        children: BTreeSet<TimingPoint>,
     },
     /// Inherited timing point
     Inherited {
-        /// The uninherited timing point to which this timing point belongs.
-        /// This field is an option because parsing and tree-building occur in different stages.
-        parent: Option<Box<TimingPoint>>,
         /// Slider velocity multiplier
         slider_velocity: f64,
     },
@@ -92,212 +45,6 @@ pub struct TimingPoint {
     pub mpb: f64,
     /// The type of this timing point. See `TimingPointKind`.
     pub kind: TimingPointKind,
-}
-
-impl TimeLocation {
-    /// Converts any `TimeLocation` into an absolute one.
-    pub fn into_absolute(self) -> TimeLocation {
-        TimeLocation::Absolute(AbsoluteTime::new(self.as_milliseconds()))
-    }
-
-    /// Converts any `TimeLocation` into an absolute time in milliseconds from the beginning of the
-    /// audio file.
-    pub fn as_milliseconds(&self) -> i32 {
-        match self {
-            TimeLocation::Absolute(ref val) => val.0,
-            TimeLocation::Relative(RelativeTime {
-                ref time,
-                ref bpm,
-                ref meter,
-                measures: ref m,
-                frac: ref f,
-            }) => {
-                // the start of the previous timing point
-                let base = time.as_milliseconds();
-
-                // milliseconds per beat
-                let mpb = 60_000.0 / *bpm;
-
-                // milliseconds per measure
-                let mpm = mpb * (*meter as f64);
-
-                // amount of time from the timing point to the beginning of the current measure
-                // this is equal to (milliseconds / measure) * (# measures)
-                let measure_offset = mpm * (*m as f64);
-
-                // this is the fractional part, from the beginning of the measure
-                let remaining_offset = (*f.numer() as f64) * mpm / (*f.denom() as f64);
-
-                // ok now just add it all together
-                base + (measure_offset + remaining_offset) as i32
-            }
-        }
-    }
-
-    /// Converts any `TimeLocation` into a relative one.
-    pub fn into_relative(self, tp: &TimingPoint) -> TimeLocation {
-        let bpm = tp.get_bpm();
-        let meter = tp.get_meter();
-        let (measures, frac) = self.approximate(&tp.time, bpm, meter);
-        TimeLocation::Relative(RelativeTime {
-            time: Box::new(tp.time.clone()),
-            bpm,
-            meter,
-            measures,
-            frac,
-        })
-    }
-
-    /// Converts any `TimeLocation` into a relative time tuple given a `TimingPoint`.
-    pub fn approximate(&self, time: &TimeLocation, bpm: f64, meter: u32) -> (u32, Ratio<u32>) {
-        match self {
-            TimeLocation::Absolute(ref val) => {
-                // this is going to be black magic btw
-
-                // in this function i'm going to assume that the osu editor is _extremely_
-                // accurate, and all inaccuracies up to 2ms will be accommodated. this essentially
-                // means if your timestamp doesn't fall on a beat exactly, and it's also _not_ 2ms
-                // from any well-established snapping, it's probably going to fail horribly (a.k.a.
-                // report large numbers for d)
-
-                // oh well, let's give this a shot
-
-                // first, let's calculate the measure offset
-                // (using all the stuff from as_milliseconds above)
-                let mpb = 60_000.0 / bpm;
-                let mpm = mpb * (meter as f64);
-                let base = time.as_milliseconds();
-                let cur = val.0;
-                let measures = ((cur - base) as f64 / mpm) as i32;
-
-                // approximate time that our measure starts
-                let measure_start = base as f64 + (measures as f64 * mpm);
-                let offset = cur as f64 - measure_start;
-
-                // now, enumerate several well-established snappings
-                let mut snappings = Vec::new();
-                for d in &[1, 2, 3, 4, 6, 8, 12, 16] {
-                    let d = *d;
-                    for i in 0..d {
-                        let snap = mpm * i as f64 / d as f64;
-                        snappings.push((i, d, snap));
-
-                        // for the other side
-                        let snap = mpm * (i + d) as f64 / d as f64;
-                        snappings.push((i + d, d, snap));
-                    }
-                }
-
-                // now find out which one's the closest
-                let mut distances = snappings
-                    .into_iter()
-                    .map(|(i, d, n)| (i, d, (offset - n).abs()))
-                    .collect::<Vec<_>>();
-                distances.sort_by(|(_, _, n1), (_, _, n2)| n1.partial_cmp(n2).unwrap());
-
-                // now see how accurate the first one is
-                let (i, d, n) = distances.first().unwrap();
-                if *n < THRESHOLD {
-                    // yay accurate
-                    return (measures as u32, Ratio::new(*i as u32, *d as u32));
-                }
-
-                // i'll worry about this later
-                // this is probably going to just be some fraction approximation algorithm tho
-                (0, Ratio::from(0))
-            }
-            TimeLocation::Relative(RelativeTime {
-                ref time,
-                ref bpm,
-                ref meter,
-                ..
-            }) => {
-                // need to reconstruct the TimeLocation because we could be using a different
-                // timing point
-                // TODO: if the timing point is the same, return immediately
-                TimeLocation::Absolute(AbsoluteTime::new(self.as_milliseconds())).approximate(
-                    &*time.clone(),
-                    *bpm,
-                    *meter,
-                )
-            }
-        }
-    }
-}
-
-impl Eq for TimeLocation {}
-
-impl PartialEq for TimeLocation {
-    fn eq(&self, other: &TimeLocation) -> bool {
-        self.as_milliseconds() == other.as_milliseconds()
-    }
-}
-
-impl Ord for TimeLocation {
-    fn cmp(&self, other: &TimeLocation) -> Ordering {
-        self.as_milliseconds().cmp(&other.as_milliseconds())
-    }
-}
-
-impl PartialOrd for TimeLocation {
-    fn partial_cmp(&self, other: &TimeLocation) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Into<TimeLocation> for i32 {
-    fn into(self) -> TimeLocation {
-        TimeLocation::Absolute(AbsoluteTime::new(self))
-    }
-}
-
-impl<'a> Into<TimeLocation> for &'a TimeLocation {
-    fn into(self) -> TimeLocation {
-        self.clone()
-    }
-}
-
-impl TimingPoint {
-    /// Sets the parent of this TimingPoint to the given TimingPoint.
-    pub fn set_parent(&mut self, tp: &TimingPoint) {
-        self.time = self.time.clone().into_relative(&tp);
-        if let TimingPointKind::Inherited { ref mut parent, .. } = &mut self.kind {
-            *parent = Some(Box::new(tp.clone()));
-        }
-    }
-
-    /// Gets the closest parent that is an uninherited timing point.
-    pub fn get_uninherited_ancestor(&self) -> &TimingPoint {
-        match self.kind {
-            TimingPointKind::Uninherited { .. } => self,
-            TimingPointKind::Inherited { ref parent, .. } => match parent {
-                Some(_parent) => _parent.get_uninherited_ancestor(),
-                None => panic!("Inherited timing point does not have a parent."),
-            },
-        }
-    }
-    /// Gets the BPM of this timing section by climbing the timing section tree.
-    pub fn get_bpm(&self) -> f64 {
-        let ancestor = self.get_uninherited_ancestor();
-        match ancestor.kind {
-            TimingPointKind::Uninherited { ref bpm, .. } => *bpm,
-            _ => panic!("The ancestor should always be an Uninherited timing point."),
-        }
-    }
-
-    /// Gets the meter of this timing section by climbing the timing section tree.
-    pub fn get_meter(&self) -> u32 {
-        let ancestor = self.get_uninherited_ancestor();
-        match ancestor.kind {
-            TimingPointKind::Uninherited { ref meter, .. } => *meter,
-            _ => panic!("The ancestor should always be an Uninherited timing point."),
-        }
-    }
-
-    /// Returns the number of milliseconds in a beat for this timing section.
-    pub fn get_beat_duration(&self) -> f64 {
-        60_000.0 / self.get_bpm()
-    }
 }
 
 impl Eq for TimingPoint {}
