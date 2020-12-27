@@ -6,8 +6,6 @@ rust:
 os: linux
 before_install:
   - sudo apt-get update -y
-  - sudo apt-get install -y libgtk-3-dev
 script:
-  - cargo build --package libosu
-  - cargo test --package libosu
+  - cargo test --all-features
 
