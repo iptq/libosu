@@ -13,8 +13,8 @@ pub struct TimeLocation(pub i32);
 pub enum TimingPointKind {
     /// Uninherited timing point
     Uninherited {
-        /// BPM (beats per minute) of this timing section
-        bpm: f64,
+        /// Milliseconds per beat (aka beat duration)
+        mpb: f64,
         /// The number of beats in a single measure
         meter: u32,
     },
@@ -41,8 +41,6 @@ pub struct TimingPoint {
     pub sample_index: u32,
     /// Volume of this timing section.
     pub volume: u16,
-    /// Milliseconds per beat
-    pub mpb: f64,
     /// The type of this timing point. See `TimingPointKind`.
     pub kind: TimingPointKind,
 }

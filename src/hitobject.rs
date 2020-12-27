@@ -28,14 +28,13 @@ pub enum HitObjectKind {
         /// The control points that make up the body of the slider.
         control: Vec<Point<i32>>,
         /// The number of times this slider should repeat.
-        repeats: u32,
+        num_repeats: u32,
         /// How long this slider is in pixels.
         pixel_length: f64,
         /// Hitsounds on each repeat of the slider
-        /// TODO: fix this
-        edge_hitsounds: Vec<Additions>,
+        edge_additions: Vec<Additions>,
         /// Additions on each repeat of the slider
-        edge_additions: Vec<(SampleSet, SampleSet)>,
+        edge_samplesets: Vec<(SampleSet, SampleSet)>,
     },
     /// Spinner.
     Spinner {

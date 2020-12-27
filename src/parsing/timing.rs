@@ -23,10 +23,10 @@ impl TimingPoint {
             kind: if inherited {
                 assert!(parent.is_some());
                 TimingPointKind::Inherited {
-                    slider_velocity: 100.0 / mpb,
+                    slider_velocity: -100.0 / mpb,
                 }
             } else {
-                TimingPointKind::Uninherited { bpm, meter }
+                TimingPointKind::Uninherited { mpb, meter }
             },
             kiai,
             sample_set: match sample_set {
@@ -36,7 +36,6 @@ impl TimingPoint {
                 3 => SampleSet::Drum,
                 _ => panic!("Invalid sample set '{}'.", sample_set),
             },
-            mpb,
             sample_index,
             volume,
             time,
@@ -55,7 +54,7 @@ impl TimingPoint {
             TimingPointKind::Inherited {
                 slider_velocity, ..
             } => (-100.0 / slider_velocity, 0),
-            TimingPointKind::Uninherited { meter, .. } => (self.mpb, meter),
+            TimingPointKind::Uninherited { mpb, meter, .. } => (mpb, meter),
         };
         let line = format!(
             "{},{},{},{},{},{},{},{}",

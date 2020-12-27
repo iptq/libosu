@@ -161,7 +161,7 @@ impl Beatmap {
                                 kvalue!(captures[beatmap.difficulty.approach_rate]: parse(f32))
                             }
                             "SliderMultiplier" => {
-                                kvalue!(captures[beatmap.difficulty.slider_multiplier]: parse(f32))
+                                kvalue!(captures[beatmap.difficulty.slider_multiplier]: parse(f64))
                             }
                             "SliderTickRate" => {
                                 kvalue!(captures[beatmap.difficulty.slider_tick_rate]: parse(u32))
@@ -179,7 +179,6 @@ impl Beatmap {
         //         "Could not find osu! file format version line. Check your beatmap and try again."
         //     );
         // }
-        eprintln!("len: {}", timing_point_lines.len());
 
         // parse timing points
         let mut prev = None;
@@ -196,11 +195,13 @@ impl Beatmap {
         for tp in timing_points.into_iter() {
             beatmap.timing_points.push(tp);
         }
+        // beatmap.timing_points.sort_by_key(|tp| tp.time);
 
         for line in hit_object_lines {
             let obj = HitObject::from_osz(line)?;
             beatmap.hit_objects.push(obj);
         }
+        beatmap.hit_objects.sort_by_key(|ho| ho.start_time);
 
         // beatmap.associate_hitobjects();
         Ok(beatmap)

@@ -1,3 +1,5 @@
+mod ext;
+
 use anyhow::Result;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
@@ -22,7 +24,7 @@ pub struct Difficulty {
     /// Approach Rate
     pub approach_rate: f32,
     /// Slider Multiplier
-    pub slider_multiplier: f32,
+    pub slider_multiplier: f64,
     /// Slider tick rate
     pub slider_tick_rate: u32,
 }

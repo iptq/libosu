@@ -8,8 +8,8 @@ use crate::{
 
 impl HitObject {
     /// Creates a HitObject from the *.osz format
-    pub fn from_osz(input: impl AsRef<str>) -> Result<HitObject> {
-        let parts = input.as_ref().split(',').collect::<Vec<_>>();
+    pub fn from_osz(input: &str) -> Result<HitObject> {
+        let parts = input.split(',').collect::<Vec<_>>();
 
         let x = parts[0].parse::<i32>()?;
         let y = parts[1].parse::<i32>()?;
@@ -35,14 +35,14 @@ impl HitObject {
             //slider
             o if (o & 2) == 2 => {
                 let mut ctl_parts = parts[5].split('|').collect::<Vec<_>>();
-                let repeats = parts[6].parse::<u32>()?;
+                let num_repeats = parts[6].parse::<u32>()?;
                 let slider_type = ctl_parts.remove(0);
 
                 // slider duration = pixelLength / (100.0 * SliderMultiplier) * BeatDuration
                 // from the osu wiki
                 let pixel_length = parts[7].parse::<f64>()?;
 
-                let edge_hitsounds = if parts.len() > 8 {
+                let edge_additions = if parts.len() > 8 {
                     parts[8]
                         .split('|')
                         .map(|n| n.parse::<u32>().map(|b| Additions::from_bits(b).unwrap()))
@@ -51,7 +51,7 @@ impl HitObject {
                     vec![Additions::empty()]
                 };
 
-                let edge_additions = if parts.len() > 9 {
+                let edge_samplesets = if parts.len() > 9 {
                     parts[9]
                         .split('|')
                         .map(|s| {
@@ -75,6 +75,7 @@ impl HitObject {
                 };
 
                 HitObjectKind::Slider {
+                    num_repeats,
                     kind: match slider_type {
                         "L" => SliderSplineKind::Linear,
                         "B" => SliderSplineKind::Bezier,
@@ -89,10 +90,9 @@ impl HitObject {
                             Point(p[0].parse::<i32>().unwrap(), p[1].parse::<i32>().unwrap())
                         })
                         .collect(),
-                    repeats,
                     pixel_length,
-                    edge_hitsounds,
                     edge_additions,
+                    edge_samplesets,
                 }
             }
             // spinner
@@ -133,22 +133,22 @@ impl HitObject {
 
         let hitsample = hitsample_str(&self.sample_info);
 
-        let type_specific = match self.kind {
+        let type_specific = match &self.kind {
             HitObjectKind::Slider {
-                ref kind,
-                ref repeats,
-                ref control,
-                ref pixel_length,
-                ref edge_hitsounds,
-                ref edge_additions,
+                kind,
+                num_repeats,
+                control,
+                pixel_length,
+                edge_additions,
+                edge_samplesets,
                 ..
             } => {
-                let edge_hitsounds = edge_hitsounds
+                let edge_additions = edge_additions
                     .iter()
                     .map(|f| f.bits().to_string())
                     .collect::<Vec<_>>()
                     .join("|");
-                let edge_additions = edge_additions
+                let edge_samplesets = edge_samplesets
                     .iter()
                     .map(|f| format!("{}:{}", f.0 as u32, f.1 as u32))
                     .collect::<Vec<_>>()
@@ -166,10 +166,10 @@ impl HitObject {
                         .map(|point| format!("{}:{}", point.0, point.1))
                         .collect::<Vec<_>>()
                         .join("|"),
-                    repeats,
+                    num_repeats,
                     pixel_length,
-                    edge_hitsounds,
                     edge_additions,
+                    edge_samplesets,
                 )
             }
             HitObjectKind::Spinner { ref end_time } => format!("{},", end_time.0),
