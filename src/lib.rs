@@ -25,6 +25,8 @@ extern crate thiserror;
 mod apiv1;
 mod beatmap;
 mod color;
+
+#[allow(non_upper_case_globals)] // for the Mods bitflags
 mod enums;
 mod hitobject;
 mod hitsounds;
