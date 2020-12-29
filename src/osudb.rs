@@ -1,10 +1,10 @@
 use std::io;
 
-use anyhow::Error;
+use anyhow::{Context, Error};
 
 use crate::{
     read_f32le, read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string,
-    Grade, Mode, RankedStatus,
+    Grade, Mode, Mods, RankedStatus,
 };
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -70,13 +70,13 @@ pub struct OsuDBBeatmap {
     /// Slider velocity setting of the beatmap.
     pub slider_velocity: f64,
     /// A list of calculated star ratings for different mods for standard. Empty if version less than 20140609.
-    pub std_star_rating: Vec<(u32, f64)>,
+    pub std_star_rating: Vec<(Mods, f64)>,
     /// A list of calculated star ratings for different mods for taiko. Empty if version less than 20140609.
-    pub std_taiko_rating: Vec<(u32, f64)>,
+    pub std_taiko_rating: Vec<(Mods, f64)>,
     /// A list of calculated star ratings for different mods for ctb. Empty if version less than 20140609.
-    pub std_ctb_rating: Vec<(u32, f64)>,
+    pub std_ctb_rating: Vec<(Mods, f64)>,
     /// A list of calculated star ratings for different mods for mania. Empty if version less than 20140609.
-    pub std_mania_rating: Vec<(u32, f64)>,
+    pub std_mania_rating: Vec<(Mods, f64)>,
 
     /// The drain time in seconds.
     pub drain_time: u32,
@@ -191,14 +191,15 @@ pub struct OsuDB {
 }
 
 impl OsuDBBeatmap {
-    fn read_star_rating(mut reader: impl io::BufRead) -> Result<Vec<(u32, f64)>, Error> {
+    fn read_star_rating(mut reader: impl io::BufRead) -> Result<Vec<(Mods, f64)>, Error> {
         let count = read_u32le(&mut reader)?;
         let ratings = (0..count)
-            .map(|_| -> Result<(u32, f64), Error> {
+            .map(|_| -> Result<(Mods, f64), Error> {
                 Ok((
                     {
                         assert_eq!(read_u8(&mut reader)?, 0x08);
-                        read_u32le(&mut reader)?
+                        Mods::from_bits(read_u32le(&mut reader)?)
+                            .context("unexpected bits set in star rating mods field")?
                     },
                     {
                         assert_eq!(read_u8(&mut reader)?, 0x0D);
@@ -326,7 +327,7 @@ impl OsuDB {
 mod tests {
     use std::io::BufReader;
 
-    use crate::{Grade, Mode, RankedStatus, UserPermission};
+    use crate::{Grade, Mode, Mods, RankedStatus, UserPermission};
 
     use super::{OsuDB, OsuDBBeatmap, OsuDBBeatmapTimingPoint};
 
@@ -369,39 +370,39 @@ mod tests {
         std_star_rating: vec![],
         std_taiko_rating: vec![
             (
-                0,
+                Mods::None,
                 2.2660608625099203,
             ),
             (
-                64,
+                Mods::DoubleTime,
                 2.8621242901351933,
             ),
             (
-                256,
+                Mods::HalfTime,
                 1.9135948603059216,
             ),
             (
-                2,
+                Mods::Easy,
                 2.2660608625099203,
             ),
             (
-                66,
+                Mods::Easy | Mods::DoubleTime,
                 2.8621242901351933,
             ),
             (
-                258,
+                Mods::HalfTime | Mods::Easy,
                 1.9135948603059216,
             ),
             (
-                16,
+                Mods::HardRock,
                 2.2660608625099203,
             ),
             (
-                80,
+                Mods::HardRock | Mods::DoubleTime,
                 2.8621242901351933,
             ),
             (
-                272,
+                Mods::HardRock | Mods::HalfTime,
                 1.9135948603059216,
             ),
         ],

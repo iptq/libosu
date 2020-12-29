@@ -1,11 +1,13 @@
 use std::io;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::str::FromStr;
 use xz2::bufread::XzDecoder;
 use xz2::stream::Stream;
 
-use crate::{read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string, Mode};
+use crate::{
+    read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string, Mode, Mods,
+};
 
 // write a parser for the life graph
 // /// A point in the life graph
@@ -92,7 +94,7 @@ pub struct Replay {
     pub perfect: bool,
 
     /// mod values mods or'd together
-    pub mods: u32,
+    pub mods: Mods,
 
     /// List of times with an associated player life value
     ///
@@ -154,7 +156,8 @@ impl Replay {
             score: read_u32le(reader)?,
             max_combo: read_u16le(reader)?,
             perfect: read_u8(reader)? == 1,
-            mods: read_u32le(reader)?,
+            mods: Mods::from_bits(read_u32le(reader)?)
+                .context("unexpected bits set in mods field")?,
             life_graph: read_uleb128_string(reader)?,
             timestamp: read_u64le(reader)?,
             replay_data_length: read_u32le(reader)?,
@@ -167,7 +170,7 @@ impl Replay {
 
     fn parse_tail<R: io::Read>(&mut self, reader: &mut R) -> Result<()> {
         self.score_id = read_u64le(reader)?;
-        self.target_practice_total_accuracy = if (self.mods & 8388608) != 0 {
+        self.target_practice_total_accuracy = if self.mods.contains(Mods::TargetPractice) {
             Some(read_f64le(reader)?)
         } else {
             None
@@ -385,7 +388,7 @@ mod tests {
         assert_eq!(header.perfect, false);
         assert_eq!(
             header.mods,
-            (Mods::Flashlight | Mods::Hidden) | (Mods::DoubleTime | Mods::HardRock)
+            Mods::Flashlight | Mods::Hidden | Mods::DoubleTime | Mods::HardRock
         );
     }
 
@@ -494,7 +497,7 @@ mod tests {
         assert_eq!(replay.score, 364_865_850);
         assert_eq!(replay.max_combo, 4078);
         assert_eq!(replay.perfect, false);
-        assert_eq!(replay.mods, 0);
+        assert_eq!(replay.mods, Mods::None);
 
         let seed_action = replay.actions.last().unwrap();
         assert_eq!(seed_action.time, -12345);
