@@ -12,12 +12,12 @@ repository = "https://github.com/iptq/libosu.git"
 documentation = "https://docs.rs/libosu/"
 
 [dev-dependencies]
-serde_json = "1.0.60"
+serde_json = "1.0.61"
 difference = "2.0.0"
 structopt = "0.3.21"
 
 [dependencies]
-anyhow = "1.0.36"
+anyhow = "1.0.37"
 bitflags = "1.2.1"
 futures = "0.3.8"
 lazy_static = "1.4.0"
@@ -27,11 +27,11 @@ num-rational = "0.3.2"
 num-traits = "0.2.14"
 regex = "1.4.2"
 serde = { version = "1.0.118", features = ["derive"] }
-serde_json = "1.0.60"
-thiserror = "1.0.22"
+serde_json = "1.0.61"
+thiserror = "1.0.23"
 
-hyper = { version = "0.13.9", features = ["stream"], optional = true }
-hyper-tls = { version = "0.4.3", optional = true }
+hyper = { version = "0.14.2", features = ["stream", "http2", "client", "tcp"], optional = true }
+hyper-tls = { version = "0.5.0", optional = true }
 tokio = { version = "1.0.1", optional = true }
 xz2 = { version = "0.1.6", optional = true }
 http = { version = "0.2.2", optional = true }
