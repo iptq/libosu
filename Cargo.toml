@@ -1,7 +1,7 @@
 [package]
 name = "libosu"
-version = "0.0.10"
-authors = ["Michael Zhang <mail@mzhang.io>"]
+version = "0.0.11"
+authors = ["Michael Zhang <mail@mzhang.io>", "Nobbele <realnobbele@gmail.com>", "Ian <IanShehadeh2020@gmail.com>"]
 edition = "2018"
 
 description = "General-purpose osu! library."
