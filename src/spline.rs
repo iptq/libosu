@@ -1,3 +1,6 @@
+// WARNING: totally unsafe vector manipulation below!
+// TODO: figure out if this is type-safe
+
 use std::collections::VecDeque;
 use std::mem::ManuallyDrop;
 
