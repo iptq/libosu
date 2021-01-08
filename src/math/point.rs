@@ -71,6 +71,20 @@ impl<T: Clone + Mul<Output = T>> Mul<T> for Point<T> {
     }
 }
 
+impl<T: Div<Output = T>> Div<Point<T>> for Point<T> {
+    type Output = Point<T>;
+    fn div(self, other: Point<T>) -> Self::Output {
+        Point(self.0 / other.0, self.1 / other.1)
+    }
+}
+
+impl<T: Clone + Div<Output = T>> Div<T> for Point<T> {
+    type Output = Point<T>;
+    fn div(self, other: T) -> Self::Output {
+        Point(self.0 / other.clone(), self.1 / other)
+    }
+}
+
 impl<T: Copy + NumCast> Point<T> {
     /// Converts this point to a floating point point
     #[inline]

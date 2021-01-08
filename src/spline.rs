@@ -201,7 +201,7 @@ fn calculate_bezier(points: &[P]) -> Vec<P> {
     let mut free_buffers = VecDeque::new();
 
     to_flatten.push_back(vec_to_parts(points));
-    let mut p = n;
+    let p = n;
     let buf1 = vec_to_parts(vec![Point(0.0, 0.0); p + 1]);
     let buf2 = vec_to_parts(vec![Point(0.0, 0.0); p * 2 + 1]);
 

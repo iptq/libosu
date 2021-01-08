@@ -38,18 +38,18 @@ mod spline;
 mod timing;
 
 #[cfg(feature = "apiv1")]
-pub use apiv1::*;
-pub use beatmap::*;
-pub use color::*;
-pub use enums::*;
-pub use hitobject::*;
-pub use hitsounds::*;
-pub use math::*;
-pub use osudb::*;
+pub use crate::apiv1::*;
+pub use crate::beatmap::*;
+pub use crate::color::*;
+pub use crate::enums::*;
+pub use crate::hitobject::*;
+pub use crate::hitsounds::*;
+pub use crate::math::*;
+pub use crate::osudb::*;
 #[cfg(feature = "replay")]
-pub use replay::*;
-pub use spline::*;
-pub use timing::*;
+pub use crate::replay::*;
+pub use crate::spline::*;
+pub use crate::timing::*;
 
 macro_rules! read_num_le_fn {
     ($name:ident => $typ:ident) => {
