@@ -81,11 +81,11 @@ fn collect_hitsounds(beatmap: &Beatmap) -> Vec<HitsoundInfo> {
                 });
             }
             // sliders are a mess
-            HitObjectKind::Slider {
+            HitObjectKind::Slider(SliderInfo {
                 edge_additions,
                 edge_samplesets,
                 ..
-            } => {
+            }) => {
                 let duration = beatmap.get_slider_duration(ho).unwrap();
                 let mut time = ho.start_time.0 as f64;
 
@@ -115,7 +115,7 @@ fn collect_hitsounds(beatmap: &Beatmap) -> Vec<HitsoundInfo> {
                 }
             }
             // spinners get 1 hitsound at the end
-            HitObjectKind::Spinner { end_time } => {
+            HitObjectKind::Spinner(SpinnerInfo { end_time }) => {
                 hitsounds.push(HitsoundInfo {
                     time: *end_time,
                     sample_set,
@@ -157,11 +157,11 @@ fn write_hitsounds(hitsounds: &Vec<HitsoundInfo>, beatmap: &mut Beatmap) {
                 index_map.push((hs_idx, ho_idx));
             }
         } else if ho.start_time < hitsound.time {
-            if let HitObjectKind::Spinner { end_time } = ho.kind {
+            if let HitObjectKind::Spinner(SpinnerInfo { end_time }) = ho.kind {
                 if end_time == hitsound.time {
                     index_map.push((hs_idx, ho_idx));
                 }
-            } else if let HitObjectKind::Slider { num_repeats, .. } = ho.kind {
+            } else if let HitObjectKind::Slider(SliderInfo { num_repeats, .. }) = ho.kind {
                 let time_diff = (hitsound.time.0 - ho.start_time.0) as f64;
                 let duration = beatmap.get_slider_duration(ho).unwrap();
                 let num_repeats_approx = time_diff / duration;
@@ -190,11 +190,11 @@ fn write_hitsounds(hitsounds: &Vec<HitsoundInfo>, beatmap: &mut Beatmap) {
     for (hs_idx, ho_idx, e_idx) in slider_map {
         let hitsound = hitsounds.get(hs_idx).unwrap();
         let hit_object = beatmap.hit_objects.get_mut(ho_idx).unwrap();
-        if let HitObjectKind::Slider {
+        if let HitObjectKind::Slider(SliderInfo {
             ref mut edge_additions,
             ref mut edge_samplesets,
             ..
-        } = hit_object.kind
+        }) = hit_object.kind
         {
             while edge_additions.len() <= e_idx {
                 edge_additions.push(Additions::empty());
