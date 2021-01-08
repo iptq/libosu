@@ -16,31 +16,39 @@ pub enum SliderSplineKind {
     Perfect,
 }
 
+/// Extra information provided by a slider.
+#[derive(Clone, Debug)]
+pub struct SliderInfo {
+    /// The algorithm used to calculate the spline.
+    pub kind: SliderSplineKind,
+    /// The control points that make up the body of the slider.
+    pub control: Vec<Point<i32>>,
+    /// The number of times this slider should repeat.
+    pub num_repeats: u32,
+    /// How long this slider is in pixels.
+    pub pixel_length: f64,
+    /// Hitsounds on each repeat of the slider
+    pub edge_additions: Vec<Additions>,
+    /// Additions on each repeat of the slider
+    pub edge_samplesets: Vec<(SampleSet, SampleSet)>,
+}
+
+/// Extra information provided by a spinner.
+#[derive(Clone, Debug)]
+pub struct SpinnerInfo {
+    /// The time at which the slider ends.
+    pub end_time: TimeLocation,
+}
+
 /// Distinguishes between different types of hit objects.
 #[derive(Clone, Debug)]
 pub enum HitObjectKind {
     /// Regular hit circle.
     Circle,
     /// Slider.
-    Slider {
-        /// The algorithm used to calculate the spline.
-        kind: SliderSplineKind,
-        /// The control points that make up the body of the slider.
-        control: Vec<Point<i32>>,
-        /// The number of times this slider should repeat.
-        num_repeats: u32,
-        /// How long this slider is in pixels.
-        pixel_length: f64,
-        /// Hitsounds on each repeat of the slider
-        edge_additions: Vec<Additions>,
-        /// Additions on each repeat of the slider
-        edge_samplesets: Vec<(SampleSet, SampleSet)>,
-    },
+    Slider(SliderInfo),
     /// Spinner.
-    Spinner {
-        /// The time at which the slider ends.
-        end_time: TimeLocation,
-    },
+    Spinner(SpinnerInfo),
 }
 
 /// Represents a single hit object.

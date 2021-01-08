@@ -1,5 +1,5 @@
 use crate::beatmap::Beatmap;
-use crate::hitobject::{HitObject, HitObjectKind};
+use crate::hitobject::{HitObject, HitObjectKind, SliderInfo, SpinnerInfo};
 use crate::timing::{TimeLocation, TimingPoint, TimingPointKind};
 
 impl Beatmap {
@@ -12,18 +12,18 @@ impl Beatmap {
     pub fn get_hitobject_end_time(&self, ho: &HitObject) -> TimeLocation {
         match ho.kind {
             HitObjectKind::Circle => ho.start_time,
-            HitObjectKind::Slider { num_repeats, .. } => {
+            HitObjectKind::Slider(SliderInfo { num_repeats, .. }) => {
                 let duration = self.get_slider_duration(ho).unwrap();
                 TimeLocation(ho.start_time.0 + (duration * num_repeats as f64) as i32)
             }
-            HitObjectKind::Spinner { end_time } => end_time,
+            HitObjectKind::Spinner(SpinnerInfo { end_time }) => end_time,
         }
     }
 
     /// Returns the slider duration for a given slider
     pub fn get_slider_duration(&self, ho: &HitObject) -> Option<f64> {
         let pixel_length = match ho.kind {
-            HitObjectKind::Slider { pixel_length, .. } => pixel_length,
+            HitObjectKind::Slider(SliderInfo { pixel_length, .. }) => pixel_length,
             _ => return None,
         };
 

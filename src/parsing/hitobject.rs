@@ -1,10 +1,8 @@
 use num_traits::FromPrimitive;
 
+use crate::hitobject::{HitObject, HitObjectKind, SliderInfo, SliderSplineKind, SpinnerInfo};
 use crate::parsing::{Error, Result};
-use crate::{
-    Additions, HitObject, HitObjectKind, Point, SampleInfo, SampleSet, SliderSplineKind,
-    TimeLocation,
-};
+use crate::{Additions, Point, SampleInfo, SampleSet, TimeLocation};
 
 impl HitObject {
     /// Creates a HitObject from the *.osz format
@@ -74,7 +72,7 @@ impl HitObject {
                     SampleInfo::default()
                 };
 
-                HitObjectKind::Slider {
+                HitObjectKind::Slider(SliderInfo {
                     num_repeats,
                     kind: match slider_type {
                         "L" => SliderSplineKind::Linear,
@@ -93,15 +91,15 @@ impl HitObject {
                     pixel_length,
                     edge_additions,
                     edge_samplesets,
-                }
+                })
             }
             // spinner
             o if (o & 8) == 8 => {
                 let end_time = parts[5].parse::<i32>()?;
                 sample_info = parse_hitsample(parts[6])?;
-                HitObjectKind::Spinner {
+                HitObjectKind::Spinner(SpinnerInfo {
                     end_time: TimeLocation(end_time),
-                }
+                })
             }
             o => {
                 return Err(Error::InvalidObjectType(o));
@@ -134,7 +132,7 @@ impl HitObject {
         let hitsample = hitsample_str(&self.sample_info);
 
         let type_specific = match &self.kind {
-            HitObjectKind::Slider {
+            HitObjectKind::Slider(SliderInfo {
                 kind,
                 num_repeats,
                 control,
@@ -142,7 +140,7 @@ impl HitObject {
                 edge_additions,
                 edge_samplesets,
                 ..
-            } => {
+            }) => {
                 let edge_additions = edge_additions
                     .iter()
                     .map(|f| f.bits().to_string())
@@ -172,7 +170,7 @@ impl HitObject {
                     edge_samplesets,
                 )
             }
-            HitObjectKind::Spinner { ref end_time } => format!("{},", end_time.0),
+            HitObjectKind::Spinner(SpinnerInfo { ref end_time }) => format!("{},", end_time.0),
             _ => String::new(),
         };
 
