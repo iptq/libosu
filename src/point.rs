@@ -2,7 +2,7 @@ use std::fmt::{self, Debug, Display};
 use std::hash::{Hash, Hasher};
 use std::ops::{Add, Div, Mul, Sub};
 
-use num::Float;
+use num::{cast, Float, NumCast};
 
 /// Represents a 2D point (or any pair of objects).
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -68,6 +68,14 @@ impl<T: Clone + Mul<Output = T>> Mul<T> for Point<T> {
     type Output = Point<T>;
     fn mul(self, other: T) -> Self::Output {
         Point(self.0 * other.clone(), self.1 * other)
+    }
+}
+
+impl<T: Copy + NumCast> Point<T> {
+    /// Converts this point to a floating point point
+    #[inline]
+    pub fn to_float<U: Float>(&self) -> Option<Point<U>> {
+        Some(Point(cast(self.0)?, cast(self.1)?))
     }
 }
 
