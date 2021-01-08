@@ -54,7 +54,9 @@ impl Beatmap {
                 TimingPointKind::Uninherited { .. } => {
                     current = 1.0;
                 }
-                TimingPointKind::Inherited { slider_velocity, .. } => {
+                TimingPointKind::Inherited {
+                    slider_velocity, ..
+                } => {
                     current = *slider_velocity;
                 }
             }

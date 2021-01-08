@@ -34,7 +34,12 @@ impl<T: Hash> Hash for Point<T> {
 
 impl<T: Display> fmt::Display for Point<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {})", self.0, self.1)
+        write!(f, "(")?;
+        self.0.fmt(f)?;
+        write!(f, ", ")?;
+        self.1.fmt(f)?;
+        write!(f, ")")?;
+        Ok(())
     }
 }
 
