@@ -27,16 +27,45 @@ impl Beatmap {
             _ => return None,
         };
 
+        let slider_velocity = self.get_slider_velocity_at_time(ho.start_time);
         let slider_multiplier = self.difficulty.slider_multiplier;
+        let pixels_per_beat = slider_multiplier * 100.0 * slider_velocity;
+        let beats_number = info.pixel_length * info.num_repeats as f64 / pixels_per_beat;
+
         let bpm = self.get_bpm_at_time(ho.start_time)?;
         let beat_duration = 60_000.0 / bpm;
+        let duration = beats_number * beat_duration;
 
-        let single_duration = info.pixel_length / (100.0 * slider_multiplier) * beat_duration;
-        Some(single_duration * info.num_repeats as f64)
+        Some(duration)
+    }
+
+    /// Returns the slider velocity at the given time
+    pub fn get_slider_velocity_at_time(&self, time: TimeLocation) -> f64 {
+        // TODO: replace this with binary search
+        let mut current = 1.0;
+
+        // assume this is sorted
+        for tp in self.timing_points.iter() {
+            if tp.time > time {
+                break;
+            }
+
+            match &tp.kind {
+                TimingPointKind::Uninherited { .. } => {
+                    current = 1.0;
+                }
+                TimingPointKind::Inherited { slider_velocity, .. } => {
+                    current = *slider_velocity;
+                }
+            }
+        }
+
+        current
     }
 
     /// Returns the BPM at the given time
     pub fn get_bpm_at_time(&self, time: TimeLocation) -> Option<f64> {
+        // TODO: replace this with binary search
         let mut current = None;
 
         // assume this is sorted
