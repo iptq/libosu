@@ -165,6 +165,11 @@ impl Spline {
         }
     }
 
+    /// Return the endpoint of this spline
+    pub fn end_point(&self) -> P {
+        self.spline_points[self.spline_points.len() - 1]
+    }
+
     /// Calculate the point at which the slider ball would be after it has traveled a distance of
     /// `length` into the slider.
     pub fn point_at_length(&self, length: f64) -> P {

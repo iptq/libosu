@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 use crate::hitsounds::{Additions, SampleInfo, SampleSet};
 use crate::math::Point;
 use crate::timing::{TimeLocation, TimingPoint};
+use crate::spline::Spline;
 
 /// Distinguishes between different types of slider splines.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -23,7 +24,7 @@ pub struct SliderInfo {
     /// The algorithm used to calculate the spline.
     pub kind: SliderSplineKind,
     /// The control points that make up the body of the slider.
-    pub control: Vec<Point<i32>>,
+    pub control_points: Vec<Point<i32>>,
     /// The number of times this slider should repeat.
     pub num_repeats: u32,
     /// How long this slider is in pixels.
@@ -97,6 +98,27 @@ pub struct HitObject {
     pub additions: Additions,
     /// The sample used to play the hitsound assigned to this hit object.
     pub sample_info: SampleInfo,
+}
+
+impl HitObject {
+    /// Computes the point at which the hitobject ends
+    pub fn end_pos(&self, ho: &HitObject) -> Option<Point<f64>> {
+        match &ho.kind {
+            HitObjectKind::Slider(info) => {
+                if info.num_repeats % 2 == 0 {
+                    ho.pos.to_float()
+                } else {
+                    let spline = Spline::from_control(
+                        info.kind,
+                        info.control_points.as_ref(),
+                        info.pixel_length,
+                    );
+                    Some(spline.end_point())
+                }
+            }
+            _ => ho.pos.to_float(),
+        }
+    }
 }
 
 impl Ord for HitObject {

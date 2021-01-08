@@ -83,7 +83,7 @@ impl HitObject {
                         "P" => SliderSplineKind::Perfect,
                         s => return Err(Error::InvalidSliderType(s.to_owned())),
                     },
-                    control: ctl_parts
+                    control_points: ctl_parts
                         .into_iter()
                         .map(|s| {
                             let p = s.split(':').collect::<Vec<_>>();
@@ -137,7 +137,7 @@ impl HitObject {
             HitObjectKind::Slider(SliderInfo {
                 kind,
                 num_repeats,
-                control,
+                control_points: control,
                 pixel_length,
                 edge_additions,
                 edge_samplesets,
