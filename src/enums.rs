@@ -1,3 +1,5 @@
+#![allow(non_upper_case_globals)] // for the Mods bitflags
+
 use std::ops::BitOr;
 
 /// Integer enumeration of the game's game modes.

@@ -1,8 +1,10 @@
 use num_traits::FromPrimitive;
 
 use crate::hitobject::{HitObject, HitObjectKind, SliderInfo, SliderSplineKind, SpinnerInfo};
+use crate::hitsounds::{Additions, SampleInfo, SampleSet};
+use crate::math::Point;
 use crate::parsing::{Error, Result};
-use crate::{Additions, Point, SampleInfo, SampleSet, TimeLocation};
+use crate::timing::TimeLocation;
 
 impl HitObject {
     /// Creates a HitObject from the *.osz format

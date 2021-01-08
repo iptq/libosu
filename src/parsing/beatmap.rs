@@ -1,7 +1,12 @@
 use regex::Regex;
 
+use crate::beatmap::Beatmap;
+use crate::color::Color;
+use crate::enums::Mode;
+use crate::hitobject::HitObject;
+use crate::hitsounds::SampleSet;
 use crate::parsing::{Error, Result};
-use crate::{Beatmap, Color, HitObject, Mode, SampleSet, TimingPoint, TimingPointKind};
+use crate::timing::{TimingPoint, TimingPointKind};
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =

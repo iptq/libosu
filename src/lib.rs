@@ -26,15 +26,15 @@ mod apiv1;
 mod beatmap;
 mod color;
 
-#[allow(non_upper_case_globals)] // for the Mods bitflags
 mod enums;
 mod hitobject;
 mod hitsounds;
+mod math;
 mod osudb;
 mod parsing;
-mod point;
 #[cfg(feature = "replay")]
 mod replay;
+mod spline;
 mod timing;
 
 #[cfg(feature = "apiv1")]
@@ -44,10 +44,11 @@ pub use color::*;
 pub use enums::*;
 pub use hitobject::*;
 pub use hitsounds::*;
+pub use math::*;
 pub use osudb::*;
-pub use point::*;
 #[cfg(feature = "replay")]
 pub use replay::*;
+pub use spline::*;
 pub use timing::*;
 
 macro_rules! read_num_le_fn {

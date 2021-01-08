@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use serde::ser::*;
 
-use crate::SampleSet;
+use crate::hitsounds::SampleSet;
 
 /// A struct representing a location in time.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

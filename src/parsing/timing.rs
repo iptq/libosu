@@ -1,5 +1,6 @@
+use crate::hitsounds::SampleSet;
 use crate::parsing::Result;
-use crate::{SampleSet, TimeLocation, TimingPoint, TimingPointKind};
+use crate::timing::{TimeLocation, TimingPoint, TimingPointKind};
 
 impl TimingPoint {
     /// Creates a TimingPoint from the *.osz format

@@ -1,7 +1,8 @@
 use std::cmp::Ordering;
 
 use crate::hitsounds::{Additions, SampleInfo, SampleSet};
-use crate::{Point, TimeLocation, TimingPoint};
+use crate::math::Point;
+use crate::timing::{TimeLocation, TimingPoint};
 
 /// Distinguishes between different types of slider splines.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
