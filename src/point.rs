@@ -8,6 +8,12 @@ use num::Float;
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Point<T>(pub T, pub T);
 
+impl<T: Default> Default for Point<T> {
+    fn default() -> Self {
+        Point(T::default(), T::default())
+    }
+}
+
 impl<T: PartialEq> PartialEq for Point<T> {
     fn eq(&self, other: &Point<T>) -> bool {
         self.0.eq(&other.0) && self.1.eq(&other.1)
