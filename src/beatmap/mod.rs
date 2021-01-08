@@ -31,7 +31,7 @@ pub struct Difficulty {
 impl Difficulty {
     /// Calculates the size of a circle in OsuPixels, which is how big the circle appears on a
     /// 640x480 screen.
-    /// 
+    ///
     /// The formula for this can be found [here][1] and is equal to `54.4 - 4.48 * cs`.
     ///
     /// [1]: https://osu.ppy.sh/wiki/en/Beatmapping/Circle_size

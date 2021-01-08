@@ -2,6 +2,8 @@ use std::fmt::{self, Debug, Display};
 use std::hash::{Hash, Hasher};
 use std::ops::{Add, Mul, Sub};
 
+use num::Float;
+
 /// Represents a 2D point (or any pair of objects).
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Point<T>(pub T, pub T);
@@ -55,5 +57,14 @@ impl<T: Clone + Mul<Output = T>> Mul<T> for Point<T> {
     type Output = Point<T>;
     fn mul(self, other: T) -> Self::Output {
         Point(self.0 * other.clone(), self.1 * other)
+    }
+}
+
+impl<T: Float> Point<T> {
+    /// Calculates the Euclidean distance between 2 points.
+    pub fn distance(&self, other: Point<T>) -> T {
+        let dx = other.0.sub(self.0);
+        let dy = other.1.sub(self.1);
+        (dx * dx + dy * dy).sqrt()
     }
 }
