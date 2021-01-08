@@ -102,11 +102,11 @@ pub struct HitObject {
 
 impl HitObject {
     /// Computes the point at which the hitobject ends
-    pub fn end_pos(&self, ho: &HitObject) -> Option<Point<f64>> {
-        match &ho.kind {
+    pub fn end_pos(&self) -> Option<Point<f64>> {
+        match &self.kind {
             HitObjectKind::Slider(info) => {
                 if info.num_repeats % 2 == 0 {
-                    ho.pos.to_float()
+                    self.pos.to_float()
                 } else {
                     let spline = Spline::from_control(
                         info.kind,
@@ -116,7 +116,7 @@ impl HitObject {
                     Some(spline.end_point())
                 }
             }
-            _ => ho.pos.to_float(),
+            _ => self.pos.to_float(),
         }
     }
 }
