@@ -16,7 +16,7 @@ impl TimingPoint {
         let kiai = parts[7].parse::<i32>()? > 0;
 
         // calculate bpm from mpb
-        let bpm = 60_000.0 / mpb;
+        let _ = 60_000.0 / mpb;
         let time = TimeLocation(timestamp);
 
         let timing_point = TimingPoint {

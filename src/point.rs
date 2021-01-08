@@ -73,4 +73,9 @@ impl<T: Float> Point<T> {
         let dy = other.1.sub(self.1);
         (dx * dx + dy * dy).sqrt()
     }
+
+    /// Calculates the absolute value of this point.
+    pub fn abs(&self) -> Self {
+        Point(self.0.abs(), self.1.abs())
+    }
 }
