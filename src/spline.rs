@@ -13,8 +13,11 @@ use crate::math::Point;
 /// Represents a spline, a set of points that represents the actual shape of a slider, generated
 /// from the control points.
 pub struct Spline {
-    spline_points: Vec<P>,
-    cumulative_lengths: Vec<NotNan<f64>>,
+    /// The actual points
+    pub spline_points: Vec<P>,
+
+    /// The cumulative lengths over the points. The indices correspond to the spline_points field
+    pub cumulative_lengths: Vec<NotNan<f64>>,
 }
 
 impl Spline {
