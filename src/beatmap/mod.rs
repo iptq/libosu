@@ -15,7 +15,6 @@ pub struct Difficulty {
     /// Circle Size
     ///
     /// This is a value between 0 and 10 representing how big circles should appear on screen.
-    /// The radius in osu!pixels is defined by the formula `32 * (1 - 0.7 * (CircleSize - 5) / 5)`, alternatively written `54.4 - 4.48 * CircleSize`.
     ///
     /// In osu!mania, this actually defines the number of columns (keys).
     pub circle_size: f32,
@@ -27,6 +26,58 @@ pub struct Difficulty {
     pub slider_multiplier: f64,
     /// Slider tick rate
     pub slider_tick_rate: u32,
+}
+
+impl Difficulty {
+    /// Calculates the size of a circle in OsuPixels, which is how big the circle appears on a
+    /// 640x480 screen.
+    /// 
+    /// The formula for this can be found [here][1] and is equal to `54.4 - 4.48 * cs`.
+    ///
+    /// [1]: https://osu.ppy.sh/wiki/en/Beatmapping/Circle_size
+    pub fn circle_size_osupx(&self) -> f32 {
+        54.4 - 4.48 * self.circle_size
+    }
+
+    /// Calculates the duration of time (in milliseconds) before the hit object's point of impact
+    /// at which the object should begin fading in.
+    ///
+    /// The formula for this can be found [here][1] and is a piecewise function:
+    ///
+    /// - AR < 5: preempt = 1200ms + 600ms * (5 - AR) / 5
+    /// - AR = 5: preempt = 1200ms
+    /// - AR > 5: preempt = 1200ms - 750ms * (AR - 5) / 5
+    ///
+    /// [1]: https://osu.ppy.sh/wiki/en/Beatmapping/Approach_rate
+    pub fn approach_preempt(&self) -> u32 {
+        if self.approach_rate < 5.0 {
+            1200 + (600.0 * (5.0 - self.approach_rate)) as u32 / 5
+        } else if self.approach_rate == 5.0 {
+            1200
+        } else {
+            1200 - (750.0 * (self.approach_rate - 5.0)) as u32 / 5
+        }
+    }
+
+    /// Calculates the duration of time (in milliseconds) it takes the hitobject to fade in
+    /// completely to 100% opacity.
+    ///
+    /// The formula for this can be found [here][1] and is a piecewise function:
+    ///
+    /// - AR < 5: fade_in = 800ms + 400ms * (5 - AR) / 5
+    /// - AR = 5: fade_in = 800ms
+    /// - AR > 5: fade_in = 800ms - 500ms * (AR - 5) / 5
+    ///
+    /// [1]: https://osu.ppy.sh/wiki/en/Beatmapping/Approach_rate
+    pub fn approach_fade_time(&self) -> u32 {
+        if self.approach_rate < 5.0 {
+            800 + (400.0 * (5.0 - self.approach_rate)) as u32 / 5
+        } else if self.approach_rate == 5.0 {
+            800
+        } else {
+            800 - (500.0 * (self.approach_rate - 5.0)) as u32 / 5
+        }
+    }
 }
 
 /// Represents a single beatmap.
