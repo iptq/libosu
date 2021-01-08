@@ -5,7 +5,7 @@ use crate::math::Point;
 use crate::timing::{TimeLocation, TimingPoint};
 
 /// Distinguishes between different types of slider splines.
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum SliderSplineKind {
     /// Linear is the most straightforward, and literally consists of two endpoints.
     Linear,

@@ -23,7 +23,7 @@ pub struct Spline {
 impl Spline {
     /// Create a new spline from the control points of a slider.
     pub fn from_control(
-        kind: &SliderSplineKind,
+        kind: SliderSplineKind,
         control_points: &[Point<i32>],
         pixel_length: f64,
     ) -> Self {
