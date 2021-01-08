@@ -1,6 +1,6 @@
 use std::fmt::{self, Debug, Display};
 use std::hash::{Hash, Hasher};
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Sub, Div};
 
 use num::Float;
 
@@ -68,14 +68,23 @@ impl<T: Clone + Mul<Output = T>> Mul<T> for Point<T> {
 
 impl<T: Float> Point<T> {
     /// Calculates the Euclidean distance between 2 points.
+    #[inline]
     pub fn distance(&self, other: Point<T>) -> T {
         let dx = other.0.sub(self.0);
         let dy = other.1.sub(self.1);
         (dx * dx + dy * dy).sqrt()
     }
 
-    /// Calculates the absolute value of this point.
-    pub fn abs(&self) -> Self {
-        Point(self.0.abs(), self.1.abs())
+    /// Calculates the magnitude of the vector.
+    #[inline]
+    pub fn magnitude(&self) -> T {
+        (self.0 * self.0 + self.1 * self.1).sqrt()
+    }
+
+    /// Calculates the norm of the vector.
+    #[inline]
+    pub fn norm(&self) -> Point<T> {
+        let m = self.magnitude();
+        Point(self.0 / m, self.1 / m)
     }
 }
