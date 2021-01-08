@@ -22,8 +22,8 @@ impl Beatmap {
 
     /// Returns the slider duration for a given slider
     pub fn get_slider_duration(&self, ho: &HitObject) -> Option<f64> {
-        let pixel_length = match ho.kind {
-            HitObjectKind::Slider(SliderInfo { pixel_length, .. }) => pixel_length,
+        let info = match &ho.kind {
+            HitObjectKind::Slider(info) => info,
             _ => return None,
         };
 
@@ -31,8 +31,8 @@ impl Beatmap {
         let bpm = self.get_bpm_at_time(ho.start_time)?;
         let beat_duration = 60_000.0 / bpm;
 
-        let value = pixel_length / (100.0 * slider_multiplier) * beat_duration;
-        Some(value)
+        let single_duration = info.pixel_length / (100.0 * slider_multiplier) * beat_duration;
+        Some(single_duration * info.num_repeats as f64)
     }
 
     /// Returns the BPM at the given time
