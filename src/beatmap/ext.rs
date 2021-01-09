@@ -14,9 +14,9 @@ impl Beatmap {
     pub fn get_hitobject_end_time(&self, ho: &HitObject) -> TimeLocation {
         match ho.kind {
             HitObjectKind::Circle => ho.start_time,
-            HitObjectKind::Slider(SliderInfo { num_repeats, .. }) => {
+            HitObjectKind::Slider(_) => {
                 let duration = self.get_slider_duration(ho).unwrap();
-                TimeLocation(ho.start_time.0 + (duration * num_repeats as f64) as i32)
+                TimeLocation(ho.start_time.0 + duration as i32)
             }
             HitObjectKind::Spinner(SpinnerInfo { end_time }) => end_time,
         }
