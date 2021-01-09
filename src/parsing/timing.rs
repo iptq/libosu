@@ -1,6 +1,8 @@
 use crate::hitsounds::SampleSet;
 use crate::parsing::Result;
-use crate::timing::{TimeLocation, TimingPoint, TimingPointKind};
+use crate::timing::{
+    InheritedTimingInfo, TimeLocation, TimingPoint, TimingPointKind, UninheritedTimingInfo,
+};
 
 impl TimingPoint {
     /// Creates a TimingPoint from the *.osz format
@@ -23,11 +25,11 @@ impl TimingPoint {
         let timing_point = TimingPoint {
             kind: if inherited {
                 assert!(parent.is_some());
-                TimingPointKind::Inherited {
+                TimingPointKind::Inherited(InheritedTimingInfo {
                     slider_velocity: -100.0 / mpb,
-                }
+                })
             } else {
-                TimingPointKind::Uninherited { mpb, meter }
+                TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, meter })
             },
             kiai,
             sample_set: match sample_set {
@@ -52,10 +54,10 @@ impl TimingPoint {
             TimingPointKind::Uninherited { .. } => 1,
         };
         let (beat_length, meter) = match self.kind {
-            TimingPointKind::Inherited {
+            TimingPointKind::Inherited(InheritedTimingInfo {
                 slider_velocity, ..
-            } => (-100.0 / slider_velocity, 0),
-            TimingPointKind::Uninherited { mpb, meter, .. } => (mpb, meter),
+            }) => (-100.0 / slider_velocity, 0),
+            TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, meter, .. }) => (mpb, meter),
         };
         let line = format!(
             "{},{},{},{},{},{},{},{}",

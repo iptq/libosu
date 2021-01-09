@@ -1,6 +1,8 @@
 use crate::beatmap::Beatmap;
 use crate::hitobject::{HitObject, HitObjectKind, SliderInfo, SpinnerInfo};
-use crate::timing::{TimeLocation, TimingPoint, TimingPointKind};
+use crate::timing::{
+    InheritedTimingInfo, TimeLocation, TimingPoint, TimingPointKind, UninheritedTimingInfo,
+};
 
 impl Beatmap {
     /// Iterate both hit objects and timing points
@@ -51,12 +53,12 @@ impl Beatmap {
             }
 
             match &tp.kind {
-                TimingPointKind::Uninherited { .. } => {
+                TimingPointKind::Uninherited(_) => {
                     current = 1.0;
                 }
-                TimingPointKind::Inherited {
+                TimingPointKind::Inherited(InheritedTimingInfo {
                     slider_velocity, ..
-                } => {
+                }) => {
                     current = *slider_velocity;
                 }
             }
@@ -76,7 +78,7 @@ impl Beatmap {
                 break;
             }
 
-            if let TimingPointKind::Uninherited { mpb, .. } = tp.kind {
+            if let TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, .. }) = tp.kind {
                 current = Some(60_000.0 / mpb);
             }
         }

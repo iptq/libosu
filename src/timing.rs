@@ -15,21 +15,29 @@ impl TimeLocation {
     }
 }
 
+/// Info for uninherited timing point
+#[derive(Clone, Debug)]
+pub struct UninheritedTimingInfo {
+    /// Milliseconds per beat (aka beat duration)
+    pub mpb: f64,
+    /// The number of beats in a single measure
+    pub meter: u32,
+}
+
+/// Info for inherited timing point
+#[derive(Clone, Debug)]
+pub struct InheritedTimingInfo {
+    /// Slider velocity multiplier
+    pub slider_velocity: f64,
+}
+
 /// An enum distinguishing between inherited and uninherited timing points.
 #[derive(Clone, Debug)]
 pub enum TimingPointKind {
     /// Uninherited timing point
-    Uninherited {
-        /// Milliseconds per beat (aka beat duration)
-        mpb: f64,
-        /// The number of beats in a single measure
-        meter: u32,
-    },
+    Uninherited(UninheritedTimingInfo),
     /// Inherited timing point
-    Inherited {
-        /// Slider velocity multiplier
-        slider_velocity: f64,
-    },
+    Inherited(InheritedTimingInfo),
 }
 
 /// A timing point, which represents configuration settings for a timing section.
