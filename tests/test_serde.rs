@@ -1,8 +1,7 @@
 use std::fs::File;
 use std::io::Read;
 
-use difference::Changeset;
-use libosu::*;
+use libosu::beatmap::Beatmap;
 
 macro_rules! test_serde {
     ($($name:ident: $id:expr,)*) => {

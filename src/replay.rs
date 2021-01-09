@@ -183,7 +183,7 @@ impl Replay {
         &self,
         reader: R,
     ) -> Result<ReplayActionParser<io::BufReader<XzDecoder<io::Take<R>>>>> {
-        create_decompressing_replay_action_parser(reader.take(self.replay_data_length as u64))
+        ReplayActionParser::with_decompressing(reader.take(self.replay_data_length as u64))
     }
 
     /// Parse a replay file (.osr)
@@ -303,6 +303,15 @@ impl<R: io::BufRead> ReplayActionParser<R> {
         ReplayActionParser { inner: reader }
     }
 
+    /// Create a parser for LZMA compressed replay actions
+    pub fn with_decompressing(
+        reader: R,
+    ) -> Result<ReplayActionParser<io::BufReader<XzDecoder<R>>>> {
+        Ok(ReplayActionParser::new(io::BufReader::new(
+            XzDecoder::new_stream(reader, Stream::new_lzma_decoder(std::u64::MAX)?),
+        )))
+    }
+
     /// create an iterator over the parsed replay actions
     pub fn iter(&mut self) -> ReplayActionParserIter<R> {
         ReplayActionParserIter::new(&mut self.inner)
@@ -314,20 +323,15 @@ impl<R: io::BufRead> ReplayActionParser<R> {
     }
 }
 
-/// Create a parser for LZMA compressed replay actions
-pub fn create_decompressing_replay_action_parser<R: io::BufRead>(
-    reader: R,
-) -> Result<ReplayActionParser<io::BufReader<XzDecoder<R>>>> {
-    Ok(ReplayActionParser::new(io::BufReader::new(
-        XzDecoder::new_stream(reader, Stream::new_lzma_decoder(std::u64::MAX)?),
-    )))
-}
-
 #[cfg(test)]
 mod tests {
-    use std::io;
+    use std::fs::File;
+    use std::io::{self, Read};
 
-    use crate::*;
+    use crate::enums::{Mode, Mods};
+    use crate::db::read::{read_uleb128_string, read_uleb128};
+
+    use super::{Replay, ReplayActionParser};
 
     #[test]
     fn test_read_uleb128() {
@@ -360,8 +364,6 @@ mod tests {
 
     #[test]
     fn test_replay_parse_header() {
-        use std::fs::File;
-
         let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
         let header = Replay::parse_header(&mut osr).unwrap();
 
@@ -395,16 +397,13 @@ mod tests {
 
     #[test]
     fn test_read_replay_actions() {
-        use std::fs::File;
-        use std::io::Read;
-
         let mut osr = io::BufReader::new(
             File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap(),
         );
         let replay = Replay::parse_header(&mut osr).unwrap();
 
         let actions: Vec<_> =
-            create_decompressing_replay_action_parser(osr.take(replay.replay_data_length as u64))
+            ReplayActionParser::with_decompressing(osr.take(replay.replay_data_length as u64))
                 .unwrap()
                 .iter()
                 .map(|x| match x {
@@ -422,7 +421,6 @@ mod tests {
 
     #[test]
     fn test_replay_parse_skip_actions() {
-        use std::fs::File;
         {
             let mut osr = File::open(
                 "tests/files/ - nekodex - new beginnings [tutorial] (2020-12-16) Osu.osr",
@@ -471,8 +469,6 @@ mod tests {
 
     #[test]
     fn test_replay_parse() {
-        use std::fs::File;
-
         let osr = File::open("tests/files/replay-osu_1816113_2892542031.osr").unwrap();
         let replay = Replay::parse(io::BufReader::new(osr)).unwrap();
         dbg!(replay.actions.len());

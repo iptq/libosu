@@ -3,7 +3,12 @@ use std::io::{Read, Write};
 use std::path::PathBuf;
 
 use anyhow::Result;
-use libosu::*;
+use libosu::{
+    beatmap::Beatmap,
+    hitobject::{HitObjectKind, SliderInfo, SpinnerInfo},
+    hitsounds::{Additions, SampleSet},
+    timing::TimeLocation,
+};
 use structopt::StructOpt;
 
 #[derive(StructOpt)]

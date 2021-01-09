@@ -330,7 +330,7 @@ impl OsuDB {
 mod tests {
     use std::io::BufReader;
 
-    use crate::{Grade, Mode, Mods, RankedStatus, UserPermission};
+    use crate::enums::{Grade, Mode, Mods, RankedStatus, UserPermission};
 
     use super::{OsuDB, OsuDBBeatmap, OsuDBBeatmapTimingPoint};
 
