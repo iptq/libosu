@@ -29,7 +29,7 @@ pub struct Difficulty {
     /// Slider Multiplier
     pub slider_multiplier: f64,
     /// Slider tick rate
-    pub slider_tick_rate: u32,
+    pub slider_tick_rate: f64,
 }
 
 impl Difficulty {

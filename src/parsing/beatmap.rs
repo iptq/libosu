@@ -169,7 +169,7 @@ impl Beatmap {
                                 kvalue!(captures[beatmap.difficulty.slider_multiplier]: parse(f64))
                             }
                             "SliderTickRate" => {
-                                kvalue!(captures[beatmap.difficulty.slider_tick_rate]: parse(u32))
+                                kvalue!(captures[beatmap.difficulty.slider_tick_rate]: parse(f64))
                             }
 
                             _ => (),
