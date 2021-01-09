@@ -32,6 +32,16 @@ impl<T: Float> Math<T> {
         (center, center.distance(p1))
     }
 
+    /// Get the point on the line segment on p1, p2 that ends after length
+    #[allow(clippy::many_single_char_names)]
+    pub fn point_on_line(a: Point<T>, b: Point<T>, len: T) -> Point<T> {
+        let full = a.distance(b);
+        let n = full - len;
+        let x = (n * a.0 + len * b.0) / full;
+        let y = (n * a.1 + len * b.1) / full;
+        Point(x, y)
+    }
+
     /// Checks if a, b, and c are all on the same line
     pub fn is_line(a: Point<T>, b: Point<T>, c: Point<T>) -> bool {
         ((b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0)).abs() < cast(0.001).unwrap()
