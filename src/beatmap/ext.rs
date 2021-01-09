@@ -1,5 +1,5 @@
 use crate::beatmap::Beatmap;
-use crate::hitobject::{HitObject, HitObjectKind, SliderInfo, SpinnerInfo};
+use crate::hitobject::{HitObject, HitObjectKind, SpinnerInfo};
 use crate::timing::{
     InheritedTimingInfo, TimeLocation, TimingPoint, TimingPointKind, UninheritedTimingInfo,
 };

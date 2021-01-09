@@ -99,9 +99,11 @@ impl HitObject {
                 if info.num_repeats % 2 == 0 {
                     self.pos.to_float()
                 } else {
+                    let mut control_points = vec![self.pos];
+                    control_points.extend(&info.control_points);
                     let spline = Spline::from_control(
                         info.kind,
-                        info.control_points.as_ref(),
+                        control_points.as_ref(),
                         info.pixel_length,
                     );
                     Some(spline.end_point())
