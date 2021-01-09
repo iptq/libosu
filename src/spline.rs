@@ -29,8 +29,19 @@ impl Spline {
     ) -> Self {
         // no matter what, if there's 2 control points, it's linear
         let mut kind = kind;
+        let mut control_points = control_points.to_vec();
         if control_points.len() == 2 {
             kind = SliderSplineKind::Linear;
+        }
+        if control_points.len() == 3
+            && Math::is_line(
+                control_points[0].to_float::<f64>().unwrap(),
+                control_points[1].to_float::<f64>().unwrap(),
+                control_points[2].to_float::<f64>().unwrap(),
+            )
+        {
+            kind = SliderSplineKind::Linear;
+            control_points.remove(1);
         }
 
         let points = control_points

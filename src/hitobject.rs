@@ -101,11 +101,8 @@ impl HitObject {
                 } else {
                     let mut control_points = vec![self.pos];
                     control_points.extend(&info.control_points);
-                    let spline = Spline::from_control(
-                        info.kind,
-                        control_points.as_ref(),
-                        info.pixel_length,
-                    );
+                    let spline =
+                        Spline::from_control(info.kind, control_points.as_ref(), info.pixel_length);
                     spline.end_point()
                 }
             }

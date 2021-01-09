@@ -2,7 +2,7 @@ mod point;
 
 use std::marker::PhantomData;
 
-use num::Float;
+use num::{cast, Float};
 
 pub use self::point::Point;
 
@@ -30,5 +30,10 @@ impl<T: Float> Math<T> {
 
         let center = Point(ux, uy);
         (center, center.distance(p1))
+    }
+
+    /// Checks if a, b, and c are all on the same line
+    pub fn is_line(a: Point<T>, b: Point<T>, c: Point<T>) -> bool {
+        ((b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0)).abs() < cast(0.001).unwrap()
     }
 }

@@ -328,8 +328,8 @@ mod tests {
     use std::fs::File;
     use std::io::{self, Read};
 
+    use crate::db::read::{read_uleb128, read_uleb128_string};
     use crate::enums::{Mode, Mods};
-    use crate::db::read::{read_uleb128_string, read_uleb128};
 
     use super::{Replay, ReplayActionParser};
 
