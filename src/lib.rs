@@ -67,6 +67,9 @@ pub mod prelude {
     pub use crate::timing::*;
 }
 
+pub(crate) const FLOAT_ERROR_32: f32 = 0.001;
+pub(crate) const FLOAT_ERROR_64: f64 = 0.001;
+
 /// Says "hello there"
 #[deprecated]
 pub fn say_hello_there() {

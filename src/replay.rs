@@ -1,6 +1,6 @@
 use std::io;
 
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use std::str::FromStr;
 use xz2::bufread::XzDecoder;
 use xz2::stream::Stream;

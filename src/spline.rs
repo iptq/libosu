@@ -28,7 +28,7 @@ impl Spline {
         pixel_length: f64,
     ) -> Self {
         // no matter what, if there's 2 control points, it's linear
-        let mut kind = kind.clone();
+        let mut kind = kind;
         if control_points.len() == 2 {
             kind = SliderSplineKind::Linear;
         }
@@ -102,7 +102,9 @@ impl Spline {
 
                 // split the curve by red-anchors
                 for i in 1..points.len() {
-                    if points[i].0 == points[i - 1].0 && points[i].1 == points[i - 1].1 {
+                    if (points[i].0 - points[i - 1].0).abs() < crate::FLOAT_ERROR_64
+                        && (points[i].1 - points[i - 1].1).abs() < crate::FLOAT_ERROR_64
+                    {
                         let spline = calculate_bezier(&points[idx..i]);
 
                         // check if it's equal to the last thing that was added to whole
@@ -116,10 +118,8 @@ impl Spline {
 
                         // add points, making sure no 2 are the same
                         for points in spline.windows(2) {
-                            if points[0] != points[1] {
-                                if !check_push(&mut whole, points[1]) {
-                                    break;
-                                }
+                            if points[0] != points[1] && !check_push(&mut whole, points[1]) {
+                                break;
                             }
                         }
 
@@ -137,10 +137,8 @@ impl Spline {
                     check_push(&mut whole, spline[0]);
                 }
                 for points in spline.windows(2) {
-                    if points[0] != points[1] {
-                        if !check_push(&mut whole, points[1]) {
-                            break;
-                        }
+                    if points[0] != points[1] && !check_push(&mut whole, points[1]) {
+                        break;
                     }
                 }
                 whole
@@ -233,9 +231,7 @@ fn calculate_bezier(points: &[P]) -> Vec<P> {
         bezier_subdivide(parent_slice, left_child, right_child, buf1, p + 1);
 
         let left_child = unsafe { std::slice::from_raw_parts(left_child.0, left_child.1) };
-        for i in 0..p + 1 {
-            parent_slice[i] = left_child[i];
-        }
+        parent_slice[..p + 1].clone_from_slice(&left_child[..p + 1]);
 
         to_flatten.push_front(right_child);
         to_flatten.push_front(parent);
@@ -263,9 +259,7 @@ fn bezier_approximate(curve: &[P], output: &mut Vec<P>, buf1: V<P>, buf2: V<P>, 
 
     let l = unsafe { std::slice::from_raw_parts_mut(l.0, l.1) };
     let r = unsafe { std::slice::from_raw_parts_mut(r.0, r.1) };
-    for i in 0..(count - 1) {
-        l[count + i] = r[i + 1];
-    }
+    l[count..2 * count - 1].clone_from_slice(&r[1..count]);
     output.push(curve[0]);
 
     for i in 1..(count - 1) {
@@ -277,9 +271,7 @@ fn bezier_approximate(curve: &[P], output: &mut Vec<P>, buf1: V<P>, buf2: V<P>, 
 
 fn bezier_subdivide(curve: &[P], l: V<P>, r: V<P>, subdiv: V<P>, count: usize) {
     let midpoints = unsafe { std::slice::from_raw_parts_mut(subdiv.0, subdiv.1) };
-    for i in 0..count {
-        midpoints[i] = curve[i];
-    }
+    midpoints[..count].clone_from_slice(&curve[..count]);
 
     let l = unsafe { std::slice::from_raw_parts_mut(l.0, l.1) };
     let r = unsafe { std::slice::from_raw_parts_mut(r.0, r.1) };

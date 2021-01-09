@@ -56,26 +56,17 @@ pub enum HitObjectKind {
 impl HitObjectKind {
     /// Is the given HitObject a hit circle?
     pub fn is_circle(&self) -> bool {
-        match self {
-            HitObjectKind::Circle => true,
-            _ => false,
-        }
+        matches!(self, HitObjectKind::Circle)
     }
 
     /// Is the given HitObject a slider?
     pub fn is_slider(&self) -> bool {
-        match self {
-            HitObjectKind::Slider(_) => true,
-            _ => false,
-        }
+        matches!(self, HitObjectKind::Slider(_))
     }
 
     /// Is the given HitObject a spinner?
     pub fn is_spinner(&self) -> bool {
-        match self {
-            HitObjectKind::Spinner(_) => true,
-            _ => false,
-        }
+        matches!(self, HitObjectKind::Spinner(_))
     }
 }
 
