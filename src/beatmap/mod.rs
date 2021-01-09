@@ -3,7 +3,11 @@ mod ext;
 use anyhow::Result;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
-use crate::{Color, HitObject, HitObjectKind, Mode, SampleSet, TimeLocation, TimingPoint};
+use crate::color::Color;
+use crate::enums::Mode;
+use crate::hitobject::{HitObject, HitObjectKind};
+use crate::hitsounds::SampleSet;
+use crate::timing::{TimeLocation, TimingPoint};
 
 /// Difficulty settings defined by the map.
 #[derive(Clone, Debug, Default, PartialEq)]

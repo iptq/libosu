@@ -17,7 +17,7 @@ use hyper::{
 use hyper_tls::HttpsConnector;
 use serde::de::DeserializeOwned;
 
-use crate::Mode;
+use crate::enums::Mode;
 
 pub use self::errors::{Error, Result};
 pub use self::models::*;
