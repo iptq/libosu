@@ -6,9 +6,9 @@ use std::mem::ManuallyDrop;
 
 use ordered_float::NotNan;
 
+use crate::float::compare_eq_f64;
 use crate::hitobject::SliderSplineKind;
-use crate::math::Math;
-use crate::math::Point;
+use crate::math::{Math, Point};
 
 /// Represents a spline, a set of points that represents the actual shape of a slider, generated
 /// from the control points.
@@ -102,8 +102,8 @@ impl Spline {
 
                 // split the curve by red-anchors
                 for i in 1..points.len() {
-                    if (points[i].0 - points[i - 1].0).abs() < crate::FLOAT_ERROR_64
-                        && (points[i].1 - points[i - 1].1).abs() < crate::FLOAT_ERROR_64
+                    if compare_eq_f64(points[i].0, points[i - 1].0)
+                        && compare_eq_f64(points[i].1, points[i - 1].1)
                     {
                         let spline = calculate_bezier(&points[idx..i]);
 

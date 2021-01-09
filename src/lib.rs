@@ -21,6 +21,8 @@ extern crate serde;
 #[macro_use]
 extern crate thiserror;
 
+pub(crate) mod float;
+
 /// Client for the OSU api
 #[cfg(feature = "apiv1")]
 pub mod apiv1;
@@ -66,9 +68,6 @@ pub mod prelude {
     pub use crate::spline::*;
     pub use crate::timing::*;
 }
-
-pub(crate) const FLOAT_ERROR_32: f32 = 0.001;
-pub(crate) const FLOAT_ERROR_64: f64 = 0.001;
 
 /// Says "hello there"
 #[deprecated]

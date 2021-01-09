@@ -56,10 +56,10 @@ impl Difficulty {
     pub fn approach_preempt(&self) -> u32 {
         if self.approach_rate < 5.0 {
             1200 + (600.0 * (5.0 - self.approach_rate)) as u32 / 5
-        } else if self.approach_rate == 5.0 {
-            1200
-        } else {
+        } else if self.approach_rate > 5.0 {
             1200 - (750.0 * (self.approach_rate - 5.0)) as u32 / 5
+        } else {
+            1200
         }
     }
 
@@ -76,10 +76,10 @@ impl Difficulty {
     pub fn approach_fade_time(&self) -> u32 {
         if self.approach_rate < 5.0 {
             800 + (400.0 * (5.0 - self.approach_rate)) as u32 / 5
-        } else if self.approach_rate == 5.0 {
-            800
-        } else {
+        } else if self.approach_rate > 5.0 {
             800 - (500.0 * (self.approach_rate - 5.0)) as u32 / 5
+        } else {
+            800
         }
     }
 }
