@@ -8,6 +8,13 @@ use crate::hitsounds::SampleSet;
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct TimeLocation(pub i32);
 
+impl TimeLocation {
+    /// Convert the TimeLocation to seconds
+    pub fn as_seconds(&self) -> f64 {
+        self.0 as f64 / 1000.0
+    }
+}
+
 /// An enum distinguishing between inherited and uninherited timing points.
 #[derive(Clone, Debug)]
 pub enum TimingPointKind {
