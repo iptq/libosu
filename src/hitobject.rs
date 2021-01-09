@@ -106,7 +106,7 @@ impl HitObject {
                         control_points.as_ref(),
                         info.pixel_length,
                     );
-                    Some(spline.end_point())
+                    spline.end_point()
                 }
             }
             _ => self.pos.to_float(),
