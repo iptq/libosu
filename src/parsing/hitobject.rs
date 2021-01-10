@@ -29,7 +29,11 @@ impl HitObject {
         let kind = match obj_type {
             // hit circle
             o if (o & 1) == 1 => {
-                sample_info = parse_hitsample(parts[5])?;
+                sample_info = if let Some(s) = parts.get(5) {
+                    parse_hitsample(s)?
+                } else {
+                    SampleInfo::default()
+                };
                 HitObjectKind::Circle
             }
             //slider
