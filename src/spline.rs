@@ -97,6 +97,7 @@ impl Spline {
                 let mut whole = Vec::new();
                 let mut cumul_length = 0.0;
                 let mut last_circ: Option<P> = None;
+
                 let mut check_push = |whole: &mut Vec<P>, point: P| -> bool {
                     let result;
                     if let Some(circ) = last_circ {
@@ -232,6 +233,11 @@ impl Spline {
 type P = Point<f64>;
 type V<T> = (*mut T, usize, usize);
 fn calculate_bezier(points: &[P]) -> Vec<P> {
+    // trivial case
+    if points.len() == 2 {
+        return points.to_vec();
+    }
+
     let points = points.to_vec();
     let mut output = Vec::new();
     let n = points.len() - 1;
