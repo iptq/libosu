@@ -4,7 +4,7 @@ use anyhow::Result;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use crate::color::Color;
-use crate::enums::{Mode, GridSize};
+use crate::enums::{GridSize, Mode};
 use crate::hitobject::{HitObject, HitObjectKind};
 use crate::hitsounds::SampleSet;
 use crate::timing::{TimeLocation, TimingPoint};

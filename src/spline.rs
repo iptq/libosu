@@ -134,15 +134,11 @@ impl Spline {
 
                             // check if it's equal to the last thing that was added to whole
                             if let Some(last) = whole.last() {
-                                if spline[0] != *last {
-                                    if !check_push(&mut whole, spline[0]) {
-                                        break 'outer;
-                                    }
-                                }
-                            } else {
-                                if !check_push(&mut whole, spline[0]) {
+                                if spline[0] != *last && !check_push(&mut whole, spline[0]) {
                                     break 'outer;
                                 }
+                            } else if !check_push(&mut whole, spline[0]) {
+                                break 'outer;
                             }
 
                             // add points, making sure no 2 are the same
@@ -159,15 +155,11 @@ impl Spline {
 
                     let spline = calculate_bezier(&points[idx..]);
                     if let Some(last) = whole.last() {
-                        if spline[0] != *last {
-                            if !check_push(&mut whole, spline[0]) {
-                                break 'outer;
-                            }
-                        }
-                    } else {
-                        if !check_push(&mut whole, spline[0]) {
+                        if spline[0] != *last && !check_push(&mut whole, spline[0]) {
                             break 'outer;
                         }
+                    } else if !check_push(&mut whole, spline[0]) {
+                        break 'outer;
                     }
                     for points in spline.windows(2) {
                         if points[0] != points[1] && !check_push(&mut whole, points[1]) {

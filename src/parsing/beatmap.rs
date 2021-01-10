@@ -1,9 +1,9 @@
-use regex::Regex;
 use num::FromPrimitive;
+use regex::Regex;
 
 use crate::beatmap::Beatmap;
 use crate::color::Color;
-use crate::enums::{Mode, GridSize};
+use crate::enums::{GridSize, Mode};
 use crate::hitobject::HitObject;
 use crate::hitsounds::SampleSet;
 use crate::parsing::{Error, Result};
@@ -140,8 +140,10 @@ impl Beatmap {
                             // "GridSize" => kvalue!(captures[beatmap.grid_size]: parse(u8)),
                             "GridSize" => {
                                 beatmap.grid_size = {
-                                    let grid_size = kvalue!(captures[beatmap.grid_size]=> parse(u8));
-                                    GridSize::from_u8(grid_size).ok_or_else(|| Error::InvalidGridSize(grid_size))?
+                                    let grid_size =
+                                        kvalue!(captures[beatmap.grid_size]=> parse(u8));
+                                    GridSize::from_u8(grid_size)
+                                        .ok_or(Error::InvalidGridSize(grid_size))?
                                 }
                             }
                             "TimelineZoom" => kvalue!(captures[beatmap.timeline_zoom]: parse(f64)),
