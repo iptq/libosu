@@ -102,7 +102,11 @@ impl HitObject {
             // spinner
             o if (o & 8) == 8 => {
                 let end_time = parts[5].parse::<i32>()?;
-                sample_info = parse_hitsample(parts[6])?;
+                sample_info = if let Some(s) = parts.get(6) {
+                    parse_hitsample(s)?
+                } else {
+                    SampleInfo::default()
+                };
                 HitObjectKind::Spinner(SpinnerInfo {
                     end_time: TimeLocation(end_time),
                 })
