@@ -22,4 +22,7 @@ pub enum Error {
 
     #[error("invalid game mode: {0}")]
     InvalidGameMode(u8),
+
+    #[error("invalid grid size: {0}")]
+    InvalidGridSize(u8),
 }

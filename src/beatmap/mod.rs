@@ -4,7 +4,7 @@ use anyhow::Result;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use crate::color::Color;
-use crate::enums::Mode;
+use crate::enums::{Mode, GridSize};
 use crate::hitobject::{HitObject, HitObjectKind};
 use crate::hitsounds::SampleSet;
 use crate::timing::{TimeLocation, TimingPoint};
@@ -119,7 +119,7 @@ pub struct Beatmap {
     /// The last setting used for beat divisor
     pub beat_divisor: u8,
     /// The last setting used for grid size
-    pub grid_size: u8,
+    pub grid_size: GridSize,
     /// The last setting used for timeline zoom
     pub timeline_zoom: f64,
 
@@ -172,7 +172,7 @@ impl Default for Beatmap {
             bookmarks: Vec::new(),
             distance_spacing: 0.0,
             beat_divisor: 1,
-            grid_size: 1,
+            grid_size: GridSize::Tiny,
             timeline_zoom: 0.0,
 
             title: String::new(),

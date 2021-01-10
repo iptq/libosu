@@ -1,8 +1,9 @@
 use regex::Regex;
+use num::FromPrimitive;
 
 use crate::beatmap::Beatmap;
 use crate::color::Color;
-use crate::enums::Mode;
+use crate::enums::{Mode, GridSize};
 use crate::hitobject::HitObject;
 use crate::hitsounds::SampleSet;
 use crate::parsing::{Error, Result};
@@ -136,7 +137,13 @@ impl Beatmap {
                                 kvalue!(captures[beatmap.distance_spacing]: parse(f64))
                             }
                             "BeatDivisor" => kvalue!(captures[beatmap.beat_divisor]: parse(u8)),
-                            "GridSize" => kvalue!(captures[beatmap.grid_size]: parse(u8)),
+                            // "GridSize" => kvalue!(captures[beatmap.grid_size]: parse(u8)),
+                            "GridSize" => {
+                                beatmap.grid_size = {
+                                    let grid_size = kvalue!(captures[beatmap.grid_size]=> parse(u8));
+                                    GridSize::from_u8(grid_size).ok_or_else(|| Error::InvalidGridSize(grid_size))?
+                                }
+                            }
                             "TimelineZoom" => kvalue!(captures[beatmap.timeline_zoom]: parse(f64)),
 
                             "Title" => kvalue!(captures[beatmap.title]: str),
@@ -260,7 +267,7 @@ impl Beatmap {
         ));
         lines.push(format!("DistanceSpacing: {}", self.distance_spacing));
         lines.push(format!("BeatDivisor: {}", self.beat_divisor));
-        lines.push(format!("GridSize: {}", self.grid_size));
+        lines.push(format!("GridSize: {}", self.grid_size as u8));
         lines.push(format!("TimelineZoom: {}", self.timeline_zoom));
         lines.push("".to_string());
 

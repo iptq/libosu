@@ -12,6 +12,16 @@ pub enum Mode {
     Mania = 3,
 }
 
+/// Last saved grid size for editor
+#[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[allow(missing_docs)]
+pub enum GridSize {
+    Tiny = 4,
+    Small = 8,
+    Medium = 16,
+    Large = 32,
+}
+
 bitflags! {
     /// Mod listing with their respective bitwise representation.
     ///
