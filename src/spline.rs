@@ -12,6 +12,7 @@ use crate::math::{Math, Point};
 
 /// Represents a spline, a set of points that represents the actual shape of a slider, generated
 /// from the control points.
+#[derive(Clone, Debug)]
 pub struct Spline {
     /// The actual points
     pub spline_points: Vec<P>,
@@ -193,6 +194,12 @@ impl Spline {
     /// Return the endpoint of this spline
     pub fn end_point(&self) -> Option<P> {
         self.spline_points.last().cloned()
+    }
+
+    /// Calculate the angle at the given length on the slider
+    pub fn angle_at_length(&self, length: f64) -> P {
+        let length_notnan = unsafe { NotNan::unchecked_new(length) };
+        todo!()
     }
 
     /// Calculate the point at which the slider ball would be after it has traveled a distance of

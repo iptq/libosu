@@ -3,6 +3,7 @@ use std::hash::{Hash, Hasher};
 use std::ops::{Add, Div, Mul, Sub};
 
 use num::{cast, Float, NumCast};
+use quickcheck::{Arbitrary, Gen};
 
 /// Represents a 2D point (or any pair of objects).
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -113,5 +114,11 @@ impl<T: Float> Point<T> {
     pub fn norm(&self) -> Point<T> {
         let m = self.magnitude();
         Point(self.0 / m, self.1 / m)
+    }
+}
+
+impl<T: Arbitrary> Arbitrary for Point<T> {
+    fn arbitrary(g: &mut Gen) -> Point<T> {
+        Point(T::arbitrary(g), T::arbitrary(g))
     }
 }

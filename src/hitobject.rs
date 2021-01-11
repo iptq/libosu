@@ -1,5 +1,7 @@
 use std::cmp::Ordering;
 
+use quickcheck::{Arbitrary, Gen};
+
 use crate::hitsounds::{Additions, SampleInfo, SampleSet};
 use crate::math::Point;
 use crate::spline::Spline;
@@ -16,6 +18,17 @@ pub enum SliderSplineKind {
     Catmull,
     /// Perfect (circle) splines are circles circumscribed around three control points.
     Perfect,
+}
+
+impl Arbitrary for SliderSplineKind {
+    fn arbitrary(g: &mut Gen) -> SliderSplineKind {
+        *g.choose(&[
+            SliderSplineKind::Linear,
+            SliderSplineKind::Bezier,
+            SliderSplineKind::Perfect,
+        ])
+        .unwrap()
+    }
 }
 
 /// Extra information provided by a slider.
