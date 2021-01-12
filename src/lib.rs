@@ -36,6 +36,8 @@ pub mod db;
 /// Data structures
 // TODO: should probably split this and move enums into their respective modules
 pub mod enums;
+/// Beatmap events
+pub mod events;
 /// Hit-objects
 pub mod hitobject;
 /// Data structures for hitsounds
@@ -60,6 +62,7 @@ pub mod prelude {
     pub use crate::color::*;
     pub use crate::db::*;
     pub use crate::enums::*;
+    pub use crate::events::*;
     pub use crate::hitobject::*;
     pub use crate::hitsounds::*;
     pub use crate::math::*;

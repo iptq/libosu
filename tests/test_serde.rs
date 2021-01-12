@@ -1,7 +1,56 @@
 use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 
-use libosu::beatmap::Beatmap;
+use libosu::{beatmap::Beatmap, enums::Mode, hitsounds::SampleSet};
+
+fn load_beatmap(path: impl AsRef<Path>) -> Beatmap {
+    let mut file = File::open(path.as_ref()).expect("couldn't open file");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)
+        .expect("couldn't read file");
+    Beatmap::from_osz(&contents).expect("couldn't parse")
+}
+
+#[test]
+fn parse_taeyang_remote_control() {
+    let beatmap = load_beatmap("tests/files/774965.osu");
+
+    assert_eq!(beatmap.audio_filename, "control.mp3");
+    assert_eq!(beatmap.audio_leadin, 1000);
+    assert_eq!(beatmap.preview_time, 85495);
+    assert_eq!(beatmap.countdown, false);
+    assert_eq!(beatmap.sample_set, SampleSet::Normal);
+    assert_eq!(beatmap.stack_leniency, 0.8);
+    assert_eq!(beatmap.mode, Mode::Osu);
+    assert_eq!(beatmap.letterbox_in_breaks, false);
+    assert_eq!(beatmap.widescreen_storyboard, false);
+
+    assert_eq!(beatmap.title, "Remote Control");
+    assert_eq!(beatmap.title_unicode, "リモコン");
+    assert_eq!(beatmap.artist, "kradness&Reol");
+    assert_eq!(beatmap.artist_unicode, "kradness＆れをる");
+    assert_eq!(beatmap.creator, "Taeyang");
+    assert_eq!(beatmap.difficulty_name, "Max Control!");
+    assert_eq!(beatmap.source, "");
+    assert_eq!(
+        beatmap.tags,
+        &[
+            "Jesus-P",
+            "じーざすP",
+            "Giga",
+            "Official",
+            "Rimokon",
+            "Wonderful*Opportunity",
+            "Kagamine",
+            "Rin",
+            "Len",
+            "Glider"
+        ]
+    );
+    assert_eq!(beatmap.beatmap_id, 774965);
+    assert_eq!(beatmap.beatmap_set_id, 351630);
+}
 
 macro_rules! test_serde {
     ($($name:ident: $id:expr,)*) => {

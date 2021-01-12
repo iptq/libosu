@@ -199,6 +199,10 @@ impl Spline {
     /// Calculate the angle at the given length on the slider
     pub fn angle_at_length(&self, length: f64) -> P {
         let length_notnan = unsafe { NotNan::unchecked_new(length) };
+        match self.cumulative_lengths.binary_search(&length_notnan) {
+            Ok(_) => {}
+            Err(_) => {}
+        }
         todo!()
     }
 
