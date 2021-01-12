@@ -4,7 +4,7 @@ use crate::hitobject::{HitObject, HitObjectKind, SliderInfo, SliderSplineKind, S
 use crate::hitsounds::{Additions, SampleInfo, SampleSet};
 use crate::math::Point;
 use crate::parsing::{Error, Result};
-use crate::timing::TimeLocation;
+use crate::timing::TimestampMillis;
 
 impl HitObject {
     /// Creates a HitObject from the *.osz format
@@ -18,7 +18,7 @@ impl HitObject {
         let additions_bits = parts[4].parse::<u32>()?;
         let additions = Additions::from_bits(additions_bits).unwrap();
 
-        let start_time = TimeLocation(timestamp);
+        let start_time = TimestampMillis(timestamp);
 
         // color is the top 3 bits of the "type" string, since there's a possible of 8 different
         // combo colors max
@@ -108,7 +108,7 @@ impl HitObject {
                     SampleInfo::default()
                 };
                 HitObjectKind::Spinner(SpinnerInfo {
-                    end_time: TimeLocation(end_time),
+                    end_time: TimestampMillis(end_time),
                 })
             }
             o => {

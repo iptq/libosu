@@ -1,17 +1,29 @@
 use std::cmp::Ordering;
 
+use ordered_float::NotNan;
 use serde::ser::*;
 
 use crate::hitsounds::SampleSet;
 
-/// A struct representing a location in time.
+/// A struct representing a location in time as milliseconds
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct TimeLocation(pub i32);
+pub struct TimestampMillis(pub i32);
 
-impl TimeLocation {
-    /// Convert the TimeLocation to seconds
-    pub fn as_seconds(&self) -> f64 {
-        self.0 as f64 / 1000.0
+impl TimestampMillis {
+    /// Convert the timestamp to seconds
+    pub fn as_seconds(&self) -> TimestampSec {
+        TimestampSec(unsafe { NotNan::unchecked_new(self.0 as f64 / 1000.0) })
+    }
+}
+
+/// A struct representing a location in time as seconds
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct TimestampSec(pub NotNan<f64>);
+
+impl TimestampSec {
+    /// Convert the timestamp to milliseconds
+    pub fn as_milliseconds(&self) -> TimestampMillis {
+        TimestampMillis((self.0.into_inner() * 1000.0) as i32)
     }
 }
 
@@ -20,6 +32,7 @@ impl TimeLocation {
 pub struct UninheritedTimingInfo {
     /// Milliseconds per beat (aka beat duration)
     pub mpb: f64,
+
     /// The number of beats in a single measure
     pub meter: u32,
 }
@@ -36,6 +49,7 @@ pub struct InheritedTimingInfo {
 pub enum TimingPointKind {
     /// Uninherited timing point
     Uninherited(UninheritedTimingInfo),
+
     /// Inherited timing point
     Inherited(InheritedTimingInfo),
 }
@@ -47,15 +61,20 @@ pub enum TimingPointKind {
 #[derive(Clone, Debug)]
 pub struct TimingPoint {
     /// The timestamp of this timing point, represented as a `TimeLocation`.
-    pub time: TimeLocation,
+    pub time: TimestampMillis,
+
     /// Whether or not Kiai time should be on for this timing point.
     pub kiai: bool,
+
     /// The sample set associated with this timing section.
     pub sample_set: SampleSet,
+
     /// Index (if using a custom sample)
     pub sample_index: u32,
+
     /// Volume of this timing section.
     pub volume: u16,
+
     /// The type of this timing point. See `TimingPointKind`.
     pub kind: TimingPointKind,
 }
@@ -89,81 +108,3 @@ impl Serialize for TimingPoint {
         state.end()
     }
 }
-
-/*
-pub mod tests {
-    extern crate lazy_static;
-
-    #[allow(unused_imports)]
-    #[allow(non_upper_case_globals)]
-    #[allow(dead_code)]
-    use super::*;
-
-    lazy_static! {
-        static ref TP: TimingPoint = TimingPoint {
-            kind: TimingPointKind::Uninherited {
-                bpm: 200.0,
-                meter: 4,
-                children: BTreeSet::new(),
-            },
-            time: TimeLocation::Absolute(12345),
-            sample_set: SampleSet::None,
-            sample_index: 0,
-            volume: 100,
-            kiai: false,
-        };
-        static ref ITP: TimingPoint = TimingPoint {
-            kind: TimingPointKind::Inherited {
-                parent: Some(&TP),
-                slider_velocity: 0.0,
-            },
-            time: TimeLocation::Relative(&TP, 1, Ratio::from(0)),
-            sample_set: SampleSet::None,
-            sample_index: 0,
-            volume: 80,
-            kiai: false,
-        };
-    }
-
-    pub fn get_test_data() -> Vec<(TimeLocation, i32)> {
-        let test_data = vec![
-            // uninherited timing points
-            (TimeLocation::Relative(&TP, 0, Ratio::new(0, 1)), 12345), // no change from the measure at all
-            (TimeLocation::Relative(&TP, 1, Ratio::new(0, 1)), 13545), // +1 measure (measure is 300ms, times 4 beats)
-            (TimeLocation::Relative(&TP, 0, Ratio::new(1, 4)), 12645), // a single beat
-            (TimeLocation::Relative(&TP, 0, Ratio::new(1, 2)), 12945), // half of a measure
-            (TimeLocation::Relative(&TP, 0, Ratio::new(3, 4)), 13245), // 3 quarter notes
-            // ok, on to inherited
-            (TimeLocation::Relative(&ITP, 0, Ratio::new(0, 1)), 13545), // no change from the measure at all
-            (TimeLocation::Relative(&ITP, 1, Ratio::new(0, 1)), 14745), // +1 measure, same as above
-            (TimeLocation::Relative(&ITP, 0, Ratio::new(1, 4)), 13845), // a single beat
-            (TimeLocation::Relative(&ITP, 0, Ratio::new(1, 2)), 14145), // half of a measure
-            (TimeLocation::Relative(&ITP, 0, Ratio::new(3, 4)), 14445), // 3 quarter notes
-        ];
-        return test_data;
-    }
-
-    #[test]
-    pub fn test_into_milliseconds() {
-        let test_data = get_test_data();
-        for (time, abs) in test_data.iter() {
-            assert_eq!(time.into_milliseconds(), *abs);
-        }
-    }
-
-    #[test]
-    pub fn test_approximate() {
-        let test_data = get_test_data();
-        for (time, abs) in test_data.iter() {
-            let t = TimeLocation::Absolute(*abs);
-            match time {
-                TimeLocation::Relative(tp, m, f) => {
-                    let (m2, f2) = t.approximate(&tp);
-                    assert_eq!((*m, *f), (m2, f2));
-                }
-                _ => panic!("This should never happen."),
-            }
-        }
-    }
-}
-*/

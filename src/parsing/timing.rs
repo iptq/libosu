@@ -1,7 +1,7 @@
 use crate::hitsounds::SampleSet;
 use crate::parsing::Result;
 use crate::timing::{
-    InheritedTimingInfo, TimeLocation, TimingPoint, TimingPointKind, UninheritedTimingInfo,
+    InheritedTimingInfo, TimestampMillis, TimingPoint, TimingPointKind, UninheritedTimingInfo,
 };
 
 impl TimingPoint {
@@ -20,7 +20,7 @@ impl TimingPoint {
 
         // calculate bpm from mpb
         let _ = 60_000.0 / mpb;
-        let time = TimeLocation(timestamp);
+        let time = TimestampMillis(timestamp);
 
         let timing_point = TimingPoint {
             kind: if inherited {

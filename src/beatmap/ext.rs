@@ -1,7 +1,7 @@
 use crate::beatmap::Beatmap;
 use crate::hitobject::{HitObject, HitObjectKind, SpinnerInfo};
 use crate::timing::{
-    InheritedTimingInfo, TimeLocation, TimingPoint, TimingPointKind, UninheritedTimingInfo,
+    InheritedTimingInfo, TimestampMillis, TimingPoint, TimingPointKind, UninheritedTimingInfo,
 };
 
 impl Beatmap {
@@ -11,12 +11,12 @@ impl Beatmap {
     }
 
     /// Computes the end time of the given hitobject
-    pub fn get_hitobject_end_time(&self, ho: &HitObject) -> TimeLocation {
+    pub fn get_hitobject_end_time(&self, ho: &HitObject) -> TimestampMillis {
         match ho.kind {
             HitObjectKind::Circle => ho.start_time,
             HitObjectKind::Slider(_) => {
                 let duration = self.get_slider_duration(ho).unwrap();
-                TimeLocation(ho.start_time.0 + duration as i32)
+                TimestampMillis(ho.start_time.0 + duration as i32)
             }
             HitObjectKind::Spinner(SpinnerInfo { end_time }) => end_time,
         }
@@ -42,7 +42,7 @@ impl Beatmap {
     }
 
     /// Returns the slider velocity at the given time
-    pub fn get_slider_velocity_at_time(&self, time: TimeLocation) -> f64 {
+    pub fn get_slider_velocity_at_time(&self, time: TimestampMillis) -> f64 {
         // TODO: replace this with binary search
         let mut current = 1.0;
 
@@ -68,7 +68,7 @@ impl Beatmap {
     }
 
     /// Returns the BPM at the given time
-    pub fn get_bpm_at_time(&self, time: TimeLocation) -> Option<f64> {
+    pub fn get_bpm_at_time(&self, time: TimestampMillis) -> Option<f64> {
         // TODO: replace this with binary search
         let mut current = None;
 

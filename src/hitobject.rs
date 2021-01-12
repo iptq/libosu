@@ -5,7 +5,7 @@ use quickcheck::{Arbitrary, Gen};
 use crate::hitsounds::{Additions, SampleInfo, SampleSet};
 use crate::math::Point;
 use crate::spline::Spline;
-use crate::timing::{TimeLocation, TimingPoint};
+use crate::timing::{TimestampMillis, TimingPoint};
 
 /// Distinguishes between different types of slider splines.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -52,7 +52,7 @@ pub struct SliderInfo {
 #[derive(Clone, Debug)]
 pub struct SpinnerInfo {
     /// The time at which the slider ends.
-    pub end_time: TimeLocation,
+    pub end_time: TimestampMillis,
 }
 
 /// Distinguishes between different types of hit objects.
@@ -89,7 +89,7 @@ pub struct HitObject {
     /// The position on the map at which this hit object is located (head for sliders).
     pub pos: Point<i32>,
     /// When this hit object occurs during the map.
-    pub start_time: TimeLocation,
+    pub start_time: TimestampMillis,
     /// The kind of HitObject this represents (circle, slider, spinner).
     pub kind: HitObjectKind,
     /// Whether or not this object begins a new combo.

@@ -1,5 +1,5 @@
 use crate::math::Point;
-use crate::timing::TimeLocation;
+use crate::timing::TimestampMillis;
 
 /// Beatmap event
 pub enum Event {
@@ -28,7 +28,7 @@ pub struct BackgroundEvent {
 /// Used in Event::Video
 pub struct VideoEvent {
     /// The timestamp at which the video starts
-    pub start_time: TimeLocation,
+    pub start_time: TimestampMillis,
 
     /// Location of the background image relative to the beatmap directory.
     pub filename: String,
@@ -40,8 +40,8 @@ pub struct VideoEvent {
 /// Used in Event::Break
 pub struct BreakEvent {
     /// The timestamp at which the break starts
-    pub start_time: TimeLocation,
+    pub start_time: TimestampMillis,
 
     /// The timestamp at which the break ends
-    pub end_time: TimeLocation,
+    pub end_time: TimestampMillis,
 }
