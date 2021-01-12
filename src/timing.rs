@@ -5,7 +5,7 @@ use serde::ser::*;
 
 use crate::hitsounds::SampleSet;
 
-/// A struct representing a location in time as milliseconds
+/// A struct representing a location in time as milliseconds (i32)
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct TimestampMillis(pub i32);
 
@@ -16,13 +16,13 @@ impl TimestampMillis {
     }
 }
 
-/// A struct representing a location in time as seconds
+/// A struct representing a location in time as seconds (f64)
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct TimestampSec(pub NotNan<f64>);
 
 impl TimestampSec {
     /// Convert the timestamp to milliseconds
-    pub fn as_milliseconds(&self) -> TimestampMillis {
+    pub fn as_millis(&self) -> TimestampMillis {
         TimestampMillis((self.0.into_inner() * 1000.0) as i32)
     }
 }
