@@ -65,22 +65,32 @@ impl FromStr for Event {
         Ok(match evt_type {
             "0" => {
                 let filename = parts[2].trim_matches('"').to_string();
-                let x_offset = parts[3].parse::<i32>()?;
-                let y_offset = parts[4].parse::<i32>()?;
+                let offset = if let (Some(x), Some(y)) = (parts.get(3), parts.get(4)) {
+                    let x_offset = x.parse::<i32>()?;
+                    let y_offset = y.parse::<i32>()?;
+                    Point::new(x_offset, y_offset)
+                } else {
+                    Point::new(0, 0)
+                };
                 Event::Background(BackgroundEvent {
                     filename,
-                    offset: Point::new(x_offset, y_offset),
+                    offset,
                 })
             }
             "1" | "Video" => {
                 let start_time = parts[1].parse::<i32>()?;
                 let filename = parts[2].trim_matches('"').to_string();
-                let x_offset = parts[3].parse::<i32>()?;
-                let y_offset = parts[4].parse::<i32>()?;
+                let offset = if let (Some(x), Some(y)) = (parts.get(3), parts.get(4)) {
+                    let x_offset = x.parse::<i32>()?;
+                    let y_offset = y.parse::<i32>()?;
+                    Point::new(x_offset, y_offset)
+                } else {
+                    Point::new(0, 0)
+                };
                 Event::Video(VideoEvent {
                     start_time: TimestampMillis(start_time),
                     filename,
-                    offset: Point::new(x_offset, y_offset),
+                    offset,
                 })
             }
             "2" | "Break" => {
