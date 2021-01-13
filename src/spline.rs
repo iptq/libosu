@@ -110,10 +110,10 @@ impl Spline {
                             last_circ = Some(point);
                             result = true;
                         } else {
-                            let remaining = total_len - pixel_length;
-                            let new_end = Math::point_on_line(circ, point, remaining);
+                            let push_amt = pixel_length - cumul_length;
+                            let new_end = Math::point_on_line(circ, point, push_amt);
                             whole.push(new_end);
-                            last_circ = Some(point);
+                            last_circ = Some(new_end);
                             result = false;
                         }
                     } else {
