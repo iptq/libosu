@@ -2,13 +2,26 @@ pub mod read;
 
 use std::io;
 
-use anyhow::{Context, Error};
-
 use crate::enums::{Grade, Mode, Mods, RankedStatus};
 
 use self::read::{
     read_f32le, read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string,
+    ReadError,
 };
+
+/// Result type for .db file processing
+pub type DbResult<T, E = DbError> = std::result::Result<T, E>;
+
+/// Errors that could occur while processing .db files
+#[allow(missing_docs)]
+#[derive(Debug, Error)]
+pub enum DbError {
+    #[error("error during binary read: {0}")]
+    Read(#[from] ReadError),
+
+    #[error("unexpected mods: {0}")]
+    UnexpectedMods(u32),
+}
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 /// Timing point for beatmap in osu!.db
@@ -194,15 +207,15 @@ pub struct OsuDB {
 }
 
 impl OsuDBBeatmap {
-    fn read_star_rating(mut reader: impl io::BufRead) -> Result<Vec<(Mods, f64)>, Error> {
+    fn read_star_rating(mut reader: impl io::BufRead) -> DbResult<Vec<(Mods, f64)>> {
         let count = read_u32le(&mut reader)?;
         let ratings = (0..count)
-            .map(|_| -> Result<(Mods, f64), Error> {
+            .map(|_| -> DbResult<(Mods, f64)> {
                 Ok((
                     {
                         assert_eq!(read_u8(&mut reader)?, 0x08);
-                        Mods::from_bits(read_u32le(&mut reader)?)
-                            .context("unexpected bits set in star rating mods field")?
+                        let value = read_u32le(&mut reader)?;
+                        Mods::from_bits(value).ok_or(DbError::UnexpectedMods(value))?
                     },
                     {
                         assert_eq!(read_u8(&mut reader)?, 0x0D);
@@ -210,13 +223,11 @@ impl OsuDBBeatmap {
                     },
                 ))
             })
-            .collect::<Result<Vec<_>, Error>>()?;
+            .collect::<DbResult<Vec<_>>>()?;
         Ok(ratings)
     }
 
-    fn read_timing_points(
-        mut reader: impl io::BufRead,
-    ) -> Result<Vec<OsuDBBeatmapTimingPoint>, Error> {
+    fn read_timing_points(mut reader: impl io::BufRead) -> DbResult<Vec<OsuDBBeatmapTimingPoint>> {
         let count = read_u32le(&mut reader)?;
         let points = (0..count)
             .map(|_| {
@@ -226,11 +237,11 @@ impl OsuDBBeatmap {
                     is_uninherited: read_u8(&mut reader)? > 0,
                 })
             })
-            .collect::<Result<Vec<_>, Error>>()?;
+            .collect::<DbResult<Vec<_>>>()?;
         Ok(points)
     }
 
-    fn parse(mut reader: impl io::BufRead, version: u32) -> Result<OsuDBBeatmap, Error> {
+    fn parse(mut reader: impl io::BufRead, version: u32) -> DbResult<OsuDBBeatmap> {
         Ok(OsuDBBeatmap {
             size: if version < 20191106 {
                 Some(read_u32le(&mut reader)?)
@@ -301,7 +312,7 @@ impl OsuDBBeatmap {
 
 impl OsuDB {
     /// Parse the osu!.db data from a reader.
-    pub fn parse(mut reader: impl io::BufRead) -> Result<OsuDB, Error> {
+    pub fn parse(mut reader: impl io::BufRead) -> DbResult<OsuDB> {
         let version = read_u32le(&mut reader)?;
         let folder_count = read_u32le(&mut reader)?;
         let account_unlocked = read_u8(&mut reader)? > 0;
@@ -310,7 +321,7 @@ impl OsuDB {
         let beatmap_count = read_u32le(&mut reader)?;
         let beatmaps = (0..beatmap_count)
             .map(|_| OsuDBBeatmap::parse(&mut reader, version))
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<DbResult<Vec<_>>>()?;
         let permissions = read_u8(&mut reader)?;
 
         Ok(OsuDB {

@@ -1,14 +1,43 @@
 use std::io;
 
-use anyhow::{Context, Result};
 use std::str::FromStr;
 use xz2::bufread::XzDecoder;
 use xz2::stream::Stream;
 
 use crate::db::read::{
-    read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string,
+    read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string, ReadError,
 };
 use crate::enums::{Mode, Mods};
+
+/// Result type for Replay processing
+pub type ReplayResult<T, E = ReplayError> = std::result::Result<T, E>;
+
+/// Errors that could occur while processing replays
+// TODO: track positions as well
+#[allow(missing_docs)]
+#[derive(Debug, Error)]
+pub enum ReplayError {
+    #[error("error creating lzma decoder: {0}")]
+    LzmaCreate(xz2::stream::Error),
+
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("error during binary read: {0}")]
+    Read(#[from] ReadError),
+
+    #[error("error parsing int: {0}")]
+    ParseInt(#[from] std::num::ParseIntError),
+
+    #[error("error parsing float: {0}")]
+    ParseFloat(#[from] std::num::ParseFloatError),
+
+    #[error("unexpected mods: {0}")]
+    UnexpectedMods(u32),
+
+    #[error("invalid mode: {0}")]
+    InvalidMode(u8)
+}
 
 // write a parser for the life graph
 // /// A point in the life graph
@@ -132,36 +161,54 @@ impl Replay {
     ///
     /// The returned struct will be missing the `action`, `score_id`, and `target_practice_total_accuracy` fields.
     /// If you need `score_id` or `target_practice_total_accuracy`, but don't want to parse actions use the `parse_skip_actions` function instead.
-    pub fn parse_header<R: io::Read>(reader: &mut R) -> Result<Replay> {
+    pub fn parse_header<R: io::Read>(reader: &mut R) -> ReplayResult<Replay> {
+        let mode = match read_u8(reader)? {
+            0 => Mode::Osu,
+            1 => Mode::Taiko,
+            2 => Mode::Catch,
+            3 => Mode::Mania,
+            x => return Err(ReplayError::InvalidMode(x)),
+        };
+        let version = read_u32le(reader)?;
+        let beatmap_hash = read_uleb128_string(reader)?;
+        let player_username = read_uleb128_string(reader)?;
+        let replay_hash = read_uleb128_string(reader)?;
+        let count_300 = read_u16le(reader)?;
+        let count_100 = read_u16le(reader)?;
+        let count_50 = read_u16le(reader)?;
+        let count_geki = read_u16le(reader)?;
+        let count_katu = read_u16le(reader)?;
+        let count_miss = read_u16le(reader)?;
+        let score = read_u32le(reader)?;
+        let max_combo = read_u16le(reader)?;
+        let perfect = read_u8(reader)? == 1;
+        let mods_value = read_u32le(reader)?;
+        let mods =
+            Mods::from_bits(mods_value).ok_or(ReplayError::UnexpectedMods(mods_value))?;
+        let life_graph = read_uleb128_string(reader)?;
+        let timestamp = read_u64le(reader)?;
+        let replay_data_length = read_u32le(reader)?;
+
         Ok(Replay {
-            mode: match read_u8(reader)? {
-                0 => Mode::Osu,
-                1 => Mode::Taiko,
-                2 => Mode::Catch,
-                3 => Mode::Mania,
-                x => bail!(
-                    "Unknown game mode ID in replay file: {}, expecting 0, 1, 2, or 3.",
-                    x
-                ),
-            },
-            version: read_u32le(reader)?,
-            beatmap_hash: read_uleb128_string(reader)?,
-            player_username: read_uleb128_string(reader)?,
-            replay_hash: read_uleb128_string(reader)?,
-            count_300: read_u16le(reader)?,
-            count_100: read_u16le(reader)?,
-            count_50: read_u16le(reader)?,
-            count_geki: read_u16le(reader)?,
-            count_katu: read_u16le(reader)?,
-            count_miss: read_u16le(reader)?,
-            score: read_u32le(reader)?,
-            max_combo: read_u16le(reader)?,
-            perfect: read_u8(reader)? == 1,
-            mods: Mods::from_bits(read_u32le(reader)?)
-                .context("unexpected bits set in mods field")?,
-            life_graph: read_uleb128_string(reader)?,
-            timestamp: read_u64le(reader)?,
-            replay_data_length: read_u32le(reader)?,
+            mode,
+            version,
+            beatmap_hash,
+            player_username,
+            replay_hash,
+            count_300,
+            count_100,
+            count_50,
+            count_geki,
+            count_katu,
+            count_miss,
+            score,
+            max_combo,
+            perfect,
+            mods,
+
+            life_graph,
+            timestamp,
+            replay_data_length,
 
             actions: Vec::new(),
             score_id: 0,
@@ -169,7 +216,7 @@ impl Replay {
         })
     }
 
-    fn parse_tail<R: io::Read>(&mut self, reader: &mut R) -> Result<()> {
+    fn parse_tail<R: io::Read>(&mut self, reader: &mut R) -> ReplayResult<()> {
         self.score_id = read_u64le(reader)?;
         self.target_practice_total_accuracy = if self.mods.contains(Mods::TargetPractice) {
             Some(read_f64le(reader)?)
@@ -182,12 +229,12 @@ impl Replay {
     fn create_action_parser<R: io::BufRead>(
         &self,
         reader: R,
-    ) -> Result<ReplayActionParser<io::BufReader<XzDecoder<io::Take<R>>>>> {
+    ) -> ReplayResult<ReplayActionParser<io::BufReader<XzDecoder<io::Take<R>>>>> {
         ReplayActionParser::with_decompressing(reader.take(self.replay_data_length as u64))
     }
 
     /// Parse a replay file (.osr)
-    pub fn parse<R: io::BufRead>(mut reader: R) -> Result<Replay> {
+    pub fn parse<R: io::BufRead>(mut reader: R) -> ReplayResult<Replay> {
         let mut replay = Replay::parse_header(&mut reader)?;
         let mut action_parser = replay.create_action_parser(reader)?;
         for action in action_parser.iter() {
@@ -207,7 +254,7 @@ impl Replay {
     ///
     /// Using this function can be signficantly easier on memory and CPU
     /// if only score information is needed
-    pub fn parse_skip_actions<R: io::Read + io::Seek>(mut reader: R) -> Result<Replay> {
+    pub fn parse_skip_actions<R: io::Read + io::Seek>(mut reader: R) -> ReplayResult<Replay> {
         let mut replay = Replay::parse_header(&mut reader)?;
         reader.seek(io::SeekFrom::Current(replay.replay_data_length as i64))?;
         replay.parse_tail(&mut reader)?;
@@ -231,7 +278,7 @@ impl<'a, R: io::BufRead> ReplayActionParserIter<'a, R> {
         }
     }
 
-    fn read_time(&mut self) -> Result<Option<i64>> {
+    fn read_time(&mut self) -> ReplayResult<Option<i64>> {
         self.number_buffer.clear();
         self.reader.read_until(b'|', &mut self.number_buffer)?;
         if self.number_buffer.is_empty() {
@@ -241,14 +288,14 @@ impl<'a, R: io::BufRead> ReplayActionParserIter<'a, R> {
         Ok(Some(i64::from_str(&s)?))
     }
 
-    fn read_position(&mut self) -> Result<f32> {
+    fn read_position(&mut self) -> ReplayResult<f32> {
         self.number_buffer.clear();
         self.reader.read_until(b'|', &mut self.number_buffer)?;
         let s = String::from_utf8_lossy(&self.number_buffer[..self.number_buffer.len() - 1]);
         Ok(f32::from_str(&s)?)
     }
 
-    fn read_buttons(&mut self) -> Result<u32> {
+    fn read_buttons(&mut self) -> ReplayResult<u32> {
         self.number_buffer.clear();
         self.reader.read_until(b',', &mut self.number_buffer)?;
         if self.number_buffer.last() == Some(&b',') {
@@ -261,7 +308,7 @@ impl<'a, R: io::BufRead> ReplayActionParserIter<'a, R> {
 }
 
 impl<'a, R: io::BufRead> Iterator for ReplayActionParserIter<'a, R> {
-    type Item = Result<ReplayAction>;
+    type Item = ReplayResult<ReplayAction>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let time = match self.read_time() {
@@ -306,9 +353,11 @@ impl<R: io::BufRead> ReplayActionParser<R> {
     /// Create a parser for LZMA compressed replay actions
     pub fn with_decompressing(
         reader: R,
-    ) -> Result<ReplayActionParser<io::BufReader<XzDecoder<R>>>> {
+    ) -> ReplayResult<ReplayActionParser<io::BufReader<XzDecoder<R>>>> {
+        let lzma_decoder =
+            Stream::new_lzma_decoder(std::u64::MAX).map_err(ReplayError::LzmaCreate)?;
         Ok(ReplayActionParser::new(io::BufReader::new(
-            XzDecoder::new_stream(reader, Stream::new_lzma_decoder(std::u64::MAX)?),
+            XzDecoder::new_stream(reader, lzma_decoder),
         )))
     }
 

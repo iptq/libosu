@@ -21,7 +21,6 @@ difference = "2.0.0"
 structopt = "0.3.21"
 
 [dependencies]
-anyhow = "1.0.38"
 bitflags = "1.2.1"
 lazy_static = "1.4.0"
 num = "0.3.1"

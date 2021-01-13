@@ -2,7 +2,6 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::str::FromStr;
 
-use anyhow::Result;
 use num::FromPrimitive;
 use quickcheck::{Arbitrary, Gen};
 

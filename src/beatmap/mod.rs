@@ -1,7 +1,6 @@
 mod ext;
 mod format;
 
-use anyhow::Result;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use crate::color::Color;

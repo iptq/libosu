@@ -1,7 +1,7 @@
 use std::fs::File;
-use std::str::FromStr;
 use std::io::{Read, Write};
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use anyhow::Result;
 use libosu::{

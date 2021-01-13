@@ -1,8 +1,28 @@
 //! Functions and macros for reading data structures
 
+/// Result type for ReadError
+pub type ReadResult<T, E = ReadError> = std::result::Result<T, E>;
+
+/// Errors that could occur while reading from binary files
+#[allow(missing_docs)]
+#[derive(Debug, Error)]
+pub enum ReadError {
+    #[error("utf8 decoding error: {0}")]
+    Utf8(#[from] std::string::FromUtf8Error),
+
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("uleb128 number may overflow u64")]
+    UlebOverflow,
+
+    #[error("expected string to start with either 0x0B or 0x00, got {0}")]
+    MalformedString(u8),
+}
+
 macro_rules! read_num_le_fn {
     ($name:ident => $typ:ident) => {
-        pub(crate) fn $name<R: std::io::Read>(reader: &mut R) -> Result<$typ, anyhow::Error> {
+        pub(crate) fn $name<R: std::io::Read>(reader: &mut R) -> Result<$typ, ReadError> {
             let mut buf: [u8; std::mem::size_of::<$typ>()] = [0; std::mem::size_of::<$typ>()];
             reader.read_exact(&mut buf)?;
             Ok($typ::from_le_bytes(buf))
@@ -23,7 +43,7 @@ read_num_le_fn!(read_f64le => f64);
 
 /// Read an unsigned LEB128 encoded number
 /// Although the number is variable width, this will only read up to a 63 bit number (9 bytes)
-pub fn read_uleb128<R: std::io::Read>(reader: &mut R) -> Result<u64, anyhow::Error> {
+pub fn read_uleb128<R: std::io::Read>(reader: &mut R) -> Result<u64, ReadError> {
     let mut buf: [u8; 1] = [0];
     let mut byte_index = 0;
 
@@ -34,7 +54,7 @@ pub fn read_uleb128<R: std::io::Read>(reader: &mut R) -> Result<u64, anyhow::Err
     while (buf[0] & 0b10000000) == 0b10000000 {
         byte_index += 1;
         if byte_index > 9 {
-            bail!("ULEB128 number may overflow u64");
+            return Err(ReadError::UlebOverflow);
         }
 
         reader.read_exact(&mut buf)?;
@@ -46,7 +66,7 @@ pub fn read_uleb128<R: std::io::Read>(reader: &mut R) -> Result<u64, anyhow::Err
 }
 
 /// read an string from an osu! uleb128.
-pub fn read_uleb128_string<R: std::io::Read>(reader: &mut R) -> Result<String, anyhow::Error> {
+pub fn read_uleb128_string<R: std::io::Read>(reader: &mut R) -> Result<String, ReadError> {
     let mut empty_string_byte_buffer: [u8; 1] = [0];
     reader.read_exact(&mut empty_string_byte_buffer)?;
 
@@ -56,10 +76,7 @@ pub fn read_uleb128_string<R: std::io::Read>(reader: &mut R) -> Result<String, a
     }
 
     if empty_string_byte_buffer[0] != 0x0B {
-        bail!(
-            "expected string to start with either 0x0B or 0x00, got {:x}",
-            empty_string_byte_buffer[0]
-        );
+        return Err(ReadError::MalformedString(empty_string_byte_buffer[0]));
     }
 
     let length = read_uleb128(reader)?;

@@ -23,105 +23,160 @@ lazy_static! {
 
 /// Macro for matching beatmap keys easier.
 macro_rules! kvalue {
-    ($captures:ident[$name:expr]: str) => {
+    ($line:expr, $captures:ident[$name:expr]: str) => {
         $name = String::from(&$captures["value"]);
     };
-    ($captures:ident[$name:expr] => str) => {
+    ($line:expr, $captures:ident[$name:expr] => str) => {
         String::from(&$captures["value"])
     };
-    ($captures:ident[$name:expr]: parse(bool)) => {
+    ($line:expr, $captures:ident[$name:expr]: parse(bool)) => {
         $name = {
-            let val = kvalue!($captures[$name] => parse(u8));
+            let val = kvalue!($line, $captures[$name] => parse(u8));
             !(val == 0)
         };
     };
-    ($captures:ident[$name:expr] => parse($type:ident)) => {
-        $captures["value"].parse::<$type>()?
+    ($line:expr, $captures:ident[$name:expr] => parse($type:ident)) => {
+        $captures["value"].parse::<$type>()
+            .map_err(|err| BeatmapParseError { line: $line, inner: err.into() })?;
     };
-    ($captures:ident[$name:expr]: parse($type:ident)) => {
-        $name = $captures["value"].parse::<$type>()?;
+    ($line:expr, $captures:ident[$name:expr]: parse($type:ident)) => {
+        $name = $captures["value"].parse::<$type>()
+            .map_err(|err| BeatmapParseError { line: $line, inner: err.into() })?;
     };
 }
 
+#[derive(Debug)]
+pub struct BeatmapParseError {
+    line: usize,
+    inner: ParseError,
+}
+
+impl fmt::Display for BeatmapParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "error on line {}: {}", self.line, self.inner)
+    }
+}
+
+impl std::error::Error for BeatmapParseError {}
+
 impl FromStr for Beatmap {
-    type Err = ParseError;
+    type Err = BeatmapParseError;
 
     fn from_str(input: &str) -> Result<Beatmap, Self::Err> {
         // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();
         let mut beatmap = Beatmap::default();
-        let mut timing_points = Vec::new();
 
-        let mut timing_point_lines = Vec::new();
-        let mut hit_object_lines = Vec::new();
+        for (i, line) in input.lines().enumerate() {
+            let line_no = i + 1;
 
-        for line in input.lines() {
             if let Some(captures) = SECTION_HEADER_RGX.captures(&line) {
                 section = String::from(&captures["name"]);
                 continue;
             }
 
+            // skip empty lines
             if line.trim().is_empty() {
                 continue;
             }
 
             match section.as_ref() {
                 "HitObjects" => {
-                    hit_object_lines.push(line);
+                    let obj = HitObject::from_str(line).map_err(|err| BeatmapParseError {
+                        line: line_no,
+                        inner: err,
+                    })?;
+                    beatmap.hit_objects.push(obj);
                 }
                 "TimingPoints" => {
-                    timing_point_lines.push(line);
+                    let tp = TimingPoint::from_str(line).map_err(|err| BeatmapParseError {
+                        line: line_no,
+                        inner: err,
+                    })?;
+                    beatmap.timing_points.push(tp);
                 }
                 "Version" => {
                     if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(&line) {
-                        beatmap.version = capture["version"].parse::<u32>()?;
+                        beatmap.version =
+                            capture["version"]
+                                .parse::<u32>()
+                                .map_err(|err| BeatmapParseError {
+                                    line: line_no,
+                                    inner: err.into(),
+                                })?;
                     }
                 }
                 "Colours" => {
-                    let color = Color::from_str(line)?;
+                    let color = Color::from_str(line).map_err(|err| BeatmapParseError {
+                        line: line_no,
+                        inner: err.into(),
+                    })?;
                     beatmap.colors.push(color);
                 }
                 _ => {
                     if let Some(captures) = KEY_VALUE_RGX.captures(line) {
+                        let key = &captures["key"];
+                        let value = &captures["value"];
+
                         match &captures["key"] {
-                            "AudioFilename" => kvalue!(captures[beatmap.audio_filename]: str),
-                            "AudioLeadIn" => kvalue!(captures[beatmap.audio_leadin]: parse(u32)),
-                            "PreviewTime" => kvalue!(captures[beatmap.preview_time]: parse(u32)),
-                            "Countdown" => kvalue!(captures[beatmap.countdown]: parse(bool)),
+                            "AudioFilename" => {
+                                kvalue!(line_no, captures[beatmap.audio_filename]: str)
+                            }
+                            "AudioLeadIn" => {
+                                kvalue!(line_no, captures[beatmap.audio_leadin]: parse(u32))
+                            }
+                            "PreviewTime" => {
+                                kvalue!(line_no, captures[beatmap.preview_time]: parse(u32))
+                            }
+                            "Countdown" => {
+                                kvalue!(line_no, captures[beatmap.countdown]: parse(bool))
+                            }
                             "SampleSet" => {
                                 beatmap.sample_set = {
-                                    let sample_set = kvalue!(captures[beatmap.sample_set] => str);
+                                    let sample_set =
+                                        kvalue!(line_no, captures[beatmap.sample_set] => str);
                                     match sample_set.as_ref() {
                                         "None" => SampleSet::None,
                                         "Normal" => SampleSet::Normal,
                                         "Soft" => SampleSet::Soft,
                                         "Drum" => SampleSet::Drum,
                                         s => {
-                                            return Err(ParseError::InvalidSampleSet(s.to_owned()))
+                                            return Err(BeatmapParseError {
+                                                line: line_no,
+                                                inner: ParseError::InvalidSampleSet(s.to_owned()),
+                                            })
                                         }
                                     }
                                 }
                             }
                             "StackLeniency" => {
-                                kvalue!(captures[beatmap.stack_leniency]: parse(f64))
+                                kvalue!(line_no, captures[beatmap.stack_leniency]: parse(f64))
                             }
                             "Mode" => {
                                 beatmap.mode = {
-                                    let mode = kvalue!(captures[beatmap.mode]=> parse(u8));
+                                    let mode = kvalue!(line_no, captures[beatmap.mode]=> parse(u8));
                                     match mode {
                                         0 => Mode::Osu,
                                         1 => Mode::Taiko,
                                         2 => Mode::Catch,
                                         3 => Mode::Mania,
-                                        _ => return Err(ParseError::InvalidGameMode(mode)),
+                                        _ => {
+                                            return Err(BeatmapParseError {
+                                                line: line_no,
+                                                inner: ParseError::InvalidGameMode(mode),
+                                            })
+                                        }
                                     }
                                 }
                             }
                             "LetterBoxInBreaks" => {
-                                kvalue!(captures[beatmap.letterbox_in_breaks]: parse(bool))
+                                kvalue!(line_no, captures[beatmap.letterbox_in_breaks]: parse(bool))
                             }
                             "WidescreenStoryboard" => {
-                                kvalue!(captures[beatmap.widescreen_storyboard]: parse(bool))
+                                kvalue!(
+                                    line_no,
+                                    captures[beatmap.widescreen_storyboard]: parse(bool)
+                                )
                             }
 
                             "Bookmarks" => {
@@ -140,51 +195,85 @@ impl FromStr for Beatmap {
                                     .collect()
                             }
                             "DistanceSpacing" => {
-                                kvalue!(captures[beatmap.distance_spacing]: parse(f64))
+                                kvalue!(line_no, captures[beatmap.distance_spacing]: parse(f64))
                             }
-                            "BeatDivisor" => kvalue!(captures[beatmap.beat_divisor]: parse(u8)),
+                            "BeatDivisor" => {
+                                kvalue!(line_no, captures[beatmap.beat_divisor]: parse(u8))
+                            }
                             // "GridSize" => kvalue!(captures[beatmap.grid_size]: parse(u8)),
                             "GridSize" => {
                                 beatmap.grid_size = {
                                     let grid_size =
-                                        kvalue!(captures[beatmap.grid_size]=> parse(u8));
+                                        kvalue!(line_no, captures[beatmap.grid_size]=> parse(u8));
                                     GridSize::from_u8(grid_size)
-                                        .ok_or(ParseError::InvalidGridSize(grid_size))?
+                                        .ok_or(ParseError::InvalidGridSize(grid_size))
+                                        .map_err(|err| BeatmapParseError {
+                                            line: line_no,
+                                            inner: err,
+                                        })?
                                 }
                             }
-                            "TimelineZoom" => kvalue!(captures[beatmap.timeline_zoom]: parse(f64)),
+                            "TimelineZoom" => {
+                                kvalue!(line_no, captures[beatmap.timeline_zoom]: parse(f64))
+                            }
 
-                            "Title" => kvalue!(captures[beatmap.title]: str),
-                            "TitleUnicode" => kvalue!(captures[beatmap.title_unicode]: str),
-                            "Artist" => kvalue!(captures[beatmap.artist]: str),
-                            "ArtistUnicode" => kvalue!(captures[beatmap.artist_unicode]: str),
-                            "Creator" => kvalue!(captures[beatmap.creator]: str),
-                            "Version" => kvalue!(captures[beatmap.difficulty_name]: str),
-                            "Source" => kvalue!(captures[beatmap.source]: str),
+                            "Title" => kvalue!(line_no, captures[beatmap.title]: str),
+                            "TitleUnicode" => {
+                                kvalue!(line_no, captures[beatmap.title_unicode]: str)
+                            }
+                            "Artist" => kvalue!(line_no, captures[beatmap.artist]: str),
+                            "ArtistUnicode" => {
+                                kvalue!(line_no, captures[beatmap.artist_unicode]: str)
+                            }
+                            "Creator" => kvalue!(line_no, captures[beatmap.creator]: str),
+                            "Version" => kvalue!(line_no, captures[beatmap.difficulty_name]: str),
+                            "Source" => kvalue!(line_no, captures[beatmap.source]: str),
                             "Tags" => {
                                 beatmap.tags =
                                     captures["value"].split(' ').map(|s| s.to_owned()).collect()
                             }
-                            "BeatmapID" => kvalue!(captures[beatmap.beatmap_id]: parse(i32)),
-                            "BeatmapSetID" => kvalue!(captures[beatmap.beatmap_set_id]: parse(i32)),
+                            "BeatmapID" => {
+                                kvalue!(line_no, captures[beatmap.beatmap_id]: parse(i32))
+                            }
+                            "BeatmapSetID" => {
+                                kvalue!(line_no, captures[beatmap.beatmap_set_id]: parse(i32))
+                            }
 
                             "HPDrainRate" => {
-                                kvalue!(captures[beatmap.difficulty.hp_drain_rate]: parse(f32))
+                                kvalue!(
+                                    line_no,
+                                    captures[beatmap.difficulty.hp_drain_rate]: parse(f32)
+                                )
                             }
                             "CircleSize" => {
-                                kvalue!(captures[beatmap.difficulty.circle_size]: parse(f32))
+                                kvalue!(
+                                    line_no,
+                                    captures[beatmap.difficulty.circle_size]: parse(f32)
+                                )
                             }
                             "OverallDifficulty" => {
-                                kvalue!(captures[beatmap.difficulty.overall_difficulty]: parse(f32))
+                                kvalue!(
+                                    line_no,
+                                    captures[beatmap.difficulty.overall_difficulty]: parse(f32)
+                                )
                             }
                             "ApproachRate" => {
-                                kvalue!(captures[beatmap.difficulty.approach_rate]: parse(f32))
+                                kvalue!(
+                                    line_no,
+                                    captures[beatmap.difficulty.approach_rate]: parse(f32)
+                                )
                             }
                             "SliderMultiplier" => {
-                                kvalue!(captures[beatmap.difficulty.slider_multiplier]: parse(f64))
+                                kvalue!(
+                                    line_no,
+                                    captures[beatmap.difficulty.slider_multiplier]: parse(f64)
+                                )
                             }
                             "SliderTickRate" => {
-                                kvalue!(captures[beatmap.difficulty.slider_tick_rate]: parse(f64))
+                                kvalue!(
+                                    line_no,
+                                    captures[beatmap.difficulty.slider_tick_rate]: parse(f64)
+                                )
                             }
 
                             _ => (),
@@ -194,31 +283,9 @@ impl FromStr for Beatmap {
             }
         }
 
-        // if beatmap.version == 0 {
-        //     bail!(
-        //         "Could not find osu! file format version line. Check your beatmap and try again."
-        //     );
-        // }
-
-        // parse timing points
-        for line in timing_point_lines {
-            let tp = TimingPoint::from_str(line)?;
-            timing_points.push(tp);
-        }
-
-        timing_points.sort();
-        for tp in timing_points.into_iter() {
-            beatmap.timing_points.push(tp);
-        }
-        // beatmap.timing_points.sort_by_key(|tp| tp.time);
-
-        for line in hit_object_lines {
-            let obj = HitObject::from_str(line)?;
-            beatmap.hit_objects.push(obj);
-        }
+        // sort timing points and hit objects
+        beatmap.timing_points.sort_by_key(|tp| tp.time);
         beatmap.hit_objects.sort_by_key(|ho| ho.start_time);
-
-        // beatmap.associate_hitobjects();
         Ok(beatmap)
     }
 }
