@@ -1,7 +1,3 @@
-use std::fmt::{self, Debug, Display};
-use std::hash::{Hash, Hasher};
-use std::ops::{Add, Div, Mul, Sub};
-
 use num::{cast, Float, NumCast};
 use quickcheck::{Arbitrary, Gen};
 
