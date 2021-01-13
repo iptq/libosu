@@ -222,7 +222,7 @@ impl Spline {
         }
 
         let limit_idx = match limit_idx {
-            Some(v) if v > 1 => v,
+            Some(v) if v > 0 => v,
             _ => return,
         };
 
