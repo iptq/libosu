@@ -64,9 +64,19 @@ macro_rules! test_serde {
 
                 let beatmap = Beatmap::from_str(&contents).expect("couldn't parse");
                 let reexported = beatmap.to_string();
-                eprintln!("reexported: {}", reexported);
 
-                let beatmap2 = Beatmap::from_str(&reexported).expect("couldn't parse");
+                let beatmap2 = match Beatmap::from_str(&reexported) {
+                    Ok(v) => v,
+                    Err(err) => {
+                        for (i, line) in reexported.lines().enumerate() {
+                            let line_no = i as i32 + 1;
+                            if (line_no - err.line as i32).abs() < 3 {
+                                eprintln!("{}:\t{}", line_no, line);
+                            }
+                        }
+                        panic!("error: {}", err);
+                    }
+                };
 
                 assert_eq!(beatmap, beatmap2);
             }

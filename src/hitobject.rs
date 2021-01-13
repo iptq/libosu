@@ -339,6 +339,7 @@ impl fmt::Display for HitObject {
                 write!(f, ",{}", info.num_repeats)?;
                 write!(f, ",{}", info.pixel_length)?;
 
+                write!(f, ",")?;
                 for (i, additions) in info.edge_additions.iter().enumerate() {
                     if i > 0 {
                         write!(f, "|")?;
@@ -346,6 +347,7 @@ impl fmt::Display for HitObject {
                     write!(f, "{}", additions.bits())?;
                 }
 
+                write!(f, ",")?;
                 for (i, (normal_set, addition_set)) in info.edge_samplesets.iter().enumerate() {
                     if i > 0 {
                         write!(f, "|")?;

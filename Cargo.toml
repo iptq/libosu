@@ -19,6 +19,7 @@ documentation = "https://docs.rs/libosu/"
 serde_json = "1.0.61"
 difference = "2.0.0"
 structopt = "0.3.21"
+anyhow = "1.0.38"
 
 [dependencies]
 bitflags = "1.2.1"

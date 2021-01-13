@@ -9,6 +9,8 @@ use crate::hitobject::{HitObject, HitObjectKind};
 use crate::hitsounds::SampleSet;
 use crate::timing::{TimestampMillis, TimingPoint};
 
+pub use self::format::*;
+
 /// Difficulty settings defined by the map.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Difficulty {

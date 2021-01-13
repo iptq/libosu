@@ -36,7 +36,7 @@ pub enum ReplayError {
     UnexpectedMods(u32),
 
     #[error("invalid mode: {0}")]
-    InvalidMode(u8)
+    InvalidMode(u8),
 }
 
 // write a parser for the life graph
@@ -183,8 +183,7 @@ impl Replay {
         let max_combo = read_u16le(reader)?;
         let perfect = read_u8(reader)? == 1;
         let mods_value = read_u32le(reader)?;
-        let mods =
-            Mods::from_bits(mods_value).ok_or(ReplayError::UnexpectedMods(mods_value))?;
+        let mods = Mods::from_bits(mods_value).ok_or(ReplayError::UnexpectedMods(mods_value))?;
         let life_graph = read_uleb128_string(reader)?;
         let timestamp = read_u64le(reader)?;
         let replay_data_length = read_u32le(reader)?;

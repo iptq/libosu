@@ -45,10 +45,14 @@ macro_rules! kvalue {
     };
 }
 
+/// Errors that could occur while parsing beatmaps
 #[derive(Debug)]
 pub struct BeatmapParseError {
-    line: usize,
-    inner: ParseError,
+    /// The line number where the error occurred
+    pub line: usize,
+
+    /// The kind of error that occurred
+    pub inner: ParseError,
 }
 
 impl fmt::Display for BeatmapParseError {
@@ -109,15 +113,12 @@ impl FromStr for Beatmap {
                 "Colours" => {
                     let color = Color::from_str(line).map_err(|err| BeatmapParseError {
                         line: line_no,
-                        inner: err.into(),
+                        inner: err,
                     })?;
                     beatmap.colors.push(color);
                 }
                 _ => {
                     if let Some(captures) = KEY_VALUE_RGX.captures(line) {
-                        let key = &captures["key"];
-                        let value = &captures["value"];
-
                         match &captures["key"] {
                             "AudioFilename" => {
                                 kvalue!(line_no, captures[beatmap.audio_filename]: str)
@@ -191,8 +192,13 @@ impl FromStr for Beatmap {
                                             Some(s)
                                         }
                                     })
-                                    .map(|n| n.parse::<i32>().unwrap())
-                                    .collect()
+                                    .map(|n| {
+                                        n.parse::<i32>().map_err(|err| BeatmapParseError {
+                                            line: line_no,
+                                            inner: err.into(),
+                                        })
+                                    })
+                                    .collect::<Result<Vec<_>, BeatmapParseError>>()?
                             }
                             "DistanceSpacing" => {
                                 kvalue!(line_no, captures[beatmap.distance_spacing]: parse(f64))
@@ -336,6 +342,7 @@ impl fmt::Display for Beatmap {
             }
             write!(f, "{}", bookmark)?;
         }
+        writeln!(f)?;
         writeln!(f, "DistanceSpacing: {}", self.distance_spacing)?;
         writeln!(f, "BeatDivisor: {}", self.beat_divisor)?;
         writeln!(f, "GridSize: {}", self.grid_size as u8)?;
