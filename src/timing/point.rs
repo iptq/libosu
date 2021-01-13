@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
-use std::str::FromStr;
 use std::fmt;
+use std::str::FromStr;
 
 use serde::ser::*;
 

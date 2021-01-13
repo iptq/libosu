@@ -1,7 +1,7 @@
 mod point;
 
 use std::fmt;
-use std::ops::{Add,Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 use ordered_float::NotNan;
 
@@ -36,7 +36,7 @@ impl TimestampSec {
 
     /// Create a new TimestampSec unsafely
     pub fn unsafe_new(time: f64) -> Self {
-        TimestampSec(unsafe{NotNan::unchecked_new(time)})
+        TimestampSec(unsafe { NotNan::unchecked_new(time) })
     }
 }
 
@@ -63,5 +63,21 @@ impl Sub for TimestampSec {
 }
 
 /// A struct representing a location in time as seconds (f64)
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Add, Sub)]
 pub struct Duration(pub NotNan<f64>);
+
+impl Mul<f64> for Duration {
+    type Output = Duration;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        Duration(self.0 * rhs)
+    }
+}
+
+impl Div<f64> for Duration {
+    type Output = Duration;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        Duration(self.0 / rhs)
+    }
+}
