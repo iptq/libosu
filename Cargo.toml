@@ -43,6 +43,7 @@ xz2 = { version = "0.1.6", optional = true }
 quickcheck = "1.0.2"
 quickcheck_macros = "1.0.0"
 derive_more = "0.99.11"
+log = "0.4.13"
 
 [features]
 default = []

@@ -211,6 +211,8 @@ impl Spline {
 
     /// Truncate the length of the spline irreversibly
     pub fn truncate(&mut self, to_length: f64) {
+        debug!("truncating to {} pixels", to_length);
+
         let mut limit_idx = None;
         for (i, cumul_length) in self.cumulative_lengths.iter().enumerate() {
             if cumul_length.into_inner() > to_length {
@@ -228,14 +230,19 @@ impl Spline {
         let a = self.spline_points[prev_idx];
         let b = self.spline_points[limit_idx];
         let a_len = self.cumulative_lengths[prev_idx];
+        debug!("a={:?} (a_len={}) b={:?}", a, b, a_len);
         let remain = to_length - a_len.into_inner();
         let mid = Math::point_on_line(a, b, remain);
+        debug!("remain={:?} mid={:?}", remain, mid);
 
         self.spline_points[limit_idx] = mid;
         self.cumulative_lengths[limit_idx] = unsafe { NotNan::unchecked_new(to_length) };
+        debug!("spline_points[{}] = {:?}", limit_idx, mid);
+        debug!("cumulative_lengths[{}] = {:?}", limit_idx, to_length);
 
         self.spline_points.truncate(limit_idx + 1);
         self.cumulative_lengths.truncate(limit_idx + 1);
+        debug!("truncated to len {}", limit_idx + 1);
     }
 
     /// Return the pixel length of this spline
