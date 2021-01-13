@@ -118,6 +118,7 @@ impl Spline {
                         }
                     } else {
                         whole.push(point);
+                        last_circ = Some(point);
                         result = true;
                     }
                     result
