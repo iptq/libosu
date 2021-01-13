@@ -33,6 +33,11 @@ impl TimestampSec {
     pub fn as_millis(&self) -> TimestampMillis {
         TimestampMillis((self.0.into_inner() * 1000.0) as i32)
     }
+
+    /// Create a new TimestampSec unsafely
+    pub fn unsafe_new(time: f64) -> Self {
+        TimestampSec(unsafe{NotNan::unchecked_new(time)})
+    }
 }
 
 impl fmt::Display for TimestampSec {
