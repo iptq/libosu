@@ -60,8 +60,7 @@ impl FromStr for Beatmap {
                 section = String::from(&captures["name"]);
                 continue;
             }
-            // println!("\"{}\" {}", section, line);
-            //
+
             if line.trim().is_empty() {
                 continue;
             }
@@ -228,7 +227,8 @@ impl fmt::Display for Beatmap {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // version
         // TODO: should probably use a fixed version
-        writeln!(f, "osu file format v{}\n", self.version)?;
+        writeln!(f, "osu file format v{}", self.version)?;
+        writeln!(f)?;
 
         // general
         writeln!(f, "[General]")?;
@@ -258,7 +258,7 @@ impl fmt::Display for Beatmap {
             "WidescreenStoryboard: {}",
             if self.widescreen_storyboard { 1 } else { 0 }
         )?;
-        writeln!(f, "")?;
+        writeln!(f)?;
 
         // editor
         writeln!(f, "[Editor]")?;
@@ -273,7 +273,7 @@ impl fmt::Display for Beatmap {
         writeln!(f, "BeatDivisor: {}", self.beat_divisor)?;
         writeln!(f, "GridSize: {}", self.grid_size as u8)?;
         writeln!(f, "TimelineZoom: {}", self.timeline_zoom)?;
-        writeln!(f, "")?;
+        writeln!(f)?;
 
         // metadata
         writeln!(f, "[Metadata]")?;
@@ -287,7 +287,7 @@ impl fmt::Display for Beatmap {
         writeln!(f, "Tags:{}", self.tags.join(" "))?;
         writeln!(f, "BeatmapID:{}", self.beatmap_id)?;
         writeln!(f, "BeatmapSetID:{}", self.beatmap_set_id)?;
-        writeln!(f, "")?;
+        writeln!(f)?;
 
         // difficulty
         writeln!(f, "[Difficulty]")?;
@@ -304,28 +304,28 @@ impl fmt::Display for Beatmap {
 
         // events
         writeln!(f, "[Events]")?;
-        writeln!(f, "")?;
+        writeln!(f)?;
 
         // timing points
         writeln!(f, "[TimingPoints]")?;
         for timing_point in self.timing_points.iter() {
             writeln!(f, "{}", timing_point)?;
         }
-        writeln!(f, "")?;
+        writeln!(f)?;
 
         // colors
         writeln!(f, "[Colours]")?;
         for (i, color) in self.colors.iter().enumerate() {
             writeln!(f, "Combo{} : {}", i + 1, color)?;
         }
-        writeln!(f, "")?;
+        writeln!(f)?;
 
         // hit objects
         writeln!(f, "[HitObjects]")?;
         for hit_object in self.hit_objects.iter() {
             writeln!(f, "{}", hit_object)?;
         }
-        writeln!(f, "")?;
+        writeln!(f)?;
 
         Ok(())
     }

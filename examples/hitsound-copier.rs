@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::str::FromStr;
 use std::io::{Read, Write};
 use std::path::PathBuf;
 
@@ -24,7 +25,7 @@ fn main() -> Result<()> {
         let mut input_file = File::open(&opt.copy_from)?;
         let mut contents = String::new();
         input_file.read_to_string(&mut contents)?;
-        Beatmap::from_osz(&contents)?
+        Beatmap::from_str(&contents)?
     };
 
     // just to be sure
@@ -38,14 +39,14 @@ fn main() -> Result<()> {
         let mut input_file = File::open(&opt.copy_to)?;
         let mut contents = String::new();
         input_file.read_to_string(&mut contents)?;
-        Beatmap::from_osz(&contents)?
+        Beatmap::from_str(&contents)?
     };
 
     // write the hitsounds to the beatmap object
     write_hitsounds(&hitsounds, &mut to_beatmap);
 
     let mut output_file = File::create(&opt.output)?;
-    output_file.write_all(to_beatmap.as_osz()?.as_bytes())?;
+    output_file.write_all(to_beatmap.to_string().as_bytes())?;
     Ok(())
 }
 

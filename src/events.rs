@@ -2,6 +2,7 @@ use crate::math::Point;
 use crate::timing::TimestampMillis;
 
 /// Beatmap event
+#[non_exhaustive]
 pub enum Event {
     /// Background event
     Background(BackgroundEvent),
@@ -11,9 +12,6 @@ pub enum Event {
 
     /// Break event
     Break(BreakEvent),
-
-    #[doc(hidden)]
-    _NonExhaustive,
 }
 
 /// Used in Event::Background

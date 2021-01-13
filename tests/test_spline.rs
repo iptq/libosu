@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Read;
+use std::str::FromStr;
 
 use libosu::{beatmap::Beatmap, hitobject::HitObjectKind, spline::Spline};
 
@@ -12,7 +13,7 @@ macro_rules! test_spline {
                 let mut contents = String::new();
                 file.read_to_string(&mut contents).expect("couldn't read file");
 
-                let beatmap = Beatmap::from_osz(&contents).expect("couldn't parse");
+                let beatmap = Beatmap::from_str(&contents).expect("couldn't parse");
 
                 for ho in beatmap.hit_objects.iter() {
                     if let HitObjectKind::Slider(info) = &ho.kind {
@@ -24,7 +25,7 @@ macro_rules! test_spline {
                             info.pixel_length,
                         );
 
-                        assert!(spline.spline_points.len() >= 2, "spline for {} is empty!", ho.as_osz().expect(""));
+                        assert!(spline.spline_points.len() >= 2, "spline for {} is empty!", ho.to_string());
                     }
                 }
             }
