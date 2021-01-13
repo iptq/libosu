@@ -1,13 +1,17 @@
+use std::fmt;
+use std::str::FromStr;
+
 use num::FromPrimitive;
 use regex::Regex;
 
-use crate::beatmap::Beatmap;
 use crate::color::Color;
 use crate::enums::{GridSize, Mode};
+use crate::errors::ParseError;
 use crate::hitobject::HitObject;
 use crate::hitsounds::SampleSet;
-use crate::parsing::{Error, Result};
-use crate::timing::{TimingPoint, TimingPointKind};
+use crate::timing::TimingPoint;
+
+use super::Beatmap;
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =
@@ -39,9 +43,10 @@ macro_rules! kvalue {
     };
 }
 
-impl Beatmap {
-    /// Creates a Beatmap from the *.osz format
-    pub fn from_osz(input: impl AsRef<str>) -> Result<Beatmap> {
+impl FromStr for Beatmap {
+    type Err = ParseError;
+
+    fn from_str(input: &str) -> Result<Beatmap, Self::Err> {
         // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();
         let mut beatmap = Beatmap::default();
@@ -50,8 +55,8 @@ impl Beatmap {
         let mut timing_point_lines = Vec::new();
         let mut hit_object_lines = Vec::new();
 
-        for line in input.as_ref().lines() {
-            if let Some(captures) = SECTION_HEADER_RGX.captures(line) {
+        for line in input.lines() {
+            if let Some(captures) = SECTION_HEADER_RGX.captures(&line) {
                 section = String::from(&captures["name"]);
                 continue;
             }
@@ -69,12 +74,12 @@ impl Beatmap {
                     timing_point_lines.push(line);
                 }
                 "Version" => {
-                    if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(line) {
+                    if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(&line) {
                         beatmap.version = capture["version"].parse::<u32>()?;
                     }
                 }
                 "Colours" => {
-                    let color = parse_color(line)?;
+                    let color = Color::from_str(line)?;
                     beatmap.colors.push(color);
                 }
                 _ => {
@@ -92,7 +97,9 @@ impl Beatmap {
                                         "Normal" => SampleSet::Normal,
                                         "Soft" => SampleSet::Soft,
                                         "Drum" => SampleSet::Drum,
-                                        s => return Err(Error::InvalidSampleSet(s.to_owned())),
+                                        s => {
+                                            return Err(ParseError::InvalidSampleSet(s.to_owned()))
+                                        }
                                     }
                                 }
                             }
@@ -107,7 +114,7 @@ impl Beatmap {
                                         1 => Mode::Taiko,
                                         2 => Mode::Catch,
                                         3 => Mode::Mania,
-                                        _ => return Err(Error::InvalidGameMode(mode)),
+                                        _ => return Err(ParseError::InvalidGameMode(mode)),
                                     }
                                 }
                             }
@@ -143,7 +150,7 @@ impl Beatmap {
                                     let grid_size =
                                         kvalue!(captures[beatmap.grid_size]=> parse(u8));
                                     GridSize::from_u8(grid_size)
-                                        .ok_or(Error::InvalidGridSize(grid_size))?
+                                        .ok_or(ParseError::InvalidGridSize(grid_size))?
                                 }
                             }
                             "TimelineZoom" => kvalue!(captures[beatmap.timeline_zoom]: parse(f64)),
@@ -195,16 +202,11 @@ impl Beatmap {
         // }
 
         // parse timing points
-        let mut prev = None;
         for line in timing_point_lines {
-            let tp = TimingPoint::from_osz(line, &prev)?;
-            if let TimingPointKind::Uninherited { .. } = tp.kind {
-                prev = Some(tp.clone());
-            }
+            let tp = TimingPoint::from_str(line)?;
             timing_points.push(tp);
         }
 
-        // set their parents now
         timing_points.sort();
         for tp in timing_points.into_iter() {
             beatmap.timing_points.push(tp);
@@ -212,7 +214,7 @@ impl Beatmap {
         // beatmap.timing_points.sort_by_key(|tp| tp.time);
 
         for line in hit_object_lines {
-            let obj = HitObject::from_osz(line)?;
+            let obj = HitObject::from_str(line)?;
             beatmap.hit_objects.push(obj);
         }
         beatmap.hit_objects.sort_by_key(|ho| ho.start_time);
@@ -220,23 +222,22 @@ impl Beatmap {
         // beatmap.associate_hitobjects();
         Ok(beatmap)
     }
+}
 
-    /// Serializes this Beatmap into the *.osz format.
-    pub fn as_osz(&self) -> Result<String> {
-        let mut lines = vec![];
-
+impl fmt::Display for Beatmap {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // version
         // TODO: should probably use a fixed version
-        lines.push(format!("osu file format v{}", self.version));
-        lines.push("".to_string()); // new line
+        writeln!(f, "osu file format v{}\n", self.version)?;
 
         // general
-        lines.push("[General]".to_string());
-        lines.push(format!("AudioFilename: {}", self.audio_filename));
-        lines.push(format!("AudioLeadIn: {}", self.audio_leadin));
-        lines.push(format!("PreviewTime: {}", self.preview_time));
-        lines.push(format!("Countdown: {}", if self.countdown { 1 } else { 0 }));
-        lines.push(format!(
+        writeln!(f, "[General]")?;
+        writeln!(f, "AudioFilename: {}", self.audio_filename)?;
+        writeln!(f, "AudioLeadIn: {}", self.audio_leadin)?;
+        writeln!(f, "PreviewTime: {}", self.preview_time)?;
+        writeln!(f, "Countdown: {}", if self.countdown { 1 } else { 0 })?;
+        writeln!(
+            f,
             "SampleSet: {}",
             match self.sample_set {
                 SampleSet::None => "None",
@@ -244,106 +245,88 @@ impl Beatmap {
                 SampleSet::Soft => "Soft",
                 SampleSet::Drum => "Drum",
             }
-        ));
-        lines.push(format!("StackLeniency: {}", self.stack_leniency));
-        lines.push(format!("Mode: {}", self.mode as u32));
-        lines.push(format!(
+        )?;
+        writeln!(f, "StackLeniency: {}", self.stack_leniency)?;
+        writeln!(f, "Mode: {}", self.mode as u32)?;
+        writeln!(
+            f,
             "LetterboxInBreaks: {}",
             if self.letterbox_in_breaks { 1 } else { 0 }
-        ));
-        lines.push(format!(
+        )?;
+        writeln!(
+            f,
             "WidescreenStoryboard: {}",
             if self.widescreen_storyboard { 1 } else { 0 }
-        ));
-        lines.push("".to_string());
+        )?;
+        writeln!(f, "")?;
 
         // editor
-        lines.push("[Editor]".to_string());
-        lines.push(format!(
-            "Bookmarks: {}",
-            self.bookmarks
-                .iter()
-                .map(|n| n.to_string())
-                .collect::<Vec<_>>()
-                .join(",")
-        ));
-        lines.push(format!("DistanceSpacing: {}", self.distance_spacing));
-        lines.push(format!("BeatDivisor: {}", self.beat_divisor));
-        lines.push(format!("GridSize: {}", self.grid_size as u8));
-        lines.push(format!("TimelineZoom: {}", self.timeline_zoom));
-        lines.push("".to_string());
+        writeln!(f, "[Editor]")?;
+        write!(f, "Bookmarks: ")?;
+        for (i, bookmark) in self.bookmarks.iter().enumerate() {
+            if i > 0 {
+                write!(f, ",")?;
+            }
+            write!(f, "{}", bookmark)?;
+        }
+        writeln!(f, "DistanceSpacing: {}", self.distance_spacing)?;
+        writeln!(f, "BeatDivisor: {}", self.beat_divisor)?;
+        writeln!(f, "GridSize: {}", self.grid_size as u8)?;
+        writeln!(f, "TimelineZoom: {}", self.timeline_zoom)?;
+        writeln!(f, "")?;
 
         // metadata
-        lines.push("[Metadata]".to_string());
-        lines.push(format!("Title:{}", self.title));
-        lines.push(format!("TitleUnicode:{}", self.title_unicode));
-        lines.push(format!("Artist:{}", self.artist));
-        lines.push(format!("ArtistUnicode:{}", self.artist_unicode));
-        lines.push(format!("Creator:{}", self.creator));
-        lines.push(format!("Version:{}", self.difficulty_name));
-        lines.push(format!("Source:{}", self.source));
-        lines.push(format!("Tags:{}", self.tags.join(" ")));
-        lines.push(format!("BeatmapID:{}", self.beatmap_id));
-        lines.push(format!("BeatmapSetID:{}", self.beatmap_set_id));
-        lines.push("".to_string());
+        writeln!(f, "[Metadata]")?;
+        writeln!(f, "Title:{}", self.title)?;
+        writeln!(f, "TitleUnicode:{}", self.title_unicode)?;
+        writeln!(f, "Artist:{}", self.artist)?;
+        writeln!(f, "ArtistUnicode:{}", self.artist_unicode)?;
+        writeln!(f, "Creator:{}", self.creator)?;
+        writeln!(f, "Version:{}", self.difficulty_name)?;
+        writeln!(f, "Source:{}", self.source)?;
+        writeln!(f, "Tags:{}", self.tags.join(" "))?;
+        writeln!(f, "BeatmapID:{}", self.beatmap_id)?;
+        writeln!(f, "BeatmapSetID:{}", self.beatmap_set_id)?;
+        writeln!(f, "")?;
 
         // difficulty
-        lines.push("[Difficulty]".to_string());
-        lines.push(format!("HPDrainRate:{}", self.difficulty.hp_drain_rate));
-        lines.push(format!("CircleSize:{}", self.difficulty.circle_size));
-        lines.push(format!(
+        writeln!(f, "[Difficulty]")?;
+        writeln!(f, "HPDrainRate:{}", self.difficulty.hp_drain_rate)?;
+        writeln!(f, "CircleSize:{}", self.difficulty.circle_size)?;
+        writeln!(
+            f,
             "OverallDifficulty:{}",
             self.difficulty.overall_difficulty
-        ));
-        lines.push(format!("ApproachRate:{}", self.difficulty.approach_rate));
-        lines.push(format!(
-            "SliderMultiplier:{}",
-            self.difficulty.slider_multiplier
-        ));
-        lines.push(format!(
-            "SliderTickRate:{}",
-            self.difficulty.slider_tick_rate
-        ));
+        )?;
+        writeln!(f, "ApproachRate:{}", self.difficulty.approach_rate)?;
+        writeln!(f, "SliderMultiplier:{}", self.difficulty.slider_multiplier)?;
+        writeln!(f, "SliderTickRate:{}", self.difficulty.slider_tick_rate)?;
 
         // events
-        lines.push("[Events]".to_string());
-        lines.push("".to_string());
+        writeln!(f, "[Events]")?;
+        writeln!(f, "")?;
 
         // timing points
-        lines.push("[TimingPoints]".to_string());
+        writeln!(f, "[TimingPoints]")?;
         for timing_point in self.timing_points.iter() {
-            lines.push(timing_point.as_osz()?);
+            writeln!(f, "{}", timing_point)?;
         }
-        lines.push("".to_string());
+        writeln!(f, "")?;
 
         // colors
-        lines.push("[Colours]".to_string());
+        writeln!(f, "[Colours]")?;
         for (i, color) in self.colors.iter().enumerate() {
-            lines.push(format!("Combo{} : {}", i + 1, color_str(&color)));
+            writeln!(f, "Combo{} : {}", i + 1, color)?;
         }
-        lines.push("".to_string());
+        writeln!(f, "")?;
 
         // hit objects
-        lines.push("[HitObjects]".to_string());
+        writeln!(f, "[HitObjects]")?;
         for hit_object in self.hit_objects.iter() {
-            lines.push(hit_object.as_osz()?);
+            writeln!(f, "{}", hit_object)?;
         }
-        lines.push("".to_string());
+        writeln!(f, "")?;
 
-        Ok(lines.join("\n"))
+        Ok(())
     }
-}
-
-fn parse_color(line: &str) -> Result<Color> {
-    let mut s = line.split(" : ");
-    s.next();
-    let s = s.next().unwrap().split(',').collect::<Vec<_>>();
-    let red = s[0].parse::<u8>()?;
-    let green = s[1].parse::<u8>()?;
-    let blue = s[2].parse::<u8>()?;
-    Ok(Color { red, green, blue })
-}
-
-fn color_str(color: &Color) -> String {
-    format!("{},{},{}", color.red, color.green, color.blue)
 }

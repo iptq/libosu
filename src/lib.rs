@@ -36,6 +36,8 @@ pub mod db;
 /// Data structures
 // TODO: should probably split this and move enums into their respective modules
 pub mod enums;
+/// Errors
+pub mod errors;
 /// Beatmap events
 pub mod events;
 /// Hit-objects
@@ -44,8 +46,8 @@ pub mod hitobject;
 pub mod hitsounds;
 /// Math
 pub mod math;
-/// Working with beatmap files.
-pub mod parsing;
+// /// Working with beatmap files.
+// pub mod parsing;
 /// Working with replays.
 #[cfg(feature = "replay")]
 pub mod replay;

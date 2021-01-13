@@ -1,8 +1,11 @@
 use std::cmp::Ordering;
+use std::fmt;
+use std::str::FromStr;
 
 use ordered_float::NotNan;
 use serde::ser::*;
 
+use crate::errors::ParseError;
 use crate::hitsounds::SampleSet;
 
 /// A struct representing a location in time as milliseconds (i32)
@@ -13,6 +16,12 @@ impl TimestampMillis {
     /// Convert the timestamp to seconds
     pub fn as_seconds(&self) -> TimestampSec {
         TimestampSec(unsafe { NotNan::unchecked_new(self.0 as f64 / 1000.0) })
+    }
+}
+
+impl fmt::Display for TimestampMillis {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
     }
 }
 
@@ -106,5 +115,78 @@ impl Serialize for TimingPoint {
     {
         let state = serializer.serialize_struct("TimingPoint", 0)?;
         state.end()
+    }
+}
+
+impl FromStr for TimingPoint {
+    type Err = ParseError;
+
+    fn from_str(input: &str) -> Result<TimingPoint, Self::Err> {
+        let parts = input.split(',').collect::<Vec<_>>();
+
+        let timestamp = parts[0].parse::<i32>()?;
+        let mpb = parts[1].parse::<f64>()?;
+        let meter = parts[2].parse::<u32>()?;
+        let sample_set = parts[3].parse::<i32>()?;
+        let sample_index = parts[4].parse::<u32>()?;
+        let volume = parts[5].parse::<u16>()?;
+        let inherited = parts[6].parse::<i32>()? == 0;
+        let kiai = parts[7].parse::<i32>()? > 0;
+
+        // calculate bpm from mpb
+        let _ = 60_000.0 / mpb;
+        let time = TimestampMillis(timestamp);
+
+        let timing_point = TimingPoint {
+            kind: if inherited {
+                TimingPointKind::Inherited(InheritedTimingInfo {
+                    slider_velocity: -100.0 / mpb,
+                })
+            } else {
+                TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, meter })
+            },
+            kiai,
+            sample_set: match sample_set {
+                0 => SampleSet::None,
+                1 => SampleSet::Normal,
+                2 => SampleSet::Soft,
+                3 => SampleSet::Drum,
+                _ => panic!("Invalid sample set '{}'.", sample_set),
+            },
+            sample_index,
+            volume,
+            time,
+        };
+
+        Ok(timing_point)
+    }
+}
+
+impl fmt::Display for TimingPoint {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let inherited = match self.kind {
+            TimingPointKind::Inherited { .. } => 0,
+            TimingPointKind::Uninherited { .. } => 1,
+        };
+
+        let (beat_length, meter) = match self.kind {
+            TimingPointKind::Inherited(InheritedTimingInfo {
+                slider_velocity, ..
+            }) => (-100.0 / slider_velocity, 0),
+            TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, meter, .. }) => (mpb, meter),
+        };
+
+        write!(
+            f,
+            "{},{},{},{},{},{},{},{}",
+            self.time.0,
+            beat_length,
+            meter,
+            self.sample_set as i32,
+            self.sample_index,
+            self.volume,
+            inherited,
+            if self.kiai { 1 } else { 0 },
+        )
     }
 }

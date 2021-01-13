@@ -1,10 +1,10 @@
 /// Result type for Error
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+pub type ParseResult<T, E = ParseError> = std::result::Result<T, E>;
 
 /// Any kind of error encountered during parsing
 #[derive(Debug, Error)]
 #[allow(missing_docs)]
-pub enum Error {
+pub enum ParseError {
     #[error("error parsing int: {0}")]
     Int(#[from] std::num::ParseIntError),
 
@@ -25,4 +25,7 @@ pub enum Error {
 
     #[error("invalid grid size: {0}")]
     InvalidGridSize(u8),
+
+    #[error("custom: {0}")]
+    Custom(String),
 }
