@@ -9,7 +9,7 @@ use crate::errors::{ParseError, ParseResult};
 use crate::hitsounds::{Additions, SampleInfo, SampleSet};
 use crate::math::Point;
 use crate::spline::Spline;
-use crate::timing::{TimestampMillis, TimingPoint};
+use crate::timing::TimestampMillis;
 
 /// Distinguishes between different types of slider splines.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -127,9 +127,6 @@ pub struct HitObject {
     /// Whether or not this object begins a new combo.
     pub new_combo: bool,
 
-    /// Reference to the timing point under which this HitObject belongs.
-    pub timing_point: Option<TimingPoint>,
-
     /// The number of combo colors to skip
     pub skip_color: i32,
 
@@ -150,8 +147,11 @@ impl HitObject {
                 } else {
                     let mut control_points = vec![self.pos];
                     control_points.extend(&info.control_points);
-                    let spline =
-                        Spline::from_control(info.kind, control_points.as_ref(), info.pixel_length);
+                    let spline = Spline::from_control(
+                        info.kind,
+                        control_points.as_ref(),
+                        Some(info.pixel_length),
+                    );
                     spline.end_point()
                 }
             }
@@ -299,7 +299,6 @@ impl FromStr for HitObject {
             pos: Point::new(x, y),
             new_combo,
             additions,
-            timing_point: None,
             skip_color,
             start_time,
             sample_info,

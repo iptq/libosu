@@ -69,7 +69,7 @@ fn spline_isnt_empty(kind: SliderSplineKind, slider: OsuSlider) -> TestResult {
         .iter()
         .map(|p| Point::new(p.x, p.y))
         .collect::<Vec<_>>();
-    let spline = Spline::from_control(kind, control.as_ref(), slider.1);
+    let spline = Spline::from_control(kind, control.as_ref(), Some(slider.1));
     TestResult::from_bool(spline.spline_points.len() >= 2)
 }
 
@@ -80,7 +80,7 @@ fn point_at_length(kind: SliderSplineKind, slider: OsuSlider, len: Nonnan) -> Te
         .iter()
         .map(|p| Point::new(p.x, p.y))
         .collect::<Vec<_>>();
-    let spline = Spline::from_control(kind, control.as_ref(), slider.1);
+    let spline = Spline::from_control(kind, control.as_ref(), Some(slider.1));
     let len = sigmoid_clamp(slider.1 / 2.0, slider.1 / 2.0, len.0);
     let point = spline.point_at_length(len);
     TestResult::from_bool(true)

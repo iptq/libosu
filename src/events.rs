@@ -72,10 +72,7 @@ impl FromStr for Event {
                 } else {
                     Point::new(0, 0)
                 };
-                Event::Background(BackgroundEvent {
-                    filename,
-                    offset,
-                })
+                Event::Background(BackgroundEvent { filename, offset })
             }
             "1" | "Video" => {
                 let start_time = parts[1].parse::<i32>()?;

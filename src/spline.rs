@@ -23,10 +23,13 @@ pub struct Spline {
 
 impl Spline {
     /// Create a new spline from the control points of a slider.
+    ///
+    /// Pixel length gives the length in osu!pixels that the slider should be. If it's not given,
+    /// the full slider will be rendered.
     pub fn from_control(
         kind: SliderSplineKind,
         control_points: &[Point<i32>],
-        pixel_length: f64,
+        pixel_length: Option<f64>,
     ) -> Self {
         // no matter what, if there's 2 control points, it's linear
         let mut kind = kind;
@@ -52,7 +55,11 @@ impl Spline {
         let spline_points = match kind {
             SliderSplineKind::Linear => {
                 let start = points[0];
-                let end = Math::point_on_line(points[0], points[1], pixel_length);
+                let end = if let Some(pixel_length) = pixel_length {
+                    Math::point_on_line(points[0], points[1], pixel_length)
+                } else {
+                    points[1]
+                };
                 vec![start, end]
             }
             SliderSplineKind::Perfect => {
@@ -74,6 +81,9 @@ impl Spline {
                 if mid > t1 {
                     t1 -= std::f64::consts::TAU;
                 }
+
+                let diff = (t1 - t0).abs();
+                let pixel_length = pixel_length.unwrap_or(radius * diff);
 
                 // circumference is 2 * pi * r, slider length over circumference is length/(2 * pi * r)
                 let direction_unit = (t1 - t0) / (t1 - t0).abs();
@@ -104,17 +114,24 @@ impl Spline {
                     if let Some(circ) = last_circ {
                         let distance = circ.distance(point);
                         let total_len = cumul_length + distance;
-                        if total_len < pixel_length {
+                        if let Some(pixel_length) = pixel_length {
+                            if total_len < pixel_length {
+                                whole.push(point);
+                                cumul_length += circ.distance(point);
+                                last_circ = Some(point);
+                                result = true;
+                            } else {
+                                let push_amt = pixel_length - cumul_length;
+                                let new_end = Math::point_on_line(circ, point, push_amt);
+                                whole.push(new_end);
+                                last_circ = Some(new_end);
+                                result = false;
+                            }
+                        } else {
                             whole.push(point);
                             cumul_length += circ.distance(point);
                             last_circ = Some(point);
                             result = true;
-                        } else {
-                            let push_amt = pixel_length - cumul_length;
-                            let new_end = Math::point_on_line(circ, point, push_amt);
-                            whole.push(new_end);
-                            last_circ = Some(new_end);
-                            result = false;
                         }
                     } else {
                         whole.push(point);
@@ -192,13 +209,42 @@ impl Spline {
         }
     }
 
+    /// Truncate the length of the spline irreversibly
+    pub fn truncate(&mut self, to_length: f64) {
+        let mut limit_idx = None;
+        for (i, cumul_length) in self.cumulative_lengths.iter().enumerate() {
+            if cumul_length.into_inner() > to_length {
+                limit_idx = Some(i);
+                break;
+            }
+        }
+
+        let limit_idx = match limit_idx {
+            Some(v) if v > 1 => v,
+            _ => return,
+        };
+
+        let prev_idx = limit_idx - 1;
+        let a = self.spline_points[prev_idx];
+        let b = self.spline_points[limit_idx];
+        let a_len = self.cumulative_lengths[prev_idx];
+        let remain = to_length - a_len.into_inner();
+        let mid = Math::point_on_line(a, b, remain);
+
+        self.spline_points[limit_idx] = mid;
+        self.cumulative_lengths[limit_idx] = unsafe { NotNan::unchecked_new(remain) };
+
+        self.spline_points.truncate(limit_idx + 1);
+        self.cumulative_lengths.truncate(limit_idx + 1);
+    }
+
     /// Return the endpoint of this spline
     pub fn end_point(&self) -> Option<P> {
         self.spline_points.last().cloned()
     }
 
     /// Calculate the angle at the given length on the slider
-    pub fn angle_at_length(&self, length: f64) -> P {
+    fn angle_at_length(&self, length: f64) -> P {
         let _length_notnan = unsafe { NotNan::unchecked_new(length) };
         // match self.cumulative_lengths.binary_search(&length_notnan) {
         //     Ok(_) => {}

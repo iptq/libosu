@@ -22,7 +22,7 @@ macro_rules! test_spline {
                         let spline = Spline::from_control(
                             info.kind,
                             control_points.as_ref(),
-                            info.pixel_length,
+                            Some(info.pixel_length),
                         );
 
                         assert!(spline.spline_points.len() >= 2, "spline for {} is empty!", ho.to_string());
