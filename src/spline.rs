@@ -232,7 +232,7 @@ impl Spline {
         let mid = Math::point_on_line(a, b, remain);
 
         self.spline_points[limit_idx] = mid;
-        self.cumulative_lengths[limit_idx] = unsafe { NotNan::unchecked_new(remain) };
+        self.cumulative_lengths[limit_idx] = unsafe { NotNan::unchecked_new(to_length) };
 
         self.spline_points.truncate(limit_idx + 1);
         self.cumulative_lengths.truncate(limit_idx + 1);
