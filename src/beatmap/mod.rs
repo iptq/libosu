@@ -5,6 +5,7 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use crate::color::Color;
 use crate::enums::{GridSize, Mode};
+use crate::events::Event;
 use crate::hitobject::{HitObject, HitObjectKind};
 use crate::hitsounds::SampleSet;
 use crate::timing::{TimestampMillis, TimingPoint};
@@ -172,6 +173,9 @@ pub struct Beatmap {
     /// The beatmap set ID on Bancho.
     pub beatmap_set_id: i32,
 
+    /// Events
+    pub events: Vec<Event>,
+
     /// Overridden combo colors.
     pub colors: Vec<Color>,
 
@@ -216,6 +220,7 @@ impl Default for Beatmap {
             beatmap_id: 0,
             beatmap_set_id: -1,
 
+            events: Vec::new(),
             colors: Vec::new(),
             hit_objects: Vec::new(),
             timing_points: Vec::new(),

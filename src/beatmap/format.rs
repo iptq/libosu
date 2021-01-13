@@ -7,6 +7,7 @@ use regex::Regex;
 use crate::color::Color;
 use crate::enums::{GridSize, Mode};
 use crate::errors::ParseError;
+use crate::events::Event;
 use crate::hitobject::HitObject;
 use crate::hitsounds::SampleSet;
 use crate::timing::TimingPoint;
@@ -85,6 +86,16 @@ impl FromStr for Beatmap {
             }
 
             match section.as_ref() {
+                "Events" => {
+                    if line.starts_with("//") {
+                        continue;
+                    }
+                    let evt = Event::from_str(line).map_err(|err| BeatmapParseError {
+                        line: line_no,
+                        inner: err,
+                    })?;
+                    beatmap.events.push(evt);
+                }
                 "HitObjects" => {
                     let obj = HitObject::from_str(line).map_err(|err| BeatmapParseError {
                         line: line_no,
@@ -378,6 +389,9 @@ impl fmt::Display for Beatmap {
 
         // events
         writeln!(f, "[Events]")?;
+        for event in self.events.iter() {
+            writeln!(f, "{}", event)?;
+        }
         writeln!(f)?;
 
         // timing points

@@ -3,7 +3,14 @@ use std::io::Read;
 use std::path::Path;
 use std::str::FromStr;
 
-use libosu::{beatmap::Beatmap, enums::Mode, hitsounds::SampleSet};
+use libosu::{
+    beatmap::Beatmap,
+    enums::Mode,
+    events::{BackgroundEvent, BreakEvent, Event},
+    hitsounds::SampleSet,
+    timing::TimestampMillis,
+    math::Point,
+};
 
 fn load_beatmap(path: impl AsRef<Path>) -> Beatmap {
     let mut file = File::open(path.as_ref()).expect("couldn't open file");
@@ -51,6 +58,20 @@ fn parse_taeyang_remote_control() {
     );
     assert_eq!(beatmap.beatmap_id, 774965);
     assert_eq!(beatmap.beatmap_set_id, 351630);
+
+    assert_eq!(
+        beatmap.events,
+        &[
+            Event::Background(BackgroundEvent {
+                filename: String::from("reol.jpg"),
+                offset: Point(0, 0)
+            }),
+            Event::Break(BreakEvent {
+                start_time: TimestampMillis(184604),
+                end_time: TimestampMillis(189653),
+            })
+        ]
+    );
 }
 
 macro_rules! test_serde {
