@@ -33,7 +33,7 @@ functions, or check out some of the examples (pending).
 Projects using libosu
 ---------------------
 
-- [editor][https://github.com/iptq/editor]: wip osu editor
+- [editor](https://github.com/iptq/editor): wip osu editor
 
 If you have a project using libosu, open an issue with a brief description and
 I'll add it to the list!
