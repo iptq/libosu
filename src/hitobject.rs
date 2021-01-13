@@ -139,11 +139,11 @@ pub struct HitObject {
 
 impl HitObject {
     /// Computes the point at which the hitobject ends
-    pub fn end_pos(&self) -> Option<Point<f64>> {
+    pub fn end_pos(&self) -> Point<f64> {
         match &self.kind {
             HitObjectKind::Slider(info) => {
                 if info.num_repeats % 2 == 0 {
-                    self.pos.to_float()
+                    self.pos.to_float().unwrap()
                 } else {
                     let mut control_points = vec![self.pos];
                     control_points.extend(&info.control_points);
@@ -155,7 +155,7 @@ impl HitObject {
                     spline.end_point()
                 }
             }
-            _ => self.pos.to_float(),
+            _ => self.pos.to_float().unwrap(),
         }
     }
 }

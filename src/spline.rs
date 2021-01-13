@@ -238,9 +238,14 @@ impl Spline {
         self.cumulative_lengths.truncate(limit_idx + 1);
     }
 
+    /// Return the pixel length of this spline
+    pub fn pixel_length(&self) -> f64 {
+        self.cumulative_lengths.last().unwrap().into_inner()
+    }
+
     /// Return the endpoint of this spline
-    pub fn end_point(&self) -> Option<P> {
-        self.spline_points.last().cloned()
+    pub fn end_point(&self) -> P {
+        self.spline_points.last().cloned().unwrap()
     }
 
     /// Calculate the angle at the given length on the slider
