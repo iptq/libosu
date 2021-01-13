@@ -8,8 +8,8 @@ use libosu::{
     enums::Mode,
     events::{BackgroundEvent, BreakEvent, Event},
     hitsounds::SampleSet,
-    timing::TimestampMillis,
     math::Point,
+    timing::TimestampMillis,
 };
 
 fn load_beatmap(path: impl AsRef<Path>) -> Beatmap {

@@ -98,7 +98,7 @@ impl FromStr for Event {
 
 impl fmt::Display for Event {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        Ok(match self {
+        match self {
             Event::Background(evt) => write!(
                 f,
                 "0,0,{:?},{},{}",
@@ -111,6 +111,8 @@ impl fmt::Display for Event {
             )?,
             Event::Break(evt) => write!(f, "2,{},{}", evt.start_time, evt.end_time)?,
             Event::Storyboard(line) => write!(f, "{}", line)?,
-        })
+        }
+
+        Ok(())
     }
 }
