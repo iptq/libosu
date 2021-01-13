@@ -42,6 +42,7 @@ tokio = { version = "1.0.1", optional = true }
 xz2 = { version = "0.1.6", optional = true }
 quickcheck = "1.0.2"
 quickcheck_macros = "1.0.0"
+derive_more = "0.99.11"
 
 [features]
 default = []

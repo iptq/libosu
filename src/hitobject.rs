@@ -268,7 +268,7 @@ impl FromStr for HitObject {
                         .into_iter()
                         .map(|s| {
                             let p = s.split(':').collect::<Vec<_>>();
-                            Point(p[0].parse::<i32>().unwrap(), p[1].parse::<i32>().unwrap())
+                            Point::new(p[0].parse::<i32>().unwrap(), p[1].parse::<i32>().unwrap())
                         })
                         .collect(),
                     pixel_length,
@@ -296,7 +296,7 @@ impl FromStr for HitObject {
 
         let hit_obj = HitObject {
             kind,
-            pos: Point(x, y),
+            pos: Point::new(x, y),
             new_combo,
             additions,
             timing_point: None,
@@ -311,7 +311,7 @@ impl FromStr for HitObject {
 
 impl fmt::Display for HitObject {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{},{},{}", self.pos.0, self.pos.1, self.start_time.0)?;
+        write!(f, "{},{},{}", self.pos.x, self.pos.y, self.start_time.0)?;
 
         // object type
         let obj_type = match self.kind {
@@ -333,7 +333,7 @@ impl fmt::Display for HitObject {
             HitObjectKind::Slider(info) => {
                 write!(f, ",{}", info.kind)?;
                 for point in info.control_points.iter() {
-                    write!(f, "|{}:{}", point.0, point.1)?;
+                    write!(f, "|{}:{}", point.x, point.y)?;
                 }
 
                 write!(f, ",{}", info.num_repeats)?;

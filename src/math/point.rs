@@ -6,83 +6,19 @@ use num::{cast, Float, NumCast};
 use quickcheck::{Arbitrary, Gen};
 
 /// Represents a 2D point (or any pair of objects).
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub struct Point<T>(pub T, pub T);
-
-impl<T: Default> Default for Point<T> {
-    fn default() -> Self {
-        Point(T::default(), T::default())
-    }
+#[allow(missing_docs)]
+#[derive(
+    Add, Sub, Mul, Div, Clone, Copy, Default, Debug, Serialize, Deserialize, PartialEq, Eq,
+)]
+pub struct Point<T> {
+    pub x: T,
+    pub y: T,
 }
 
-impl<T: PartialEq> PartialEq for Point<T> {
-    fn eq(&self, other: &Point<T>) -> bool {
-        self.0.eq(&other.0) && self.1.eq(&other.1)
-    }
-}
-
-impl<T: PartialEq + Eq> Eq for Point<T> {}
-
-impl<T: Hash> Hash for Point<T> {
-    fn hash<H>(&self, h: &mut H)
-    where
-        H: Hasher,
-    {
-        self.0.hash(h);
-        self.1.hash(h);
-    }
-}
-
-impl<T: Display> fmt::Display for Point<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "(")?;
-        self.0.fmt(f)?;
-        write!(f, ", ")?;
-        self.1.fmt(f)?;
-        write!(f, ")")?;
-        Ok(())
-    }
-}
-
-impl<T: Add<Output = T>> Add for Point<T> {
-    type Output = Point<T>;
-    fn add(self, other: Point<T>) -> Self::Output {
-        Point(self.0 + other.0, self.1 + other.1)
-    }
-}
-
-impl<T: Sub<Output = T>> Sub for Point<T> {
-    type Output = Point<T>;
-    fn sub(self, other: Point<T>) -> Self::Output {
-        Point(self.0 - other.0, self.1 - other.1)
-    }
-}
-
-impl<T: Mul<Output = T>> Mul<Point<T>> for Point<T> {
-    type Output = Point<T>;
-    fn mul(self, other: Point<T>) -> Self::Output {
-        Point(self.0 * other.0, self.1 * other.1)
-    }
-}
-
-impl<T: Clone + Mul<Output = T>> Mul<T> for Point<T> {
-    type Output = Point<T>;
-    fn mul(self, other: T) -> Self::Output {
-        Point(self.0 * other.clone(), self.1 * other)
-    }
-}
-
-impl<T: Div<Output = T>> Div<Point<T>> for Point<T> {
-    type Output = Point<T>;
-    fn div(self, other: Point<T>) -> Self::Output {
-        Point(self.0 / other.0, self.1 / other.1)
-    }
-}
-
-impl<T: Clone + Div<Output = T>> Div<T> for Point<T> {
-    type Output = Point<T>;
-    fn div(self, other: T) -> Self::Output {
-        Point(self.0 / other.clone(), self.1 / other)
+impl<T> Point<T> {
+    /// Create a new point
+    pub fn new(x: T, y: T) -> Point<T> {
+        Point { x, y }
     }
 }
 
@@ -90,7 +26,7 @@ impl<T: Copy + NumCast> Point<T> {
     /// Converts this point to a floating point point
     #[inline]
     pub fn to_float<U: Float>(&self) -> Option<Point<U>> {
-        Some(Point(cast(self.0)?, cast(self.1)?))
+        Some(Point::new(cast(self.x)?, cast(self.y)?))
     }
 }
 
@@ -98,27 +34,27 @@ impl<T: Float> Point<T> {
     /// Calculates the Euclidean distance between 2 points.
     #[inline]
     pub fn distance(&self, other: Point<T>) -> T {
-        let dx = other.0.sub(self.0);
-        let dy = other.1.sub(self.1);
+        let dx = other.x.sub(self.x);
+        let dy = other.y.sub(self.y);
         (dx * dx + dy * dy).sqrt()
     }
 
     /// Calculates the magnitude of the vector.
     #[inline]
     pub fn magnitude(&self) -> T {
-        (self.0 * self.0 + self.1 * self.1).sqrt()
+        (self.x * self.x + self.y * self.y).sqrt()
     }
 
     /// Calculates the norm of the vector.
     #[inline]
     pub fn norm(&self) -> Point<T> {
         let m = self.magnitude();
-        Point(self.0 / m, self.1 / m)
+        Point::new(self.x / m, self.y / m)
     }
 }
 
 impl<T: Arbitrary> Arbitrary for Point<T> {
     fn arbitrary(g: &mut Gen) -> Point<T> {
-        Point(T::arbitrary(g), T::arbitrary(g))
+        Point::new(T::arbitrary(g), T::arbitrary(g))
     }
 }

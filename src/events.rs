@@ -69,7 +69,7 @@ impl FromStr for Event {
                 let y_offset = parts[4].parse::<i32>()?;
                 Event::Background(BackgroundEvent {
                     filename,
-                    offset: Point(x_offset, y_offset),
+                    offset: Point::new(x_offset, y_offset),
                 })
             }
             "1" | "Video" => {
@@ -80,7 +80,7 @@ impl FromStr for Event {
                 Event::Video(VideoEvent {
                     start_time: TimestampMillis(start_time),
                     filename,
-                    offset: Point(x_offset, y_offset),
+                    offset: Point::new(x_offset, y_offset),
                 })
             }
             "2" | "Break" => {
@@ -102,12 +102,12 @@ impl fmt::Display for Event {
             Event::Background(evt) => write!(
                 f,
                 "0,0,{:?},{},{}",
-                evt.filename, evt.offset.0, evt.offset.1
+                evt.filename, evt.offset.x, evt.offset.y
             )?,
             Event::Video(evt) => write!(
                 f,
                 "1,{},{:?},{},{}",
-                evt.start_time, evt.filename, evt.offset.0, evt.offset.1
+                evt.start_time, evt.filename, evt.offset.x, evt.offset.y
             )?,
             Event::Break(evt) => write!(f, "2,{},{}", evt.start_time, evt.end_time)?,
             Event::Storyboard(line) => write!(f, "{}", line)?,

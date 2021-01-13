@@ -64,7 +64,7 @@ fn parse_taeyang_remote_control() {
         &[
             Event::Background(BackgroundEvent {
                 filename: String::from("reol.jpg"),
-                offset: Point(0, 0)
+                offset: Point::new(0, 0)
             }),
             Event::Break(BreakEvent {
                 start_time: TimestampMillis(184604),

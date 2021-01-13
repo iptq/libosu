@@ -22,7 +22,7 @@ impl Arbitrary for OsuPoint {
     fn arbitrary(g: &mut Gen) -> OsuPoint {
         let a = (u32::arbitrary(g) % 512) as i32;
         let b = (u32::arbitrary(g) % 384) as i32;
-        OsuPoint(Point(a, b))
+        OsuPoint(Point::new(a, b))
     }
 }
 
@@ -39,8 +39,8 @@ impl Arbitrary for OsuSlider {
         for _ in 0..len {
             let curr = OsuPoint::arbitrary(g);
             if let Some(last) = last {
-                let dx = (curr.0 .0 - last.0 .0) as f64;
-                let dy = (curr.0 .1 - last.0 .1) as f64;
+                let dx = (curr.0 .x - last.0 .x) as f64;
+                let dy = (curr.0 .y - last.0 .y) as f64;
                 total += (dx * dx + dy * dy).sqrt();
             }
             points.push(curr.0);
@@ -64,14 +64,14 @@ impl Arbitrary for Nonnan {
 
 #[quickcheck]
 fn spline_isnt_empty(kind: SliderSplineKind, slider: OsuSlider) -> TestResult {
-    let control = slider.0.iter().map(|p| Point(p.0, p.1)).collect::<Vec<_>>();
+    let control = slider.0.iter().map(|p| Point::new(p.x, p.y)).collect::<Vec<_>>();
     let spline = Spline::from_control(kind, control.as_ref(), slider.1);
     TestResult::from_bool(spline.spline_points.len() >= 2)
 }
 
 #[quickcheck]
 fn point_at_length(kind: SliderSplineKind, slider: OsuSlider, len: Nonnan) -> TestResult {
-    let control = slider.0.iter().map(|p| Point(p.0, p.1)).collect::<Vec<_>>();
+    let control = slider.0.iter().map(|p| Point::new(p.x, p.y)).collect::<Vec<_>>();
     let spline = Spline::from_control(kind, control.as_ref(), slider.1);
     let len = sigmoid_clamp(slider.1 / 2.0, slider.1 / 2.0, len.0);
     let point = spline.point_at_length(len);

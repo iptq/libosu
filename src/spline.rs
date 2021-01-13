@@ -47,7 +47,7 @@ impl Spline {
 
         let points = control_points
             .iter()
-            .map(|p| Point(p.0 as f64, p.1 as f64))
+            .map(|p| Point::new(p.x as f64, p.y as f64))
             .collect::<Vec<_>>();
         let spline_points = match kind {
             SliderSplineKind::Linear => {
@@ -60,9 +60,9 @@ impl Spline {
                 let (center, radius) = Math::circumcircle(p1, p2, p3);
 
                 // find the t-values of the start and end of the slider
-                let t0 = (center.1 - p1.1).atan2(p1.0 - center.0);
-                let mut mid = (center.1 - p2.1).atan2(p2.0 - center.0);
-                let mut t1 = (center.1 - p3.1).atan2(p3.0 - center.0);
+                let t0 = (center.y - p1.y).atan2(p1.x - center.x);
+                let mut mid = (center.y - p2.y).atan2(p2.x - center.x);
+                let mut t1 = (center.y - p3.y).atan2(p3.x - center.x);
 
                 // make sure t0 is less than t1
                 while mid < t0 {
@@ -86,7 +86,7 @@ impl Spline {
                         break;
                     }
 
-                    let rel = Point(t.cos() * radius, -t.sin() * radius);
+                    let rel = Point::new(t.cos() * radius, -t.sin() * radius);
                     c.push(center + rel);
 
                     t += (new_t1 - t0) / pixel_length;
@@ -128,8 +128,8 @@ impl Spline {
                 'outer: loop {
                     // split the curve by red-anchors
                     for i in 1..points.len() {
-                        if compare_eq_f64(points[i].0, points[i - 1].0)
-                            && compare_eq_f64(points[i].1, points[i - 1].1)
+                        if compare_eq_f64(points[i].x, points[i - 1].x)
+                            && compare_eq_f64(points[i].y, points[i - 1].y)
                         {
                             let spline = calculate_bezier(&points[idx..i]);
 
@@ -251,8 +251,8 @@ fn calculate_bezier(points: &[P]) -> Vec<P> {
 
     to_flatten.push_back(vec_to_parts(points));
     let p = n;
-    let buf1 = vec_to_parts(vec![Point(0.0, 0.0); p + 1]);
-    let buf2 = vec_to_parts(vec![Point(0.0, 0.0); p * 2 + 1]);
+    let buf1 = vec_to_parts(vec![Point::new(0.0, 0.0); p + 1]);
+    let buf2 = vec_to_parts(vec![Point::new(0.0, 0.0); p * 2 + 1]);
 
     let left_child = buf2;
     while !to_flatten.is_empty() {
@@ -266,7 +266,7 @@ fn calculate_bezier(points: &[P]) -> Vec<P> {
         }
 
         let right_child = if free_buffers.is_empty() {
-            let buf = vec![Point(0.0, 0.0); p + 1];
+            let buf = vec![Point::new(0.0, 0.0); p + 1];
             vec_to_parts(buf)
         } else {
             free_buffers.pop_front().unwrap()
@@ -288,7 +288,7 @@ const TOLERANCE: f64 = 0.25;
 fn bezier_flat_enough(curve: &[P]) -> bool {
     for i in 1..(curve.len() - 1) {
         let p = curve[i - 1] - curve[i] * 2.0 + curve[i + 1];
-        if p.0 * p.0 + p.1 * p.1 > TOLERANCE * TOLERANCE / 4.0 {
+        if p.x * p.x + p.y * p.y > TOLERANCE * TOLERANCE / 4.0 {
             return false;
         }
     }
