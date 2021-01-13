@@ -10,6 +10,14 @@ use crate::float::compare_eq_f64;
 use crate::hitobject::SliderSplineKind;
 use crate::math::{Math, Point};
 
+/// Errors that could occur when constructing a spline
+#[derive(Debug, Error)]
+#[allow(missing_docs)]
+pub enum SplineError {
+    #[error("not enough points: {0}")]
+    NotEnoughPoints(usize),
+}
+
 /// Represents a spline, a set of points that represents the actual shape of a slider, generated
 /// from the control points.
 #[derive(Clone, Debug)]
@@ -30,14 +38,15 @@ impl Spline {
         kind: SliderSplineKind,
         control_points: &[Point<i32>],
         pixel_length: Option<f64>,
-    ) -> Self {
+    ) -> Result<Self, SplineError> {
         // no matter what, if there's 2 control points, it's linear
         let mut kind = kind;
         let mut control_points = control_points.to_vec();
-        if control_points.len() == 2 {
+        if control_points.len() == 1 {
+            return Err(SplineError::NotEnoughPoints(1));
+        } else if control_points.len() == 2 {
             kind = SliderSplineKind::Linear;
-        }
-        if control_points.len() == 3
+        } else if control_points.len() == 3
             && Math::is_line(
                 control_points[0].to_float::<f64>().unwrap(),
                 control_points[1].to_float::<f64>().unwrap(),
@@ -203,10 +212,10 @@ impl Spline {
             cumulative_lengths.push(unsafe { NotNan::unchecked_new(curr) });
         }
 
-        Spline {
+        Ok(Spline {
             spline_points,
             cumulative_lengths,
-        }
+        })
     }
 
     /// Truncate the length of the spline irreversibly

@@ -151,7 +151,7 @@ impl HitObject {
                         info.kind,
                         control_points.as_ref(),
                         Some(info.pixel_length),
-                    );
+                    ).unwrap();
                     spline.end_point()
                 }
             }
