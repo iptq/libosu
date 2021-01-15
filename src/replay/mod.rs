@@ -1,3 +1,38 @@
+//! Data structures for reading and writing replays
+//!
+//! The main focus of this module is the [`Replay`][self::Replay] struct, which contains functions
+//! for opening and writing *.osr files.
+//!
+//! Simple Example
+//! --------------
+//!
+//! ```no_run
+//! let replay = Replay::parse(reader)?;
+//! let action_data = replay.parse_action_data()?;
+//! for frame in action_data.frames.iter() {
+//!     println!("time={} x={} y={} btns={:?}", frame.time, frame.x, frame.y, frame.buttons);
+//! }
+//! println!("seed: {}", action_data.rng_seed);
+//! ```
+//!
+//! Note that the frames of the actual replay (called `action_data` in libosu) is stored in
+//! compressed form at all times, so in order to actually change the action data, you will want to
+//! call [`Replay::update_action_data`][Replay::update_action_data] in order to write the changed
+//! action data _back_ into the replay:
+//!
+//! ```no_run
+//! // assuming these were declared as mut instead
+//! action_data.frames[0].x = 5.0;
+//! replay.update_action_data(&action_data);
+//! ```
+//!
+//! Then you can write this back into a file:
+//!
+//! ```no_run
+//! let mut output = File::create("output.osr")?;
+//! replay.write(&mut output)?;
+//! ```
+
 mod actions;
 
 use std::io::{self, Read, Write};
@@ -62,6 +97,8 @@ pub enum ReplayError {
 // }
 
 /// A replay object.
+///
+/// See the [module documentation][crate::replay] for examples of using this struct.
 #[derive(Clone, Debug)]
 pub struct Replay {
     /// osu! game mode that this replay was recorded for

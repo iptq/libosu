@@ -50,7 +50,6 @@ pub mod hitsounds;
 pub mod math;
 // /// Working with beatmap files.
 // pub mod parsing;
-/// Working with replays.
 pub mod replay;
 /// Calculating slider body shapes.
 pub mod spline;
