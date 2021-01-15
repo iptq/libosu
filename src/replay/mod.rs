@@ -62,6 +62,7 @@ pub enum ReplayError {
 // }
 
 /// A replay object.
+#[derive(Clone, Debug)]
 pub struct Replay {
     /// osu! game mode that this replay was recorded for
     ///
@@ -238,29 +239,53 @@ impl Replay {
         Ok(())
     }
 
-    // fn create_action_parser<R: io::BufRead>(
-    //     &self,
-    //     reader: R,
-    // ) -> ReplayResult<ReplayActionParser<io::BufReader<XzDecoder<io::Take<R>>>>> {
-    //     ReplayActionParser::with_decompressing(reader.take(self.replay_data_length as u64))
-    // }
+    #[cfg(feature = "replay-data")]
+    /// Updates the Replay object with action data
+    pub fn update_action_data(&mut self, action_data: &ReplayActionData) -> ReplayResult<()> {
+        use xz2::{
+            stream::{LzmaOptions, Stream},
+            write::XzEncoder,
+        };
 
-    // /// Parse a replay file, but skip the player actions
-    // ///
-    // /// Using this function can be signficantly easier on memory and CPU
-    // /// if only score information is needed
-    // pub fn parse_skip_actions<R: io::Read + io::Seek>(mut reader: R) -> ReplayResult<Replay> {
-    //     let mut replay = Replay::parse_header(&mut reader)?;
-    //     reader.seek(io::SeekFrom::Current(replay.replay_data_length as i64))?;
-    //     replay.parse_tail(&mut reader)?;
-    //     Ok(replay)
-    // }
+        // clear everything in the data first
+        // NOTE: this doesn't change the capacity
+        self.action_data.clear();
+
+        // write thru the encoder
+        // TODO: presets? options?
+        let opts = LzmaOptions::new_preset(0)?;
+        let stream = Stream::new_lzma_encoder(&opts)?;
+        {
+            let mut xz = XzEncoder::new_stream(&mut self.action_data, stream);
+            for (i, frame) in action_data.frames.iter().enumerate() {
+                if i > 0 {
+                    xz.write_all(&[b','])?;
+                }
+
+                let this_frame = format!(
+                    "{}|{}|{}|{}",
+                    frame.time,
+                    frame.x,
+                    frame.y,
+                    frame.buttons.bits()
+                );
+                xz.write_all(this_frame.as_bytes())?;
+            }
+
+            if let Some(seed) = action_data.rng_seed {
+                let this_frame = format!(",-12345|0|0|{}", seed);
+                xz.write_all(this_frame.as_bytes())?;
+            }
+        }
+
+        Ok(())
+    }
 
     #[cfg(feature = "replay-data")]
     /// Parse and retrieve the actions in the replay
-    pub fn parse_action_data(&self) -> ReplayResult<actions::ReplayActionData> {
+    pub fn parse_action_data(&self) -> ReplayResult<ReplayActionData> {
         use std::io::Cursor;
         let cursor = Cursor::new(&self.action_data);
-        actions::ReplayActionData::parse(cursor)
+        ReplayActionData::parse(cursor)
     }
 }

@@ -6,6 +6,22 @@ use libosu::{
     replay::{Buttons, Replay, ReplayActionData},
 };
 
+#[cfg(feature = "replay-data")]
+fn compare_action_data(replay: &Replay, replay2: &Replay) {
+    let action_data = replay.parse_action_data().unwrap();
+    let action_data2 = replay2.parse_action_data().unwrap();
+
+    assert_eq!(action_data.frames.len(), action_data2.frames.len());
+    assert_eq!(action_data.rng_seed, action_data2.rng_seed);
+
+    for (a, b) in action_data.frames.iter().zip(action_data2.frames.iter()) {
+        assert_eq!(a.time, b.time);
+        assert!((a.x - b.x).abs() < 0.001);
+        assert!((a.y - b.y).abs() < 0.001);
+        assert_eq!(a.buttons, b.buttons);
+    }
+}
+
 #[test]
 fn test_replay_writer() {
     let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
@@ -29,20 +45,20 @@ fn test_replay_writer() {
     assert_eq!(replay.count_geki, replay2.count_geki);
 
     #[cfg(feature = "replay-data")]
-    {
-        let action_data = replay.parse_action_data().unwrap();
-        let action_data2 = replay2.parse_action_data().unwrap();
+    compare_action_data(&replay, &replay2);
+}
 
-        assert_eq!(action_data.frames.len(), action_data2.frames.len());
-        assert_eq!(action_data.rng_seed, action_data2.rng_seed);
+#[cfg(feature = "replay-data")]
+#[test]
+fn test_replay_action_update() {
+    let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
+    let replay = Replay::parse(&mut osr).unwrap();
+    let actions = replay.parse_action_data().unwrap();
 
-        for (a, b) in action_data.frames.iter().zip(action_data2.frames.iter()) {
-            assert_eq!(a.time, b.time);
-            assert!((a.x - b.x).abs() < 0.001);
-            assert!((a.y - b.y).abs() < 0.001);
-            assert_eq!(a.buttons, b.buttons);
-        }
-    }
+    let mut replay2 = replay.clone();
+    replay2.update_action_data(&actions).unwrap();
+
+    compare_action_data(&replay, &replay2);
 }
 
 #[test]
