@@ -2,13 +2,13 @@ mod actions;
 
 use std::io::{self, Cursor};
 
+use byteorder::{LittleEndian, ReadBytesExt};
+
 // use xz2::bufread::XzDecoder;
 // use xz2::stream::Stream;
 
-use crate::db::binary::{
-    read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string, ReadError,
-};
 use crate::enums::{Mode, Mods};
+use crate::db::ReadBytesOsu;
 
 pub use self::actions::{Buttons, ReplayAction, ReplayActionData};
 
@@ -28,9 +28,6 @@ pub enum ReplayError {
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 
-    #[error("error during binary read: {0}")]
-    Read(#[from] ReadError),
-
     #[error("error decoding utf8: {0}")]
     Utf8(#[from] std::string::FromUtf8Error),
 
@@ -39,6 +36,9 @@ pub enum ReplayError {
 
     #[error("error parsing float: {0}")]
     ParseFloat(#[from] std::num::ParseFloatError),
+
+    #[error("binary data error: {0}")]
+    Binary(#[from] crate::db::binary::Error),
 
     #[error("unexpected mods: {0}")]
     UnexpectedMods(u32),
@@ -148,41 +148,41 @@ impl Replay {
     /// The returned struct will be missing the `action`, `score_id`, and `target_practice_total_accuracy` fields.
     /// If you need `score_id` or `target_practice_total_accuracy`, but don't want to parse actions use the `parse_skip_actions` function instead.
     pub fn parse<R: io::Read>(reader: &mut R) -> ReplayResult<Replay> {
-        let mode = match read_u8(reader)? {
+        let mode = match reader.read_u8()? {
             0 => Mode::Osu,
             1 => Mode::Taiko,
             2 => Mode::Catch,
             3 => Mode::Mania,
             x => return Err(ReplayError::InvalidMode(x)),
         };
-        let version = read_u32le(reader)?;
-        let beatmap_hash = read_uleb128_string(reader)?;
-        let player_username = read_uleb128_string(reader)?;
-        let replay_hash = read_uleb128_string(reader)?;
-        let count_300 = read_u16le(reader)?;
-        let count_100 = read_u16le(reader)?;
-        let count_50 = read_u16le(reader)?;
-        let count_geki = read_u16le(reader)?;
-        let count_katu = read_u16le(reader)?;
-        let count_miss = read_u16le(reader)?;
-        let score = read_u32le(reader)?;
-        let max_combo = read_u16le(reader)?;
-        let perfect = read_u8(reader)? == 1;
-        let mods_value = read_u32le(reader)?;
+        let version = reader.read_u32::<LittleEndian>()?;
+        let beatmap_hash = reader.read_uleb128_string()?;
+        let player_username = reader.read_uleb128_string()?;
+        let replay_hash = reader.read_uleb128_string()?;
+        let count_300 = reader.read_u16::<LittleEndian>()?;
+        let count_100 = reader.read_u16::<LittleEndian>()?;
+        let count_50 = reader.read_u16::<LittleEndian>()?;
+        let count_geki = reader.read_u16::<LittleEndian>()?;
+        let count_katu = reader.read_u16::<LittleEndian>()?;
+        let count_miss = reader.read_u16::<LittleEndian>()?;
+        let score = reader.read_u32::<LittleEndian>()?;
+        let max_combo = reader.read_u16::<LittleEndian>()?;
+        let perfect = reader.read_u8()? == 1;
+        let mods_value = reader.read_u32::<LittleEndian>()?;
         let mods = Mods::from_bits(mods_value).ok_or(ReplayError::UnexpectedMods(mods_value))?;
-        let life_graph = read_uleb128_string(reader)?;
-        let timestamp = read_u64le(reader)?;
-        let replay_data_length = read_u32le(reader)?;
+        let life_graph = reader.read_uleb128_string()?;
+        let timestamp = reader.read_u64::<LittleEndian>()?;
+        let replay_data_length = reader.read_u32::<LittleEndian>()?;
 
         let mut action_data = vec![0; replay_data_length as usize];
         reader.read_exact(&mut action_data)?;
 
-        let score_id = match read_u64le(reader)? {
+        let score_id = match reader.read_u64::<LittleEndian>()? {
             0 => None,
             v => Some(v),
         };
         let target_practice_total_accuracy = if mods.contains(Mods::TargetPractice) {
-            Some(read_f64le(reader)?)
+            Some(reader.read_f64::<LittleEndian>()?)
         } else {
             None
         };

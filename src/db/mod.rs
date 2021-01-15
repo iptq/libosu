@@ -2,12 +2,11 @@ pub mod binary;
 
 use std::io;
 
+use byteorder::{LittleEndian, ReadBytesExt};
+
 use crate::enums::{Grade, Mode, Mods, RankedStatus};
 
-use self::binary::{
-    read_f32le, read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string,
-    ReadError,
-};
+pub use self::binary::{ReadBytesOsu, Error};
 
 /// Result type for .db file processing
 pub type DbResult<T, E = DbError> = std::result::Result<T, E>;
@@ -17,7 +16,10 @@ pub type DbResult<T, E = DbError> = std::result::Result<T, E>;
 #[derive(Debug, Error)]
 pub enum DbError {
     #[error("error during binary read: {0}")]
-    Read(#[from] ReadError),
+    Read(#[from] self::binary::Error),
+
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
 
     #[error("unexpected mods: {0}")]
     UnexpectedMods(u32),
@@ -33,7 +35,7 @@ pub struct OsuDBBeatmapTimingPoint {
 
 #[derive(Debug, PartialEq, Clone)]
 /// Beatmap located in osu!.db, they are different from normal beatmaps
-pub struct OsuDBBeatmap {
+pub struct DbBeatmap {
     /// Size in bytes of the beatmap entry. Only present if version is less than 20191106.
     pub size: Option<u32>,
 
@@ -201,25 +203,25 @@ pub struct OsuDB {
     /// The amount of beatmaps cached
     pub beatmap_count: u32,
     /// The cached beatmaps     
-    pub beatmaps: Vec<OsuDBBeatmap>,
+    pub beatmaps: Vec<DbBeatmap>,
     /// The permissions of the user
     pub permissions: u8,
 }
 
-impl OsuDBBeatmap {
+impl DbBeatmap {
     fn read_star_rating(mut reader: impl io::BufRead) -> DbResult<Vec<(Mods, f64)>> {
-        let count = read_u32le(&mut reader)?;
+        let count = reader.read_u32::<LittleEndian>()?;
         let ratings = (0..count)
             .map(|_| -> DbResult<(Mods, f64)> {
                 Ok((
                     {
-                        assert_eq!(read_u8(&mut reader)?, 0x08);
-                        let value = read_u32le(&mut reader)?;
+                        assert_eq!(reader.read_u8()?, 0x08);
+                        let value = reader.read_u32::<LittleEndian>()?;
                         Mods::from_bits(value).ok_or(DbError::UnexpectedMods(value))?
                     },
                     {
-                        assert_eq!(read_u8(&mut reader)?, 0x0D);
-                        read_f64le(&mut reader)?
+                        assert_eq!(reader.read_u8()?, 0x0D);
+                        reader.read_f64::<LittleEndian>()?
                     },
                 ))
             })
@@ -228,84 +230,84 @@ impl OsuDBBeatmap {
     }
 
     fn read_timing_points(mut reader: impl io::BufRead) -> DbResult<Vec<OsuDBBeatmapTimingPoint>> {
-        let count = read_u32le(&mut reader)?;
+        let count = reader.read_u32::<LittleEndian>()?;
         let points = (0..count)
             .map(|_| {
                 Ok(OsuDBBeatmapTimingPoint {
-                    bpm: read_f64le(&mut reader)?,
-                    offset: read_f64le(&mut reader)?,
-                    is_uninherited: read_u8(&mut reader)? > 0,
+                    bpm: reader.read_f64::<LittleEndian>()?,
+                    offset: reader.read_f64::<LittleEndian>()?,
+                    is_uninherited: reader.read_u8()? > 0,
                 })
             })
             .collect::<DbResult<Vec<_>>>()?;
         Ok(points)
     }
 
-    fn parse(mut reader: impl io::BufRead, version: u32) -> DbResult<OsuDBBeatmap> {
-        Ok(OsuDBBeatmap {
+    fn parse(mut reader: impl io::BufRead, version: u32) -> DbResult<DbBeatmap> {
+        Ok(DbBeatmap {
             size: if version < 20191106 {
-                Some(read_u32le(&mut reader)?)
+                Some(reader.read_u32::<LittleEndian>()?)
             } else {
                 None
             },
-            artist_name: read_uleb128_string(&mut reader)?,
-            artist_name_unicode: read_uleb128_string(&mut reader)?,
-            song_title: read_uleb128_string(&mut reader)?,
-            song_title_unicode: read_uleb128_string(&mut reader)?,
-            creator_name: read_uleb128_string(&mut reader)?,
-            difficulty: read_uleb128_string(&mut reader)?,
-            audio_file_name: read_uleb128_string(&mut reader)?,
-            hash: read_uleb128_string(&mut reader)?,
-            beatmap_file_name: read_uleb128_string(&mut reader)?,
-            ranked_status: num::FromPrimitive::from_u8(read_u8(&mut reader)?).unwrap(),
-            hitcircle_count: read_u16le(&mut reader)?,
-            slider_count: read_u16le(&mut reader)?,
-            spinner_count: read_u16le(&mut reader)?,
-            modification_date: read_u64le(&mut reader)?,
-            approach_rate: read_f32le(&mut reader)?,
-            circle_size: read_f32le(&mut reader)?,
-            hp_drain: read_f32le(&mut reader)?,
-            overall_difficulty: read_f32le(&mut reader)?,
-            slider_velocity: read_f64le(&mut reader)?,
+            artist_name: reader.read_uleb128_string()?,
+            artist_name_unicode: reader.read_uleb128_string()?,
+            song_title: reader.read_uleb128_string()?,
+            song_title_unicode: reader.read_uleb128_string()?,
+            creator_name: reader.read_uleb128_string()?,
+            difficulty: reader.read_uleb128_string()?,
+            audio_file_name: reader.read_uleb128_string()?,
+            hash: reader.read_uleb128_string()?,
+            beatmap_file_name: reader.read_uleb128_string()?,
+            ranked_status: num::FromPrimitive::from_u8(reader.read_u8()?).unwrap(),
+            hitcircle_count: reader.read_u16::<LittleEndian>()?,
+            slider_count: reader.read_u16::<LittleEndian>()?,
+            spinner_count: reader.read_u16::<LittleEndian>()?,
+            modification_date: reader.read_u64::<LittleEndian>()?,
+            approach_rate: reader.read_f32::<LittleEndian>()?,
+            circle_size: reader.read_f32::<LittleEndian>()?,
+            hp_drain: reader.read_f32::<LittleEndian>()?,
+            overall_difficulty: reader.read_f32::<LittleEndian>()?,
+            slider_velocity: reader.read_f64::<LittleEndian>()?,
             std_star_rating: Self::read_star_rating(&mut reader)?,
             std_taiko_rating: Self::read_star_rating(&mut reader)?,
             std_ctb_rating: Self::read_star_rating(&mut reader)?,
             std_mania_rating: Self::read_star_rating(&mut reader)?,
-            drain_time: read_u32le(&mut reader)?,
-            total_time: read_u32le(&mut reader)?,
-            preview_time: read_u32le(&mut reader)?,
+            drain_time: reader.read_u32::<LittleEndian>()?,
+            total_time: reader.read_u32::<LittleEndian>()?,
+            preview_time: reader.read_u32::<LittleEndian>()?,
             timing_points: Self::read_timing_points(&mut reader)?,
-            beatmap_id: read_u32le(&mut reader)?,
-            beatmap_set_id: read_u32le(&mut reader)?,
-            thread_id: read_u32le(&mut reader)?,
-            std_grade: num::FromPrimitive::from_u8(read_u8(&mut reader)?).unwrap(),
-            taiko_grade: num::FromPrimitive::from_u8(read_u8(&mut reader)?).unwrap(),
-            ctb_grade: num::FromPrimitive::from_u8(read_u8(&mut reader)?).unwrap(),
-            mania_grade: num::FromPrimitive::from_u8(read_u8(&mut reader)?).unwrap(),
-            beatmap_offset: read_u16le(&mut reader)?,
-            stack_leniency: read_f32le(&mut reader)?,
-            mode: num::FromPrimitive::from_u8(read_u8(&mut reader)?).unwrap(),
-            source: read_uleb128_string(&mut reader)?,
-            tags: read_uleb128_string(&mut reader)?,
-            online_offset: read_u16le(&mut reader)?,
-            title_font: read_uleb128_string(&mut reader)?,
-            is_unplayed: read_u8(&mut reader)? > 0,
-            last_played: read_u64le(&mut reader)?,
-            is_osz2: read_u8(&mut reader)? > 0,
-            folder_name: read_uleb128_string(&mut reader)?,
-            last_checked: read_u64le(&mut reader)?,
-            ignore_beatmap_sounds: read_u8(&mut reader)? > 0,
-            ignore_beatmap_skin: read_u8(&mut reader)? > 0,
-            disable_storyboard: read_u8(&mut reader)? > 0,
-            disable_video: read_u8(&mut reader)? > 0,
-            visual_override: read_u8(&mut reader)? > 0,
+            beatmap_id: reader.read_u32::<LittleEndian>()?,
+            beatmap_set_id: reader.read_u32::<LittleEndian>()?,
+            thread_id: reader.read_u32::<LittleEndian>()?,
+            std_grade: num::FromPrimitive::from_u8(reader.read_u8()?).unwrap(),
+            taiko_grade: num::FromPrimitive::from_u8(reader.read_u8()?).unwrap(),
+            ctb_grade: num::FromPrimitive::from_u8(reader.read_u8()?).unwrap(),
+            mania_grade: num::FromPrimitive::from_u8(reader.read_u8()?).unwrap(),
+            beatmap_offset: reader.read_u16::<LittleEndian>()?,
+            stack_leniency: reader.read_f32::<LittleEndian>()?,
+            mode: num::FromPrimitive::from_u8(reader.read_u8()?).unwrap(),
+            source: reader.read_uleb128_string()?,
+            tags: reader.read_uleb128_string()?,
+            online_offset: reader.read_u16::<LittleEndian>()?,
+            title_font: reader.read_uleb128_string()?,
+            is_unplayed: reader.read_u8()? > 0,
+            last_played: reader.read_u64::<LittleEndian>()?,
+            is_osz2: reader.read_u8()? > 0,
+            folder_name: reader.read_uleb128_string()?,
+            last_checked: reader.read_u64::<LittleEndian>()?,
+            ignore_beatmap_sounds: reader.read_u8()? > 0,
+            ignore_beatmap_skin: reader.read_u8()? > 0,
+            disable_storyboard: reader.read_u8()? > 0,
+            disable_video: reader.read_u8()? > 0,
+            visual_override: reader.read_u8()? > 0,
             unknown: if version < 20140609 {
-                Some(read_u16le(&mut reader)?)
+                Some(reader.read_u16::<LittleEndian>()?)
             } else {
                 None
             },
-            unknown_modification_date: read_u32le(&mut reader)?,
-            mania_scrollspeed: read_u8(&mut reader)?,
+            unknown_modification_date: reader.read_u32::<LittleEndian>()?,
+            mania_scrollspeed: reader.read_u8()?,
         })
     }
 }
@@ -313,16 +315,16 @@ impl OsuDBBeatmap {
 impl OsuDB {
     /// Parse the osu!.db data from a reader.
     pub fn parse(mut reader: impl io::BufRead) -> DbResult<OsuDB> {
-        let version = read_u32le(&mut reader)?;
-        let folder_count = read_u32le(&mut reader)?;
-        let account_unlocked = read_u8(&mut reader)? > 0;
-        let unlocked_date = read_u64le(&mut reader)?;
-        let player_name = read_uleb128_string(&mut reader)?;
-        let beatmap_count = read_u32le(&mut reader)?;
+        let version = reader.read_u32::<LittleEndian>()?;
+        let folder_count = reader.read_u32::<LittleEndian>()?;
+        let account_unlocked = reader.read_u8()? > 0;
+        let unlocked_date = reader.read_u64::<LittleEndian>()?;
+        let player_name = reader.read_uleb128_string()?;
+        let beatmap_count = reader.read_u32::<LittleEndian>()?;
         let beatmaps = (0..beatmap_count)
-            .map(|_| OsuDBBeatmap::parse(&mut reader, version))
+            .map(|_| DbBeatmap::parse(&mut reader, version))
             .collect::<DbResult<Vec<_>>>()?;
-        let permissions = read_u8(&mut reader)?;
+        let permissions = reader.read_u8()?;
 
         Ok(OsuDB {
             version,
@@ -343,7 +345,7 @@ mod tests {
 
     use crate::enums::{Grade, Mode, Mods, RankedStatus, UserPermission};
 
-    use super::{OsuDB, OsuDBBeatmap, OsuDBBeatmapTimingPoint};
+    use super::{DbBeatmap, OsuDB, OsuDBBeatmapTimingPoint};
 
     // Thanks vernonlim for the osu.db file
     #[test]
@@ -360,7 +362,7 @@ mod tests {
         assert_eq!(db.unlocked_date, 0);
         assert_eq!(db.beatmap_count, 245);
         assert_eq!(db.beatmaps.len(), 245);
-        assert_eq!(db.beatmaps.first(), Some(&OsuDBBeatmap {
+        assert_eq!(db.beatmaps.first(), Some(&DbBeatmap {
         size: None,
         artist_name: "Drop".to_owned(),
         artist_name_unicode: "Drop".to_owned(),
