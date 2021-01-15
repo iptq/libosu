@@ -1,14 +1,14 @@
 mod actions;
 
-use std::io::{self, Cursor};
+use std::io::{self, Read, Write};
 
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
 // use xz2::bufread::XzDecoder;
 // use xz2::stream::Stream;
 
+use crate::db::{ReadBytesOsu, WriteBytesOsu};
 use crate::enums::{Mode, Mods};
-use crate::db::ReadBytesOsu;
 
 pub use self::actions::{Buttons, ReplayAction, ReplayActionData};
 
@@ -124,9 +124,6 @@ pub struct Replay {
     /// It counts the number of ticks from 12:00:00 midnight, January 1, 0001 to the time this replay was created
     pub timestamp: u64,
 
-    /// length of the compressed list of replay actions
-    pub replay_data_length: u32,
-
     /// The action data contained in this replay.
     ///
     /// If the feature `replay-data` is enabled, the function `parse_action_data` can be used to
@@ -147,7 +144,7 @@ impl Replay {
     ///
     /// The returned struct will be missing the `action`, `score_id`, and `target_practice_total_accuracy` fields.
     /// If you need `score_id` or `target_practice_total_accuracy`, but don't want to parse actions use the `parse_skip_actions` function instead.
-    pub fn parse<R: io::Read>(reader: &mut R) -> ReplayResult<Replay> {
+    pub fn parse<R: Read>(reader: &mut R) -> ReplayResult<Replay> {
         let mode = match reader.read_u8()? {
             0 => Mode::Osu,
             1 => Mode::Taiko,
@@ -206,12 +203,39 @@ impl Replay {
 
             life_graph,
             timestamp,
-            replay_data_length,
 
             action_data,
             score_id,
             target_practice_total_accuracy,
         })
+    }
+
+    /// Writes this replay to the given writer
+    pub fn write<W: Write>(&self, mut w: W) -> ReplayResult<()> {
+        w.write_u8(self.mode as u8)?;
+        w.write_u32::<LittleEndian>(self.version)?;
+        w.write_uleb128_string(&self.beatmap_hash)?;
+        w.write_uleb128_string(&self.player_username)?;
+        w.write_uleb128_string(&self.replay_hash)?;
+        w.write_u16::<LittleEndian>(self.count_300)?;
+        w.write_u16::<LittleEndian>(self.count_100)?;
+        w.write_u16::<LittleEndian>(self.count_50)?;
+        w.write_u16::<LittleEndian>(self.count_geki)?;
+        w.write_u16::<LittleEndian>(self.count_katu)?;
+        w.write_u16::<LittleEndian>(self.count_miss)?;
+        w.write_u32::<LittleEndian>(self.score)?;
+        w.write_u16::<LittleEndian>(self.max_combo)?;
+        w.write_u8(if self.perfect { 0 } else { 1 })?;
+        w.write_u32::<LittleEndian>(self.mods.bits())?;
+        w.write_uleb128_string(&self.life_graph)?;
+        w.write_u64::<LittleEndian>(self.timestamp)?;
+        w.write_u32::<LittleEndian>(self.action_data.len() as u32)?;
+        w.write_all(&self.action_data)?;
+        w.write_u64::<LittleEndian>(self.score_id.unwrap_or(0))?;
+        if let Some(acc) = self.target_practice_total_accuracy {
+            w.write_f64::<LittleEndian>(acc)?;
+        }
+        Ok(())
     }
 
     // fn create_action_parser<R: io::BufRead>(
@@ -235,6 +259,7 @@ impl Replay {
     #[cfg(feature = "replay-data")]
     /// Parse and retrieve the actions in the replay
     pub fn parse_action_data(&self) -> ReplayResult<actions::ReplayActionData> {
+        use std::io::Cursor;
         let cursor = Cursor::new(&self.action_data);
         actions::ReplayActionData::parse(cursor)
     }

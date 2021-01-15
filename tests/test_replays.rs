@@ -7,6 +7,45 @@ use libosu::{
 };
 
 #[test]
+fn test_replay_writer() {
+    let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
+    let mut contents = Vec::new();
+    osr.read_to_end(&mut contents).unwrap();
+
+    let mut curs = Cursor::new(&contents);
+    let replay = Replay::parse(&mut curs).unwrap();
+
+    // lzma encoded data will be different, so we'll just re-parse and check contents
+    // not the most ideal since this assumes the parsing is correct
+    let mut contents2 = Vec::new();
+    replay.write(&mut contents2).unwrap();
+
+    let mut curs2 = Cursor::new(&contents2);
+    let replay2 = Replay::parse(&mut curs2).unwrap();
+
+    assert_eq!(replay.count_300, replay2.count_300);
+    assert_eq!(replay.count_100, replay2.count_100);
+    assert_eq!(replay.count_50, replay2.count_50);
+    assert_eq!(replay.count_geki, replay2.count_geki);
+
+    #[cfg(feature = "replay-data")]
+    {
+        let action_data = replay.parse_action_data().unwrap();
+        let action_data2 = replay2.parse_action_data().unwrap();
+
+        assert_eq!(action_data.frames.len(), action_data2.frames.len());
+        assert_eq!(action_data.rng_seed, action_data2.rng_seed);
+
+        for (a, b) in action_data.frames.iter().zip(action_data2.frames.iter()) {
+            assert_eq!(a.time, b.time);
+            assert!((a.x - b.x).abs() < 0.001);
+            assert!((a.y - b.y).abs() < 0.001);
+            assert_eq!(a.buttons, b.buttons);
+        }
+    }
+}
+
+#[test]
 fn test_replay_parse_header() {
     let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
     let header = Replay::parse(&mut osr).unwrap();

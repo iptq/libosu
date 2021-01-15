@@ -6,7 +6,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::enums::{Grade, Mode, Mods, RankedStatus};
 
-pub use self::binary::{ReadBytesOsu, Error};
+pub use self::binary::{Error, ReadBytesOsu, WriteBytesOsu};
 
 /// Result type for .db file processing
 pub type DbResult<T, E = DbError> = std::result::Result<T, E>;
