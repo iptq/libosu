@@ -13,12 +13,14 @@
 //! # use libosu::replay::Replay;
 //! # #[cfg(feature = "replay-data")]
 //! # fn invisible(mut reader: impl Read) -> anyhow::Result<()> {
+//!
 //! let replay = Replay::parse(&mut reader)?;
 //! let action_data = replay.parse_action_data()?;
 //! for frame in action_data.frames.iter() {
 //!     println!("time={} x={} y={} btns={:?}", frame.time, frame.x, frame.y, frame.buttons);
 //! }
 //! println!("seed: {:?}", action_data.rng_seed);
+//!
 //! # Ok(())
 //! # }
 //! ```
@@ -32,9 +34,11 @@
 //! # use libosu::replay::{Replay, ReplayActionData};
 //! # #[cfg(feature = "replay-data")]
 //! # fn invisible(mut action_data: ReplayActionData, mut replay: Replay) -> anyhow::Result<()> {
+//!
 //! // assuming these were declared as mut instead
 //! action_data.frames[0].x = 5.0;
 //! replay.update_action_data(&action_data);
+//!
 //! # Ok(())
 //! # }
 //! ```
@@ -45,8 +49,10 @@
 //! # use std::fs::File;
 //! # use libosu::replay::Replay;
 //! # fn invisible(replay: Replay) -> anyhow::Result<()> {
+//!
 //! let mut output = File::create("output.osr")?;
 //! replay.write(&mut output)?;
+//!
 //! # Ok(())
 //! # }
 //! ```
