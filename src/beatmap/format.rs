@@ -1,4 +1,5 @@
 use std::fmt;
+use std::io::{BufRead, BufReader, Cursor, Read, Write};
 use std::str::FromStr;
 
 use num::FromPrimitive;
@@ -68,12 +69,27 @@ impl FromStr for Beatmap {
     type Err = BeatmapParseError;
 
     fn from_str(input: &str) -> Result<Beatmap, Self::Err> {
+        let mut curs = Cursor::new(input);
+        Beatmap::parse(&mut curs)
+    }
+}
+
+impl Beatmap {
+    /// Parse a beatmap from any `Read`er
+    pub fn parse(reader: impl Read) -> Result<Beatmap, BeatmapParseError> {
+        let reader = BufReader::new(reader);
+
         // TODO: actually, replace all the required "default" values with Option<T>s.
         let mut section = "Version".to_owned();
         let mut beatmap = Beatmap::default();
 
-        for (i, line) in input.lines().enumerate() {
+        for (i, line) in reader.lines().enumerate() {
             let line_no = i + 1;
+            let line = line.map_err(|err| BeatmapParseError {
+                line: line_no,
+                inner: err.into(),
+            })?;
+            let line = line.as_ref();
 
             if let Some(captures) = SECTION_HEADER_RGX.captures(&line) {
                 section = String::from(&captures["name"]);
@@ -304,6 +320,14 @@ impl FromStr for Beatmap {
         beatmap.timing_points.sort_by_key(|tp| tp.time);
         beatmap.hit_objects.sort_by_key(|ho| ho.start_time);
         Ok(beatmap)
+    }
+
+    /// Write this beatmap to any `Write`r
+    pub fn write(&self, mut w: impl Write) -> Result<(), std::io::Error> {
+        // TODO: write line-by-line
+        let beatmap = format!("{}", self);
+        w.write_all(beatmap.as_bytes())?;
+        Ok(())
     }
 }
 

@@ -9,12 +9,18 @@
 //! --------------
 //!
 //! ```no_run
-//! let replay = Replay::parse(reader)?;
+//! # use std::{fs::File, io::Read};
+//! # use libosu::replay::Replay;
+//! # #[cfg(feature = "replay-data")]
+//! # fn invisible(mut reader: impl Read) -> anyhow::Result<()> {
+//! let replay = Replay::parse(&mut reader)?;
 //! let action_data = replay.parse_action_data()?;
 //! for frame in action_data.frames.iter() {
 //!     println!("time={} x={} y={} btns={:?}", frame.time, frame.x, frame.y, frame.buttons);
 //! }
-//! println!("seed: {}", action_data.rng_seed);
+//! println!("seed: {:?}", action_data.rng_seed);
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! Note that the frames of the actual replay (called `action_data` in libosu) is stored in
@@ -23,16 +29,26 @@
 //! action data _back_ into the replay:
 //!
 //! ```no_run
+//! # use libosu::replay::{Replay, ReplayActionData};
+//! # #[cfg(feature = "replay-data")]
+//! # fn invisible(mut action_data: ReplayActionData, mut replay: Replay) -> anyhow::Result<()> {
 //! // assuming these were declared as mut instead
 //! action_data.frames[0].x = 5.0;
 //! replay.update_action_data(&action_data);
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! Then you can write this back into a file:
 //!
 //! ```no_run
+//! # use std::fs::File;
+//! # use libosu::replay::Replay;
+//! # fn invisible(replay: Replay) -> anyhow::Result<()> {
 //! let mut output = File::create("output.osr")?;
 //! replay.write(&mut output)?;
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! [1]: https://osu.ppy.sh/wiki/en/osu%21_File_Formats/Osr_%28file_format%29

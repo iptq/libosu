@@ -10,7 +10,7 @@ pub enum Mode {
 
     /// Taiko
     Taiko = 1,
-    
+
     /// Catch the beat
     Catch = 2,
 

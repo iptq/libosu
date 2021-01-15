@@ -5,6 +5,9 @@ pub type ParseResult<T, E = ParseError> = std::result::Result<T, E>;
 #[derive(Debug, Error)]
 #[allow(missing_docs)]
 pub enum ParseError {
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
+
     #[error("error parsing int: {0}")]
     Int(#[from] std::num::ParseIntError),
 
