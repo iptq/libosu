@@ -3,6 +3,8 @@
 //! The main focus of this module is the [`Replay`][self::Replay] struct, which contains functions
 //! for opening and writing *.osr files.
 //!
+//! Read more about the *.osr data format on the [OSU wiki][1].
+//!
 //! Simple Example
 //! --------------
 //!
@@ -32,10 +34,12 @@
 //! let mut output = File::create("output.osr")?;
 //! replay.write(&mut output)?;
 //! ```
+//!
+//! [1]: https://osu.ppy.sh/wiki/en/osu%21_File_Formats/Osr_%28file_format%29
 
 mod actions;
 
-use std::io::{self, Read, Write};
+use std::io::{Read, Write};
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 

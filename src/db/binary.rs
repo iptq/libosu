@@ -9,17 +9,20 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 /// Errors that could arise from reading binary beatmap data
 #[derive(Debug, Error)]
-#[allow(missing_docs)]
 pub enum Error {
+    /// IO Error
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 
+    /// UTF8 String conversion error
     #[error("string conversion error: {0}")]
     Utf8(#[from] std::string::FromUtf8Error),
 
+    /// ULEB overflows 128 bits
     #[error("uleb error")]
     UlebOverflow,
 
+    /// Character in front of the string is not 0x0 or 0xb
     #[error("invalid string status char: {0}")]
     InvalidStringStatusChar(u8),
 }

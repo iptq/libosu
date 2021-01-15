@@ -4,21 +4,33 @@ use std::ops::BitOr;
 
 /// Integer enumeration of the game's game modes.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
-#[allow(missing_docs)]
 pub enum Mode {
+    /// osu!standard
     Osu = 0,
+
+    /// Taiko
     Taiko = 1,
+    
+    /// Catch the beat
     Catch = 2,
+
+    /// osu!mania
     Mania = 3,
 }
 
 /// Last saved grid size for editor
 #[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
-#[allow(missing_docs)]
 pub enum GridSize {
+    /// Tiny grid size (4 osu!px)
     Tiny = 4,
+
+    /// Small grid size (8 osu!px)
     Small = 8,
+
+    /// Medium grid size (16 osu!px)
     Medium = 16,
+
+    /// Large grid size (32 osu!px)
     Large = 32,
 }
 

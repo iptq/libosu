@@ -15,14 +15,17 @@ pub type DbResult<T, E = DbError> = std::result::Result<T, E>;
 #[allow(missing_docs)]
 #[derive(Debug, Error)]
 pub enum DbError {
+    /// Error reading binary data
     #[error("error during binary read: {0}")]
     Read(#[from] self::binary::Error),
 
+    /// IO Error
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 
+    /// Invalid mod combination
     #[error("unexpected mods: {0}")]
-    UnexpectedMods(u32),
+    InvalidMods(u32),
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -217,7 +220,7 @@ impl DbBeatmap {
                     {
                         assert_eq!(reader.read_u8()?, 0x08);
                         let value = reader.read_u32::<LittleEndian>()?;
-                        Mods::from_bits(value).ok_or(DbError::UnexpectedMods(value))?
+                        Mods::from_bits(value).ok_or(DbError::InvalidMods(value))?
                     },
                     {
                         assert_eq!(reader.read_u8()?, 0x0D);
