@@ -89,3 +89,38 @@ pub fn read_uleb128_string<R: std::io::Read>(reader: &mut R) -> Result<String, R
 
     Ok(String::from_utf8(read_buffer)?)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io;
+
+    #[test]
+    fn test_read_uleb128() {
+        let mut num = io::Cursor::new([0xE5, 0x8E, 0x26]);
+        assert_eq!(read_uleb128(&mut num).unwrap(), 624485u64);
+    }
+
+    #[test]
+    fn test_read_uleb128_string() {
+        let text = "Hello World";
+        let mut replay_string = vec![0x0Bu8];
+        replay_string.push(text.len() as u8);
+        replay_string.extend(text.bytes());
+
+        let mut reader = io::Cursor::new(replay_string);
+        assert_eq!(read_uleb128_string(&mut reader).unwrap(), text.to_string());
+
+        let mut reader_empty = io::Cursor::new(vec![0x00]);
+        assert_eq!(
+            read_uleb128_string(&mut reader_empty).unwrap(),
+            String::new()
+        );
+
+        let mut reader_zero_length = io::Cursor::new(vec![0x0B, 0x00]);
+        assert_eq!(
+            read_uleb128_string(&mut reader_zero_length).unwrap(),
+            String::new()
+        );
+    }
+}

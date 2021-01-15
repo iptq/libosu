@@ -4,7 +4,20 @@ use quickcheck::{Arbitrary, Gen};
 /// Represents a 2D point (or any pair of objects).
 #[allow(missing_docs)]
 #[derive(
-    Add, Sub, Mul, Div, Clone, Copy, Default, Debug, Display, Serialize, Deserialize, PartialEq, Eq, Hash,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Clone,
+    Copy,
+    Default,
+    Debug,
+    Display,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    Hash,
 )]
 #[display(fmt = "({}, {})", "x", "y")]
 pub struct Point<T> {

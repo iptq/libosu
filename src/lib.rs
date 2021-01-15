@@ -51,7 +51,6 @@ pub mod math;
 // /// Working with beatmap files.
 // pub mod parsing;
 /// Working with replays.
-#[cfg(feature = "replay")]
 pub mod replay;
 /// Calculating slider body shapes.
 pub mod spline;
@@ -70,7 +69,6 @@ pub mod prelude {
     pub use crate::hitobject::*;
     pub use crate::hitsounds::*;
     pub use crate::math::*;
-    #[cfg(feature = "replay")]
     pub use crate::replay::*;
     pub use crate::spline::*;
     pub use crate::timing::*;

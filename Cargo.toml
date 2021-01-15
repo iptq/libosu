@@ -48,7 +48,7 @@ log = "0.4.13"
 [features]
 default = []
 apiv1 = ["hyper", "hyper-tls", "tokio", "http", "futures"]
-replay = ["xz2"]
+replay-data = ["xz2"]
 
 # Used to check for clippy lints
 # See: https://github.com/rust-lang/cargo/issues/8075#issuecomment-610259732

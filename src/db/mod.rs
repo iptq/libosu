@@ -1,10 +1,10 @@
-pub mod read;
+pub mod binary;
 
 use std::io;
 
 use crate::enums::{Grade, Mode, Mods, RankedStatus};
 
-use self::read::{
+use self::binary::{
     read_f32le, read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string,
     ReadError,
 };

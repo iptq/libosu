@@ -1,0 +1,241 @@
+mod actions;
+
+use std::io::{self, Cursor};
+
+// use xz2::bufread::XzDecoder;
+// use xz2::stream::Stream;
+
+use crate::db::binary::{
+    read_f64le, read_u16le, read_u32le, read_u64le, read_u8, read_uleb128_string, ReadError,
+};
+use crate::enums::{Mode, Mods};
+
+pub use self::actions::{Buttons, ReplayAction, ReplayActionData};
+
+/// Result type for Replay processing
+pub type ReplayResult<T, E = ReplayError> = std::result::Result<T, E>;
+
+/// Errors that could occur while processing replays
+// TODO: track positions as well
+#[allow(missing_docs)]
+#[non_exhaustive]
+#[derive(Debug, Error)]
+pub enum ReplayError {
+    #[cfg(feature = "replay-data")]
+    #[error("error creating lzma decoder: {0}")]
+    LzmaCreate(#[from] xz2::stream::Error),
+
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("error during binary read: {0}")]
+    Read(#[from] ReadError),
+
+    #[error("error decoding utf8: {0}")]
+    Utf8(#[from] std::string::FromUtf8Error),
+
+    #[error("error parsing int: {0}")]
+    ParseInt(#[from] std::num::ParseIntError),
+
+    #[error("error parsing float: {0}")]
+    ParseFloat(#[from] std::num::ParseFloatError),
+
+    #[error("unexpected mods: {0}")]
+    UnexpectedMods(u32),
+
+    #[error("invalid mode: {0}")]
+    InvalidMode(u8),
+
+    #[error("invalid buttons: {0}")]
+    InvalidButtons(u32),
+}
+
+// write a parser for the life graph
+// /// A point in the life graph
+// #[derive(Debug, Clone)]
+// pub struct LifeGraphPoint {
+//     /// The number of milliseconds into the song where the player had this life total, in milliseconds
+//     pub time: u32,
+
+//     /// life total, from 0-1
+//     pub life: f64,
+// }
+
+/// A replay object.
+pub struct Replay {
+    /// osu! game mode that this replay was recorded for
+    ///
+    /// Note the mode field may change the meaning of some of the `count_*` fields
+    /// becuase some osu! modes score slightly differently from standard
+    pub mode: Mode,
+
+    /// osu! game version this replay was recorded on
+    pub version: u32,
+
+    /// MD5 hash for the beatmap this replay's map
+    pub beatmap_hash: String,
+
+    /// The username of player
+    pub player_username: String,
+
+    /// MD5 hash for this replay
+    pub replay_hash: String,
+
+    /// The number of 300s the player scored in this map
+    pub count_300: u16,
+
+    /// The number of 100s the player scored, or 150s in taiko
+    pub count_100: u16,
+
+    /// The number of 50s the player scored, or small fruit in Catch the Beat
+    pub count_50: u16,
+
+    /// The number of gekis the player scored in standard, or max 300s in Mania
+    pub count_geki: u16,
+
+    /// The number of katus the player scored in standard, or 200s in Mania
+    pub count_katu: u16,
+
+    /// The number of misses
+    pub count_miss: u16,
+
+    /// total score as displayed on the score report
+    pub score: u32,
+
+    /// max combo as displayed on the score report
+    pub max_combo: u16,
+
+    /// true if the player has no _misses_, _slider breaks_, or _early finished sliders_.
+    pub perfect: bool,
+
+    /// mod values mods or'd together
+    pub mods: Mods,
+
+    /// List of times with an associated player life value
+    ///
+    /// values are sored in a comma seperated list of "time/life",
+    ///   where time is the timestamp in ms and life is a value from 0-1
+    /// TODO: write a parser for this
+    pub life_graph: String,
+
+    /// Timestamp of the replay in measured in 1/10ths of a millisecond (100 ns)
+    ///
+    /// This is value is measured in windows ticks (https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks)
+    /// It counts the number of ticks from 12:00:00 midnight, January 1, 0001 to the time this replay was created
+    pub timestamp: u64,
+
+    /// length of the compressed list of replay actions
+    pub replay_data_length: u32,
+
+    /// The action data contained in this replay.
+    ///
+    /// If the feature `replay-data` is enabled, the function `parse_action_data` can be used to
+    /// decompress and parse the data that is contained in this replay.
+    pub action_data: Vec<u8>,
+
+    /// Online ID of this score, if submitted.
+    pub score_id: Option<u64>,
+
+    /// Only present if `self.mods` includes Target Practice (bit 23)
+    /// Total accuracy of all hits.
+    /// Divide this value by the number of targets to find the actual accuracy
+    pub target_practice_total_accuracy: Option<f64>,
+}
+
+impl Replay {
+    /// Parse the replay header from a replay file.
+    ///
+    /// The returned struct will be missing the `action`, `score_id`, and `target_practice_total_accuracy` fields.
+    /// If you need `score_id` or `target_practice_total_accuracy`, but don't want to parse actions use the `parse_skip_actions` function instead.
+    pub fn parse<R: io::Read>(reader: &mut R) -> ReplayResult<Replay> {
+        let mode = match read_u8(reader)? {
+            0 => Mode::Osu,
+            1 => Mode::Taiko,
+            2 => Mode::Catch,
+            3 => Mode::Mania,
+            x => return Err(ReplayError::InvalidMode(x)),
+        };
+        let version = read_u32le(reader)?;
+        let beatmap_hash = read_uleb128_string(reader)?;
+        let player_username = read_uleb128_string(reader)?;
+        let replay_hash = read_uleb128_string(reader)?;
+        let count_300 = read_u16le(reader)?;
+        let count_100 = read_u16le(reader)?;
+        let count_50 = read_u16le(reader)?;
+        let count_geki = read_u16le(reader)?;
+        let count_katu = read_u16le(reader)?;
+        let count_miss = read_u16le(reader)?;
+        let score = read_u32le(reader)?;
+        let max_combo = read_u16le(reader)?;
+        let perfect = read_u8(reader)? == 1;
+        let mods_value = read_u32le(reader)?;
+        let mods = Mods::from_bits(mods_value).ok_or(ReplayError::UnexpectedMods(mods_value))?;
+        let life_graph = read_uleb128_string(reader)?;
+        let timestamp = read_u64le(reader)?;
+        let replay_data_length = read_u32le(reader)?;
+
+        let mut action_data = vec![0; replay_data_length as usize];
+        reader.read_exact(&mut action_data)?;
+
+        let score_id = match read_u64le(reader)? {
+            0 => None,
+            v => Some(v),
+        };
+        let target_practice_total_accuracy = if mods.contains(Mods::TargetPractice) {
+            Some(read_f64le(reader)?)
+        } else {
+            None
+        };
+
+        Ok(Replay {
+            mode,
+            version,
+            beatmap_hash,
+            player_username,
+            replay_hash,
+            count_300,
+            count_100,
+            count_50,
+            count_geki,
+            count_katu,
+            count_miss,
+            score,
+            max_combo,
+            perfect,
+            mods,
+
+            life_graph,
+            timestamp,
+            replay_data_length,
+
+            action_data,
+            score_id,
+            target_practice_total_accuracy,
+        })
+    }
+
+    // fn create_action_parser<R: io::BufRead>(
+    //     &self,
+    //     reader: R,
+    // ) -> ReplayResult<ReplayActionParser<io::BufReader<XzDecoder<io::Take<R>>>>> {
+    //     ReplayActionParser::with_decompressing(reader.take(self.replay_data_length as u64))
+    // }
+
+    // /// Parse a replay file, but skip the player actions
+    // ///
+    // /// Using this function can be signficantly easier on memory and CPU
+    // /// if only score information is needed
+    // pub fn parse_skip_actions<R: io::Read + io::Seek>(mut reader: R) -> ReplayResult<Replay> {
+    //     let mut replay = Replay::parse_header(&mut reader)?;
+    //     reader.seek(io::SeekFrom::Current(replay.replay_data_length as i64))?;
+    //     replay.parse_tail(&mut reader)?;
+    //     Ok(replay)
+    // }
+
+    #[cfg(feature = "replay-data")]
+    /// Parse and retrieve the actions in the replay
+    pub fn parse_action_data(&self) -> ReplayResult<actions::ReplayActionData> {
+        let cursor = Cursor::new(&self.action_data);
+        actions::ReplayActionData::parse(cursor)
+    }
+}
