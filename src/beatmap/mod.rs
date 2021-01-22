@@ -1,6 +1,7 @@
 mod ext;
 mod format;
 
+#[cfg(feature = "serialization")]
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use crate::color::Color;
@@ -256,6 +257,7 @@ impl Beatmap {
     }
 }
 
+#[cfg(feature = "serialization")]
 impl Serialize for Beatmap {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

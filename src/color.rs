@@ -4,7 +4,8 @@ use std::str::FromStr;
 use crate::errors::ParseError;
 
 /// Represents an RGB color.
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Color {
     /// red from 0-255
     pub red: u8,

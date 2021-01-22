@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::str::FromStr;
 
+#[cfg(feature = "serialization")]
 use serde::ser::*;
 
 use crate::errors::ParseError;
@@ -80,6 +81,7 @@ impl PartialOrd for TimingPoint {
     }
 }
 
+#[cfg(feature = "serialization")]
 impl Serialize for TimingPoint {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

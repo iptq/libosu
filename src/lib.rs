@@ -19,9 +19,11 @@ extern crate log;
 #[macro_use]
 extern crate num_derive;
 #[macro_use]
-extern crate serde;
-#[macro_use]
 extern crate thiserror;
+
+#[cfg(feature = "serialization")]
+#[macro_use]
+extern crate serde;
 
 pub(crate) mod float;
 

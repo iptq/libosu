@@ -12,12 +12,11 @@ use num::{cast, Float, NumCast};
     Default,
     Debug,
     Display,
-    Serialize,
-    Deserialize,
     PartialEq,
     Eq,
     Hash,
 )]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 #[display(fmt = "({}, {})", "x", "y")]
 pub struct Point<T> {
     pub x: T,
