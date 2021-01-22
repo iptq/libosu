@@ -1,3 +1,9 @@
+#[cfg(feature = "replay-data")]
+use std::io::Read;
+
+#[cfg(feature = "replay-data")]
+use super::ReplayResult;
+
 /// An action by the player while playing the map
 #[derive(Debug, Clone)]
 pub struct ReplayAction {
@@ -52,9 +58,9 @@ impl ReplayActionData {
     #[cfg(feature = "replay-data")]
     /// create a new ReplayActionParser from a BufRead
     pub fn parse(data: impl Read) -> ReplayResult<Self> {
-        use std::io::{BufReader, Read};
+        use std::io::BufReader;
 
-        use super::{ReplayError, ReplayResult};
+        use super::ReplayError;
         use xz2::{bufread::XzDecoder, stream::Stream};
 
         let lzma_decoder = Stream::new_lzma_decoder(std::u64::MAX)?;
