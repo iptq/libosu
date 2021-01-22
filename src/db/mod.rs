@@ -348,7 +348,7 @@ mod tests {
 
     use crate::enums::{Grade, Mode, Mods, RankedStatus, UserPermission};
 
-    use super::{DbBeatmap, Db, DbBeatmapTimingPoint};
+    use super::{Db, DbBeatmap, DbBeatmapTimingPoint};
 
     // Thanks vernonlim for the osu.db file
     #[test]
