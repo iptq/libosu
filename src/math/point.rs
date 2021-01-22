@@ -2,21 +2,8 @@ use num::{cast, Float, NumCast};
 
 /// Represents a 2D point (or any pair of objects).
 #[allow(missing_docs)]
-#[derive(
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Clone,
-    Copy,
-    Default,
-    Debug,
-    Display,
-    PartialEq,
-    Eq,
-    Hash,
-)]
-#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
+#[derive(Add, Sub, Mul, Div, Clone, Copy, Default, Debug, Display, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[display(fmt = "({}, {})", "x", "y")]
 pub struct Point<T> {
     pub x: T,

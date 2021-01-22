@@ -8,6 +8,7 @@ use crate::timing::TimestampMillis;
 /// Beatmap event
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Event {
     /// Background event
     Background(BackgroundEvent),
@@ -25,6 +26,7 @@ pub enum Event {
 
 /// Used in Event::Background
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BackgroundEvent {
     /// Location of the background image relative to the beatmap directory.
     pub filename: String,
@@ -35,6 +37,7 @@ pub struct BackgroundEvent {
 
 /// Used in Event::Video
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct VideoEvent {
     /// The timestamp at which the video starts
     pub start_time: TimestampMillis,
@@ -48,6 +51,7 @@ pub struct VideoEvent {
 
 /// Used in Event::Break
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BreakEvent {
     /// The timestamp at which the break starts
     pub start_time: TimestampMillis,

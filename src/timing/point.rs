@@ -2,15 +2,13 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::str::FromStr;
 
-#[cfg(feature = "serialization")]
-use serde::ser::*;
-
 use crate::errors::ParseError;
 use crate::hitsounds::SampleSet;
 use crate::timing::TimestampMillis;
 
 /// Info for uninherited timing point
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UninheritedTimingInfo {
     /// Milliseconds per beat (aka beat duration)
     pub mpb: f64,
@@ -21,6 +19,7 @@ pub struct UninheritedTimingInfo {
 
 /// Info for inherited timing point
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct InheritedTimingInfo {
     /// Slider velocity multiplier
     pub slider_velocity: f64,
@@ -28,6 +27,7 @@ pub struct InheritedTimingInfo {
 
 /// An enum distinguishing between inherited and uninherited timing points.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TimingPointKind {
     /// Uninherited timing point
     Uninherited(UninheritedTimingInfo),
@@ -41,6 +41,7 @@ pub enum TimingPointKind {
 /// This is a generic timing point struct representing both inherited and uninherited timing
 /// points, distinguished by the `kind` field.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TimingPoint {
     /// The timestamp of this timing point, represented as a `TimeLocation`.
     pub time: TimestampMillis,
@@ -78,17 +79,6 @@ impl Ord for TimingPoint {
 impl PartialOrd for TimingPoint {
     fn partial_cmp(&self, other: &TimingPoint) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-#[cfg(feature = "serialization")]
-impl Serialize for TimingPoint {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let state = serializer.serialize_struct("TimingPoint", 0)?;
-        state.end()
     }
 }
 

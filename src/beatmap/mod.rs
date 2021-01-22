@@ -1,9 +1,6 @@
 mod ext;
 mod format;
 
-#[cfg(feature = "serialization")]
-use serde::ser::{Serialize, SerializeStruct, Serializer};
-
 use crate::color::Color;
 use crate::enums::{GridSize, Mode};
 use crate::events::Event;
@@ -15,6 +12,7 @@ pub use self::format::*;
 
 /// Difficulty settings defined by the map.
 #[derive(Clone, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Difficulty {
     /// HP Drain Rate
     ///
@@ -95,6 +93,7 @@ impl Difficulty {
 
 /// Represents a single beatmap.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Beatmap {
     /// The osu! file format being used
     pub version: u32,
@@ -254,19 +253,5 @@ impl Beatmap {
             if let HitObjectKind::Slider { .. } = hit_object.kind {}
         }
         None
-    }
-}
-
-#[cfg(feature = "serialization")]
-impl Serialize for Beatmap {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("Beatmap", 1)?;
-        state.serialize_field("version", &self.version)?;
-
-        // state.serialize_field("timing_points", &self.timing_points)?;
-        state.end()
     }
 }

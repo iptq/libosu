@@ -126,6 +126,7 @@ pub enum ReplayError {
 ///
 /// See the [module documentation][crate::replay] for examples of using this struct.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Replay {
     /// osu! game mode that this replay was recorded for
     ///

@@ -28,7 +28,7 @@ num = "0.3.1"
 num-derive = "0.3.3"
 num-rational = "0.3.2"
 num-traits = "0.2.14"
-ordered-float = "2.0.1"
+ordered-float = { version = "2.0.1", features = ["serde"] }
 regex = "1.4.3"
 thiserror = "1.0.23"
 derive_more = "0.99.11"
@@ -46,9 +46,8 @@ serde_json = { version = "1.0.61", optional = true }
 
 [features]
 default = []
-apiv1 = ["hyper", "hyper-tls", "tokio", "http", "futures", "serialization", "serde_json"]
+apiv1 = ["hyper", "hyper-tls", "tokio", "http", "futures", "serde", "serde_json"]
 replay-data = ["xz2"]
-serialization = ["serde"]
 
 # Used to check for clippy lints
 # See: https://github.com/rust-lang/cargo/issues/8075#issuecomment-610259732

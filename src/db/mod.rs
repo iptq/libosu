@@ -30,7 +30,7 @@ pub enum DbError {
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 /// Timing point for beatmap in osu!.db
-pub struct OsuDBBeatmapTimingPoint {
+pub struct DbBeatmapTimingPoint {
     bpm: f64,
     offset: f64,
     is_uninherited: bool,
@@ -107,7 +107,7 @@ pub struct DbBeatmap {
     pub preview_time: u32,
 
     /// Timing points for the beatmap.
-    pub timing_points: Vec<OsuDBBeatmapTimingPoint>,
+    pub timing_points: Vec<DbBeatmapTimingPoint>,
 
     /// Id of the beatmap.
     pub beatmap_id: u32,
@@ -189,7 +189,7 @@ pub struct DbBeatmap {
 
 #[derive(Debug, Clone)]
 /// osu!.db object  
-pub struct OsuDB {
+pub struct Db {
     /// osu! game mode that this replay was recorded for
     pub version: u32,
     /// The amount of folders?
@@ -232,11 +232,11 @@ impl DbBeatmap {
         Ok(ratings)
     }
 
-    fn read_timing_points(mut reader: impl io::BufRead) -> DbResult<Vec<OsuDBBeatmapTimingPoint>> {
+    fn read_timing_points(mut reader: impl io::BufRead) -> DbResult<Vec<DbBeatmapTimingPoint>> {
         let count = reader.read_u32::<LittleEndian>()?;
         let points = (0..count)
             .map(|_| {
-                Ok(OsuDBBeatmapTimingPoint {
+                Ok(DbBeatmapTimingPoint {
                     bpm: reader.read_f64::<LittleEndian>()?,
                     offset: reader.read_f64::<LittleEndian>()?,
                     is_uninherited: reader.read_u8()? > 0,
@@ -315,9 +315,9 @@ impl DbBeatmap {
     }
 }
 
-impl OsuDB {
+impl Db {
     /// Parse the osu!.db data from a reader.
-    pub fn parse(mut reader: impl io::BufRead) -> DbResult<OsuDB> {
+    pub fn parse(mut reader: impl io::BufRead) -> DbResult<Db> {
         let version = reader.read_u32::<LittleEndian>()?;
         let folder_count = reader.read_u32::<LittleEndian>()?;
         let account_unlocked = reader.read_u8()? > 0;
@@ -329,7 +329,7 @@ impl OsuDB {
             .collect::<DbResult<Vec<_>>>()?;
         let permissions = reader.read_u8()?;
 
-        Ok(OsuDB {
+        Ok(Db {
             version,
             folder_count,
             account_unlocked,
@@ -348,7 +348,7 @@ mod tests {
 
     use crate::enums::{Grade, Mode, Mods, RankedStatus, UserPermission};
 
-    use super::{DbBeatmap, OsuDB, OsuDBBeatmapTimingPoint};
+    use super::{DbBeatmap, Db, DbBeatmapTimingPoint};
 
     // Thanks vernonlim for the osu.db file
     #[test]
@@ -356,7 +356,7 @@ mod tests {
         use std::fs::File;
 
         let osr = File::open("tests/files/osu.db").unwrap();
-        let db = OsuDB::parse(BufReader::new(osr)).unwrap();
+        let db = Db::parse(BufReader::new(osr)).unwrap();
 
         assert_eq!(db.version, 20201210);
         assert_eq!(db.player_name, "vernonlim");
@@ -431,127 +431,127 @@ mod tests {
         total_time: 34109,
         preview_time: 5,
         timing_points: vec![
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: 566.037735849057,
                 offset: 147.0,
                 is_uninherited: true,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 147.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 9203.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 10335.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 10618.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 10901.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 11184.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 12599.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 12882.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 13165.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 13731.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 15996.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 16562.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 17128.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 18260.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 27316.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 29580.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 29863.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 30713.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 31279.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 31845.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 32411.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 32977.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 33543.0,
                 is_uninherited: false,
             },
-            OsuDBBeatmapTimingPoint {
+            DbBeatmapTimingPoint {
                 bpm: -71.4285714285714,
                 offset: 34109.0,
                 is_uninherited: false,

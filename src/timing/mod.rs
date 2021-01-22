@@ -9,6 +9,7 @@ pub use self::point::*;
 
 /// A struct representing a location in time as milliseconds (i32)
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TimestampMillis(pub i32);
 
 impl TimestampMillis {
@@ -26,6 +27,7 @@ impl fmt::Display for TimestampMillis {
 
 /// A struct representing a location in time as seconds (f64)
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TimestampSec(pub NotNan<f64>);
 
 impl TimestampSec {
@@ -62,7 +64,7 @@ impl Sub for TimestampSec {
     }
 }
 
-/// A struct representing a location in time as seconds (f64)
+/// Duration of time
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Add, Sub)]
 pub struct Duration(pub NotNan<f64>);
 

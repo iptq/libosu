@@ -21,11 +21,12 @@ extern crate num_derive;
 #[macro_use]
 extern crate thiserror;
 
-#[cfg(feature = "serialization")]
+#[cfg(feature = "serde")]
 #[macro_use]
 extern crate serde;
 
 pub(crate) mod float;
+pub(crate) mod utils;
 
 /// Client for the OSU api
 #[cfg(feature = "apiv1")]

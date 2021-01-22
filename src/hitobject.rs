@@ -12,6 +12,7 @@ use crate::timing::TimestampMillis;
 
 /// Distinguishes between different types of slider splines.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SliderSplineKind {
     /// Linear is the most straightforward, and literally consists of two endpoints.
     Linear,
@@ -43,6 +44,7 @@ impl fmt::Display for SliderSplineKind {
 
 /// Extra information provided by a slider.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SliderInfo {
     /// The algorithm used to calculate the spline.
     pub kind: SliderSplineKind,
@@ -65,6 +67,7 @@ pub struct SliderInfo {
 
 /// Extra information provided by a spinner.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SpinnerInfo {
     /// The time at which the slider ends.
     pub end_time: TimestampMillis,
@@ -72,6 +75,7 @@ pub struct SpinnerInfo {
 
 /// Distinguishes between different types of hit objects.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum HitObjectKind {
     /// Regular hit circle.
     Circle,
@@ -102,6 +106,7 @@ impl HitObjectKind {
 
 /// Represents a single hit object.
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct HitObject {
     /// The position on the map at which this hit object is located (head for sliders).
     pub pos: Point<i32>,

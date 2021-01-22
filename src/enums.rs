@@ -4,6 +4,7 @@ use std::ops::BitOr;
 
 /// Integer enumeration of the game's game modes.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Mode {
     /// osu!standard
     Osu = 0,
@@ -20,6 +21,7 @@ pub enum Mode {
 
 /// Last saved grid size for editor
 #[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GridSize {
     /// Tiny grid size (4 osu!px)
     Tiny = 4,
@@ -39,6 +41,7 @@ bitflags! {
     ///
     /// This list is ripped directly from the [osu! wiki](https://github.com/ppy/osu-api/wiki).
     #[derive(Default)]
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     pub struct Mods: u32 {
         /// No selected mods
         const None = 0;
@@ -141,6 +144,7 @@ bitflags! {
 
 /// Integer enumeration of the user's permission
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum UserPermission {
     None = 0,
@@ -161,6 +165,7 @@ impl BitOr for UserPermission {
 
 /// Integer enumeration of the ranked statuses.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum RankedStatus {
     Unknown,
@@ -175,6 +180,7 @@ pub enum RankedStatus {
 
 /// Rank grades
 #[derive(Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum Grade {
     SS,

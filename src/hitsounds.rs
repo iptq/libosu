@@ -12,6 +12,7 @@ use crate::errors::ParseError;
 /// or even the hitsound additions (whistle, finish, clap).
 #[derive(Copy, Clone, Debug, FromPrimitive, PartialEq)]
 #[repr(u8)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SampleSet {
     /// No sample set used. (TODO: wtf?)
     None = 0,
@@ -26,6 +27,7 @@ pub enum SampleSet {
 #[allow(non_upper_case_globals)]
 bitflags! {
     /// A representation of hitsound additions.
+    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     pub struct Additions: u32 {
         /// Whistle hitsound
         const WHISTLE = 1 << 1;
@@ -40,6 +42,7 @@ bitflags! {
 
 /// A hitsound "item" represents a single "hitsound".
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SampleInfo {
     /// The sample (normal/soft/drum) this hitsound uses.
     pub sample_set: SampleSet,
