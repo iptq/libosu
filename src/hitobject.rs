@@ -3,7 +3,6 @@ use std::fmt;
 use std::str::FromStr;
 
 use num::FromPrimitive;
-use quickcheck::{Arbitrary, Gen};
 
 use crate::errors::{ParseError, ParseResult};
 use crate::hitsounds::{Additions, SampleInfo, SampleSet};
@@ -39,17 +38,6 @@ impl fmt::Display for SliderSplineKind {
                 SliderSplineKind::Perfect => 'P',
             }
         )
-    }
-}
-
-impl Arbitrary for SliderSplineKind {
-    fn arbitrary(g: &mut Gen) -> SliderSplineKind {
-        *g.choose(&[
-            SliderSplineKind::Linear,
-            SliderSplineKind::Bezier,
-            SliderSplineKind::Perfect,
-        ])
-        .unwrap()
     }
 }
 

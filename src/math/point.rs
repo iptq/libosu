@@ -1,5 +1,4 @@
 use num::{cast, Float, NumCast};
-use quickcheck::{Arbitrary, Gen};
 
 /// Represents a 2D point (or any pair of objects).
 #[allow(missing_docs)]
@@ -60,11 +59,5 @@ impl<T: Float> Point<T> {
     pub fn norm(&self) -> Point<T> {
         let m = self.magnitude();
         Point::new(self.x / m, self.y / m)
-    }
-}
-
-impl<T: Arbitrary> Arbitrary for Point<T> {
-    fn arbitrary(g: &mut Gen) -> Point<T> {
-        Point::new(T::arbitrary(g), T::arbitrary(g))
     }
 }

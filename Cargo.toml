@@ -40,8 +40,6 @@ hyper = { version = "0.14.2", features = ["stream", "http2", "client", "tcp"], o
 hyper-tls = { version = "0.5.0", optional = true }
 tokio = { version = "1.0.2", optional = true }
 xz2 = { version = "0.1.6", optional = true }
-quickcheck = "1.0.3"
-quickcheck_macros = "1.0.0"
 derive_more = "0.99.11"
 log = "0.4.13"
 byteorder = "1.4.2"
