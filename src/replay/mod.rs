@@ -173,11 +173,9 @@ pub struct Replay {
     /// mod values mods or'd together
     pub mods: Mods,
 
-    /// List of times with an associated player life value
+    /// List of integer timestamps with an associated player life value.
     ///
-    /// values are sored in a comma seperated list of "time/life",
-    ///   where time is the timestamp in ms and life is a value from 0-1
-    /// TODO: write a parser for this
+    /// 0 = No health, 1 = Full health
     pub life_graph: Vec<(i32, f64)>,
 
     /// Timestamp of the replay in measured in 1/10ths of a millisecond (100 ns)
