@@ -108,17 +108,6 @@ pub enum ReplayError {
     InvalidButtons(u32),
 }
 
-// write a parser for the life graph
-// /// A point in the life graph
-// #[derive(Debug, Clone)]
-// pub struct LifeGraphPoint {
-//     /// The number of milliseconds into the song where the player had this life total, in milliseconds
-//     pub time: u32,
-
-//     /// life total, from 0-1
-//     pub life: f64,
-// }
-
 /// A replay object.
 ///
 /// See the [module documentation][crate::replay] for examples of using this struct.

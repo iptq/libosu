@@ -16,10 +16,13 @@ use crate::errors::ParseError;
 pub enum SampleSet {
     /// No sample set used. (TODO: wtf?)
     None = 0,
+
     /// Normal sample set.
     Normal = 1,
+
     /// Soft sample set.
     Soft = 2,
+
     /// Drum sample set.
     Drum = 3,
 }
@@ -46,14 +49,18 @@ bitflags! {
 pub struct SampleInfo {
     /// The sample (normal/soft/drum) this hitsound uses.
     pub sample_set: SampleSet,
+
     /// The additions (whistle, finish, clap) attached to this hitsound.
     pub addition_set: SampleSet,
 
-    /// TODO: additional field
+    /// The index of the sample filename to use
     pub custom_index: i32,
-    /// TODO: additional field
+
+    /// Volume (from 5 to 100)
     pub sample_volume: i32,
+
     /// TODO: additional field
+    /// (does this even have any effect lol)
     pub filename: String,
 }
 
@@ -80,7 +87,6 @@ impl FromStr for SampleInfo {
         let sample_volume = extra_parts[3].parse::<i32>()?;
         let filename = extra_parts[4].to_owned();
 
-        // TODO: handle extras field
         Ok(SampleInfo {
             addition_set: SampleSet::from_u32(addition_set).unwrap(),
             sample_set: SampleSet::from_u32(sample_set).unwrap(),
