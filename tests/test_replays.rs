@@ -63,12 +63,12 @@ fn test_replay_writer_with(path: impl AsRef<Path>) -> Result<()> {
 #[cfg(feature = "replay-data")]
 #[test]
 fn test_replay_action_update() -> Result<()> {
-    let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
-    let replay = Replay::parse(&mut osr).unwrap();
-    let actions = replay.parse_action_data().unwrap();
+    let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr")?;
+    let replay = Replay::parse(&mut osr)?;
+    let actions = replay.parse_action_data()?;
 
     let mut replay2 = replay.clone();
-    replay2.update_action_data(&actions).unwrap();
+    replay2.update_action_data(&actions)?;
 
     compare_action_data(&replay, &replay2)?;
     Ok(())
@@ -212,7 +212,7 @@ fn test_replay_parse() -> Result<()> {
 
     #[cfg(feature = "replay-data")]
     {
-        let action_data = replay.parse_action_data().unwrap();
+        let action_data = replay.parse_action_data()?;
         assert_eq!(action_data.rng_seed, Some(7364804));
     }
 

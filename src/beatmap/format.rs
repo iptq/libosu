@@ -17,10 +17,11 @@ use super::Beatmap;
 
 lazy_static! {
     static ref OSU_FORMAT_VERSION_RGX: Regex =
-        Regex::new(r"^osu file format v(?P<version>\d+)$").unwrap();
-    static ref SECTION_HEADER_RGX: Regex = Regex::new(r"^\[(?P<name>[A-Za-z]+)\]$").unwrap();
+        Regex::new(r"^osu file format v(?P<version>\d+)$").expect("compile");
+    static ref SECTION_HEADER_RGX: Regex =
+        Regex::new(r"^\[(?P<name>[A-Za-z]+)\]$").expect("compile");
     static ref KEY_VALUE_RGX: Regex =
-        Regex::new(r"^(?P<key>[A-Za-z0-9]+)\s*:\s*(?P<value>.+)$").unwrap();
+        Regex::new(r"^(?P<key>[A-Za-z0-9]+)\s*:\s*(?P<value>.+)$").expect("compile");
 }
 
 /// Macro for matching beatmap keys easier.
@@ -171,7 +172,9 @@ impl Beatmap {
                                         s => {
                                             return Err(BeatmapParseError {
                                                 line: line_no,
-                                                inner: ParseError::InvalidSampleSet(s.to_owned()),
+                                                inner: ParseError::InvalidSampleSetString(
+                                                    s.to_owned(),
+                                                ),
                                             })
                                         }
                                     }

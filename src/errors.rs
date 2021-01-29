@@ -14,6 +14,12 @@ pub enum ParseError {
     #[error("error parsing float: {0}")]
     Float(#[from] std::num::ParseFloatError),
 
+    #[error("missing component in color")]
+    MissingColorComponent,
+
+    #[error("invalid additions: {0}")]
+    InvalidAdditions(u32),
+
     #[error("invalid hit object type: {0}")]
     InvalidObjectType(i32),
 
@@ -21,7 +27,10 @@ pub enum ParseError {
     InvalidSliderType(String),
 
     #[error("invalid sample set: {0}")]
-    InvalidSampleSet(String),
+    InvalidSampleSet(u32),
+
+    #[error("invalid sample set: {0}")]
+    InvalidSampleSetString(String),
 
     #[error("invalid game mode: {0}")]
     InvalidGameMode(u8),

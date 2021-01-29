@@ -11,14 +11,14 @@ impl Beatmap {
     }
 
     /// Computes the end time of the given hitobject
-    pub fn get_hitobject_end_time(&self, ho: &HitObject) -> TimestampMillis {
+    pub fn get_hitobject_end_time(&self, ho: &HitObject) -> Option<TimestampMillis> {
         match ho.kind {
-            HitObjectKind::Circle => ho.start_time,
+            HitObjectKind::Circle => Some(ho.start_time),
             HitObjectKind::Slider(_) => {
-                let duration = self.get_slider_duration(ho).unwrap();
-                TimestampMillis(ho.start_time.0 + duration as i32)
+                let duration = self.get_slider_duration(ho)?;
+                Some(TimestampMillis(ho.start_time.0 + duration as i32))
             }
-            HitObjectKind::Spinner(SpinnerInfo { end_time }) => end_time,
+            HitObjectKind::Spinner(SpinnerInfo { end_time }) => Some(end_time),
         }
     }
 

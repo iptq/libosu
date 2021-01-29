@@ -32,7 +32,7 @@ fn main() -> Result<()> {
     from_beatmap.hit_objects.sort_by_key(|ho| ho.start_time);
 
     // collect a list of hitsounds from the template beatmap
-    let mut hitsounds = collect_hitsounds(&from_beatmap);
+    let mut hitsounds = collect_hitsounds(&from_beatmap)?;
     hitsounds.sort_by_key(|hs| hs.time);
 
     let mut to_beatmap = {
@@ -43,7 +43,7 @@ fn main() -> Result<()> {
     };
 
     // write the hitsounds to the beatmap object
-    write_hitsounds(&hitsounds, &mut to_beatmap);
+    write_hitsounds(&hitsounds, &mut to_beatmap)?;
 
     let mut output_file = File::create(&opt.output)?;
     output_file.write_all(to_beatmap.to_string().as_bytes())?;
@@ -58,7 +58,7 @@ struct HitsoundInfo {
     additions: Additions,
 }
 
-fn collect_hitsounds(beatmap: &Beatmap) -> Vec<HitsoundInfo> {
+fn collect_hitsounds(beatmap: &Beatmap) -> Result<Vec<HitsoundInfo>> {
     let mut hitsounds = Vec::new();
     for (ho, tp) in beatmap.double_iter() {
         let start_time = ho.start_time;
@@ -131,10 +131,10 @@ fn collect_hitsounds(beatmap: &Beatmap) -> Vec<HitsoundInfo> {
             }
         }
     }
-    hitsounds
+    Ok(hitsounds)
 }
 
-fn write_hitsounds(hitsounds: &Vec<HitsoundInfo>, beatmap: &mut Beatmap) {
+fn write_hitsounds(hitsounds: &Vec<HitsoundInfo>, beatmap: &mut Beatmap) -> Result<()> {
     // generate a mapping of hitsound to hitobject
     let mut iter = beatmap.hit_objects.iter().enumerate().peekable();
     let mut index_map = Vec::new();
@@ -146,9 +146,10 @@ fn write_hitsounds(hitsounds: &Vec<HitsoundInfo>, beatmap: &mut Beatmap) {
                 None => break 'outer,
             };
 
-            let ho_end_time = beatmap.get_hitobject_end_time(ho);
-            if ho_end_time >= hitsound.time {
-                break (ho_idx, ho);
+            if let Some(ho_end_time) = beatmap.get_hitobject_end_time(ho) {
+                if ho_end_time >= hitsound.time {
+                    break (ho_idx, ho);
+                }
             }
 
             // advance hit-object iterator
@@ -213,4 +214,6 @@ fn write_hitsounds(hitsounds: &Vec<HitsoundInfo>, beatmap: &mut Beatmap) {
             edge_samplesets[e_idx] = (hitsound.sample_set, hitsound.additions_set);
         }
     }
+
+    Ok(())
 }

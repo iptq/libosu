@@ -88,8 +88,10 @@ impl FromStr for SampleInfo {
         let filename = extra_parts[4].to_owned();
 
         Ok(SampleInfo {
-            addition_set: SampleSet::from_u32(addition_set).unwrap(),
-            sample_set: SampleSet::from_u32(sample_set).unwrap(),
+            addition_set: SampleSet::from_u32(addition_set)
+                .ok_or(ParseError::InvalidSampleSet(addition_set))?,
+            sample_set: SampleSet::from_u32(sample_set)
+                .ok_or(ParseError::InvalidSampleSet(sample_set))?,
 
             custom_index,
             sample_volume,

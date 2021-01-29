@@ -26,10 +26,12 @@ impl Color {
 
 impl FromStr for Color {
     type Err = ParseError;
+
     fn from_str(line: &str) -> Result<Color, Self::Err> {
         let mut s = line.split(" : ");
-        s.next();
-        let s = s.next().unwrap().split(',').collect::<Vec<_>>();
+        s.next().ok_or(ParseError::MissingColorComponent)?;
+        let s = s.next().ok_or(ParseError::MissingColorComponent)?;
+        let s = s.split(',').collect::<Vec<_>>();
         let red = s[0].parse::<u8>()?;
         let green = s[1].parse::<u8>()?;
         let blue = s[2].parse::<u8>()?;

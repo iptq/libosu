@@ -136,7 +136,7 @@ impl HitObject {
         match &self.kind {
             HitObjectKind::Slider(info) => {
                 if info.num_repeats % 2 == 0 {
-                    self.pos.to_float().unwrap()
+                    self.pos.to_float().expect("f64 converts to float")
                 } else {
                     let mut control_points = vec![self.pos];
                     control_points.extend(&info.control_points);
@@ -148,7 +148,7 @@ impl HitObject {
                     spline.end_point()
                 }
             }
-            _ => self.pos.to_float().unwrap(),
+            _ => self.pos.to_float().expect("f64 converts to float"),
         }
     }
 }
@@ -185,7 +185,8 @@ impl FromStr for HitObject {
         let timestamp = parts[2].parse::<i32>()?;
         let obj_type = parts[3].parse::<i32>()?;
         let additions_bits = parts[4].parse::<u32>()?;
-        let additions = Additions::from_bits(additions_bits).unwrap();
+        let additions = Additions::from_bits(additions_bits)
+            .ok_or(ParseError::InvalidAdditions(additions_bits))?;
 
         let start_time = TimestampMillis(timestamp);
 
@@ -219,7 +220,11 @@ impl FromStr for HitObject {
                 let edge_additions = if parts.len() > 8 {
                     parts[8]
                         .split('|')
-                        .map(|n| n.parse::<u32>().map(|b| Additions::from_bits(b).unwrap()))
+                        .map(|n| {
+                            n.parse::<u32>().map_err(ParseError::from).and_then(|b| {
+                                Additions::from_bits(b).ok_or(ParseError::InvalidAdditions(b))
+                            })
+                        })
                         .collect::<Result<Vec<_>, _>>()?
                 } else {
                     vec![Additions::empty()]
