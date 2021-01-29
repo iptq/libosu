@@ -1,6 +1,6 @@
 [package]
 name = "libosu"
-version = "0.0.20"
+version = "0.0.21"
 authors = [
     "Michael Zhang <mail@mzhang.io>",
     "Nobbele <realnobbele@gmail.com>",
