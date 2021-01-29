@@ -65,9 +65,6 @@ use std::io::{Read, Write};
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
-// use xz2::bufread::XzDecoder;
-// use xz2::stream::Stream;
-
 use crate::db::{ReadBytesOsu, WriteBytesOsu};
 use crate::enums::{Mode, Mods};
 
@@ -181,7 +178,7 @@ pub struct Replay {
     /// values are sored in a comma seperated list of "time/life",
     ///   where time is the timestamp in ms and life is a value from 0-1
     /// TODO: write a parser for this
-    pub life_graph: String,
+    pub life_graph: Vec<(i32, f64)>,
 
     /// Timestamp of the replay in measured in 1/10ths of a millisecond (100 ns)
     ///
@@ -232,7 +229,23 @@ impl Replay {
         let perfect = reader.read_u8()? == 1;
         let mods_value = reader.read_u32::<LittleEndian>()?;
         let mods = Mods::from_bits(mods_value).ok_or(ReplayError::UnexpectedMods(mods_value))?;
-        let life_graph = reader.read_uleb128_string()?;
+        let life_graph = reader
+            .read_uleb128_string()?
+            .split(",")
+            .filter_map(|frame| {
+                if frame.is_empty() {
+                    None
+                } else {
+                    Some(frame.split("|"))
+                }
+            })
+            .map(|mut frame| {
+                Ok((
+                    frame.next().unwrap().parse::<i32>()?,
+                    frame.next().unwrap().parse::<f64>()?,
+                ))
+            })
+            .collect::<ReplayResult<Vec<_>>>()?;
         let timestamp = reader.read_u64::<LittleEndian>()?;
         let replay_data_length = reader.read_u32::<LittleEndian>()?;
 
@@ -292,7 +305,14 @@ impl Replay {
         w.write_u16::<LittleEndian>(self.max_combo)?;
         w.write_u8(if self.perfect { 0 } else { 1 })?;
         w.write_u32::<LittleEndian>(self.mods.bits())?;
-        w.write_uleb128_string(&self.life_graph)?;
+        w.write_uleb128_string(
+            &self
+                .life_graph
+                .iter()
+                .map(|(time, life)| format!("{}|{}", time, life))
+                .collect::<Vec<_>>()
+                .join(","),
+        )?;
         w.write_u64::<LittleEndian>(self.timestamp)?;
         w.write_u32::<LittleEndian>(self.action_data.len() as u32)?;
         w.write_all(&self.action_data)?;

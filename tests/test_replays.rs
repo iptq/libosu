@@ -1,6 +1,8 @@
 use std::fs::File;
 use std::io::{self, Cursor, Read, Write};
+use std::path::Path;
 
+use anyhow::Result;
 use libosu::{
     enums::{Mode, Mods},
     replay::{Buttons, Replay, ReplayActionData},
@@ -23,29 +25,38 @@ fn compare_action_data(replay: &Replay, replay2: &Replay) {
 }
 
 #[test]
-fn test_replay_writer() {
-    let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
+fn test_replay_writer() -> Result<()> {
+    test_replay_writer_with("tests/files/replay-osu_2058788_3017707256.osr")?;
+    test_replay_writer_with("tests/files/replay_with_life.osr")?;
+    Ok(())
+}
+
+fn test_replay_writer_with(path: impl AsRef<Path>) -> Result<()> {
+    let mut osr = File::open(path.as_ref())?;
     let mut contents = Vec::new();
-    osr.read_to_end(&mut contents).unwrap();
+    osr.read_to_end(&mut contents)?;
 
     let mut curs = Cursor::new(&contents);
-    let replay = Replay::parse(&mut curs).unwrap();
+    let replay = Replay::parse(&mut curs)?;
 
     // lzma encoded data will be different, so we'll just re-parse and check contents
     // not the most ideal since this assumes the parsing is correct
     let mut contents2 = Vec::new();
-    replay.write(&mut contents2).unwrap();
+    replay.write(&mut contents2)?;
 
     let mut curs2 = Cursor::new(&contents2);
-    let replay2 = Replay::parse(&mut curs2).unwrap();
+    let replay2 = Replay::parse(&mut curs2)?;
 
     assert_eq!(replay.count_300, replay2.count_300);
     assert_eq!(replay.count_100, replay2.count_100);
     assert_eq!(replay.count_50, replay2.count_50);
     assert_eq!(replay.count_geki, replay2.count_geki);
+    assert_eq!(replay.life_graph, replay2.life_graph);
 
     #[cfg(feature = "replay-data")]
     compare_action_data(&replay, &replay2);
+
+    Ok(())
 }
 
 #[cfg(feature = "replay-data")]
@@ -62,9 +73,9 @@ fn test_replay_action_update() {
 }
 
 #[test]
-fn test_replay_parse_header() {
-    let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
-    let header = Replay::parse(&mut osr).unwrap();
+fn test_replay_parse_header() -> Result<()> {
+    let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr")?;
+    let header = Replay::parse(&mut osr)?;
 
     assert_eq!(header.mode, Mode::Osu);
     assert_eq!(header.version, 20200304);
@@ -92,6 +103,8 @@ fn test_replay_parse_header() {
         header.mods,
         Mods::Flashlight | Mods::Hidden | Mods::DoubleTime | Mods::HardRock
     );
+
+    Ok(())
 }
 
 #[cfg(feature = "replay-data")]
