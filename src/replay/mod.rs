@@ -98,6 +98,9 @@ pub enum ReplayError {
     #[error("binary data error: {0}")]
     Binary(#[from] crate::db::binary::Error),
 
+    #[error("missing field in life graph")]
+    LifeGraphMissing,
+
     #[error("unexpected mods: {0}")]
     UnexpectedMods(u32),
 
@@ -228,8 +231,14 @@ impl Replay {
             })
             .map(|mut frame| {
                 Ok((
-                    frame.next().unwrap().parse::<i32>()?,
-                    frame.next().unwrap().parse::<f64>()?,
+                    frame
+                        .next()
+                        .ok_or(ReplayError::LifeGraphMissing)?
+                        .parse::<i32>()?,
+                    frame
+                        .next()
+                        .ok_or(ReplayError::LifeGraphMissing)?
+                        .parse::<f64>()?,
                 ))
             })
             .collect::<ReplayResult<Vec<_>>>()?;

@@ -9,9 +9,9 @@ use libosu::{
 };
 
 #[cfg(feature = "replay-data")]
-fn compare_action_data(replay: &Replay, replay2: &Replay) {
-    let action_data = replay.parse_action_data().unwrap();
-    let action_data2 = replay2.parse_action_data().unwrap();
+fn compare_action_data(replay: &Replay, replay2: &Replay) -> Result<()> {
+    let action_data = replay.parse_action_data()?;
+    let action_data2 = replay2.parse_action_data()?;
 
     assert_eq!(action_data.frames.len(), action_data2.frames.len());
     assert_eq!(action_data.rng_seed, action_data2.rng_seed);
@@ -22,6 +22,7 @@ fn compare_action_data(replay: &Replay, replay2: &Replay) {
         assert!((a.y - b.y).abs() < 0.001);
         assert_eq!(a.buttons, b.buttons);
     }
+    Ok(())
 }
 
 #[test]
@@ -54,14 +55,14 @@ fn test_replay_writer_with(path: impl AsRef<Path>) -> Result<()> {
     assert_eq!(replay.life_graph, replay2.life_graph);
 
     #[cfg(feature = "replay-data")]
-    compare_action_data(&replay, &replay2);
+    compare_action_data(&replay, &replay2)?;
 
     Ok(())
 }
 
 #[cfg(feature = "replay-data")]
 #[test]
-fn test_replay_action_update() {
+fn test_replay_action_update() -> Result<()> {
     let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
     let replay = Replay::parse(&mut osr).unwrap();
     let actions = replay.parse_action_data().unwrap();
@@ -69,7 +70,8 @@ fn test_replay_action_update() {
     let mut replay2 = replay.clone();
     replay2.update_action_data(&actions).unwrap();
 
-    compare_action_data(&replay, &replay2);
+    compare_action_data(&replay, &replay2)?;
+    Ok(())
 }
 
 #[test]
@@ -109,57 +111,58 @@ fn test_replay_parse_header() -> Result<()> {
 
 #[cfg(feature = "replay-data")]
 #[test]
-fn test_seed() {
-    let mut osr =
-        io::BufReader::new(File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap());
-    let replay = Replay::parse(&mut osr).unwrap();
+fn test_seed() -> Result<()> {
+    let mut osr = io::BufReader::new(File::open("tests/files/replay-osu_2058788_3017707256.osr")?);
+    let replay = Replay::parse(&mut osr)?;
 
-    let actions = replay.parse_action_data().unwrap();
+    let actions = replay.parse_action_data()?;
     assert_eq!(actions.rng_seed, Some(16516643));
+    Ok(())
 }
 
 #[test]
-fn test_parse_after_actions() {
+fn test_parse_after_actions() -> Result<()> {
     {
         let mut osr =
-            File::open("tests/files/ - nekodex - new beginnings [tutorial] (2020-12-16) Osu.osr")
-                .unwrap();
-        let replay = Replay::parse(&mut osr).unwrap();
+            File::open("tests/files/ - nekodex - new beginnings [tutorial] (2020-12-16) Osu.osr")?;
+        let replay = Replay::parse(&mut osr)?;
         assert_eq!(replay.score_id, None);
         assert_eq!(replay.target_practice_total_accuracy, None);
     }
 
     {
-        let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr").unwrap();
-        let replay = Replay::parse(&mut osr).unwrap();
+        let mut osr = File::open("tests/files/replay-osu_2058788_3017707256.osr")?;
+        let replay = Replay::parse(&mut osr)?;
         assert_eq!(replay.score_id, Some(3017707256));
         assert_eq!(replay.target_practice_total_accuracy, None);
     }
+
+    Ok(())
 }
 
 #[cfg(feature = "replay-data")]
-fn lzma_encode(data: &[u8]) -> Vec<u8> {
+fn lzma_encode(data: &[u8]) -> Result<Vec<u8>> {
     use xz2::{
         stream::{LzmaOptions, Stream},
         write::XzEncoder,
     };
     let mut buf = Vec::new();
-    let opts = LzmaOptions::new_preset(0).unwrap();
-    let stream = Stream::new_lzma_encoder(&opts).unwrap();
+    let opts = LzmaOptions::new_preset(0)?;
+    let stream = Stream::new_lzma_encoder(&opts)?;
     {
         let mut xz = XzEncoder::new_stream(&mut buf, stream);
-        xz.write_all(data).unwrap();
+        xz.write_all(data)?;
     }
-    buf
+    Ok(buf)
 }
 
 #[cfg(feature = "replay-data")]
 #[test]
-fn test_replay_action_parser() {
+fn test_replay_action_parser() -> Result<()> {
     let actions_text = "1|32.1|300.734|0,32|500.5123|0|10,-12345|0|0|734243";
-    let data = lzma_encode(actions_text.as_bytes());
+    let data = lzma_encode(actions_text.as_bytes())?;
     let actions_reader = Cursor::new(data);
-    let action_data = ReplayActionData::parse(actions_reader).unwrap();
+    let action_data = ReplayActionData::parse(actions_reader)?;
     let actions = &action_data.frames;
 
     assert_eq!(actions.len(), 2);
@@ -175,12 +178,13 @@ fn test_replay_action_parser() {
     assert_eq!(actions[1].buttons, Buttons::K2 | Buttons::M2);
 
     assert_eq!(action_data.rng_seed, Some(734243));
+    Ok(())
 }
 
 #[test]
-fn test_replay_parse() {
-    let mut osr = File::open("tests/files/replay-osu_1816113_2892542031.osr").unwrap();
-    let replay = Replay::parse(&mut osr).unwrap();
+fn test_replay_parse() -> Result<()> {
+    let mut osr = File::open("tests/files/replay-osu_1816113_2892542031.osr")?;
+    let replay = Replay::parse(&mut osr)?;
 
     assert_eq!(replay.mode, Mode::Osu);
     assert_eq!(replay.version, 20190906);
@@ -214,4 +218,5 @@ fn test_replay_parse() {
 
     assert_eq!(replay.score_id, Some(2892542031));
     assert_eq!(replay.target_practice_total_accuracy, None);
+    Ok(())
 }
