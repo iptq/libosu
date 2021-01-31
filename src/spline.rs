@@ -286,9 +286,9 @@ fn create_singlebezier(output: &mut Vec<P>, control_points: &[P]) {
 
     let mut left_child = vec![P::new(0.0, 0.0); count * 2 - 1];
 
-    let mut l_buf = vec![P::new(0.0, 0.0); control_points.len() * 2 - 1];
-    let mut r_buf = vec![P::new(0.0, 0.0); control_points.len()];
-    let mut midpoints_buf = vec![P::new(0.0, 0.0); control_points.len()];
+    let mut l_buf = vec![P::new(0.0, 0.0); count * 2 - 1];
+    let mut r_buf = vec![P::new(0.0, 0.0); count];
+    let mut midpoints_buf = vec![P::new(0.0, 0.0); count];
 
     while !to_flatten.is_empty() {
         let mut parent = to_flatten.pop().unwrap();

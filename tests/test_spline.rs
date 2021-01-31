@@ -41,7 +41,6 @@ test_spline! {
 
 #[test]
 fn test_spline_points() {
-    let before = Instant::now();
     for _ in 0..10000 {
         let spline = Spline::from_control(
             libosu::prelude::SliderSplineKind::Bezier,
@@ -60,6 +59,4 @@ fn test_spline_points() {
             include!("spline_points_list.in"),
         );
     }
-    let elapsed = before.elapsed();
-    panic!("{}ms elapsed", elapsed.as_millis());
 }
