@@ -42,7 +42,7 @@ test_spline! {
 #[test]
 fn test_spline_points() {
     let before = Instant::now();
-    for _ in 0..1_000_000 {
+    for _ in 0..10000 {
         let spline = Spline::from_control(
             libosu::prelude::SliderSplineKind::Bezier,
             &[
