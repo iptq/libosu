@@ -4,14 +4,14 @@ use std::str::FromStr;
 
 use crate::errors::ParseError;
 use crate::hitsounds::SampleSet;
-use crate::timing::TimestampMillis;
+use crate::timing::Millis;
 
 /// Info for uninherited timing point
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UninheritedTimingInfo {
     /// Milliseconds per beat (aka beat duration)
-    pub mpb: f64,
+    pub mpb: Millis,
 
     /// The number of beats in a single measure
     pub meter: u32,
@@ -44,7 +44,7 @@ pub enum TimingPointKind {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TimingPoint {
     /// The timestamp of this timing point, represented as a `TimeLocation`.
-    pub time: TimestampMillis,
+    pub time: Millis,
 
     /// Whether or not Kiai time should be on for this timing point.
     pub kiai: bool,
@@ -99,7 +99,7 @@ impl FromStr for TimingPoint {
 
         // calculate bpm from mpb
         let _ = 60_000.0 / mpb;
-        let time = TimestampMillis(timestamp);
+        let time = Millis(timestamp);
 
         let timing_point = TimingPoint {
             kind: if inherited {
@@ -107,7 +107,10 @@ impl FromStr for TimingPoint {
                     slider_velocity: -100.0 / mpb,
                 })
             } else {
-                TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, meter })
+                TimingPointKind::Uninherited(UninheritedTimingInfo {
+                    mpb: Millis(mpb as i32),
+                    meter,
+                })
             },
             kiai,
             sample_set: match sample_set {
@@ -136,7 +139,7 @@ impl fmt::Display for TimingPoint {
         let (beat_length, meter) = match self.kind {
             TimingPointKind::Inherited(InheritedTimingInfo {
                 slider_velocity, ..
-            }) => (-100.0 / slider_velocity, 0),
+            }) => (Millis((-100.0 / slider_velocity) as i32), 0),
             TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, meter, .. }) => (mpb, meter),
         };
 
@@ -144,7 +147,7 @@ impl fmt::Display for TimingPoint {
             f,
             "{},{},{},{},{},{},{},{}",
             self.time.0,
-            beat_length,
+            beat_length.0,
             meter,
             self.sample_set as i32,
             self.sample_index,

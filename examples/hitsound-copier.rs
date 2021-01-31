@@ -8,7 +8,7 @@ use libosu::{
     beatmap::Beatmap,
     hitobject::{HitObjectKind, SliderInfo, SpinnerInfo},
     hitsounds::{Additions, SampleSet},
-    timing::TimestampMillis,
+    timing::Millis,
 };
 use structopt::StructOpt;
 
@@ -52,7 +52,7 @@ fn main() -> Result<()> {
 
 #[derive(Debug)]
 struct HitsoundInfo {
-    time: TimestampMillis,
+    time: Millis,
     sample_set: SampleSet,
     additions_set: SampleSet,
     additions: Additions,
@@ -112,12 +112,12 @@ fn collect_hitsounds(beatmap: &Beatmap) -> Result<Vec<HitsoundInfo>> {
                         *addition_set
                     };
                     hitsounds.push(HitsoundInfo {
-                        time: TimestampMillis(time as i32),
+                        time: Millis(time as i32),
                         sample_set: edge_sample_set,
                         additions_set: edge_addition_set,
                         additions: *additions,
                     });
-                    time += duration;
+                    time += duration.0 as f64;
                 }
             }
             // spinners get 1 hitsound at the end
@@ -171,7 +171,7 @@ fn write_hitsounds(hitsounds: &Vec<HitsoundInfo>, beatmap: &mut Beatmap) -> Resu
             } else if let HitObjectKind::Slider(SliderInfo { num_repeats, .. }) = ho.kind {
                 let time_diff = (hitsound.time.0 - ho.start_time.0) as f64;
                 let duration = beatmap.get_slider_duration(ho).unwrap();
-                let num_repeats_approx = time_diff / duration;
+                let num_repeats_approx = time_diff / duration.0 as f64;
                 let num_repeats_rounded = num_repeats_approx.round();
                 if num_repeats_rounded as u32 > num_repeats {
                     continue;

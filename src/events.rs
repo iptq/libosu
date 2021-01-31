@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use crate::errors::ParseError;
 use crate::math::Point;
-use crate::timing::TimestampMillis;
+use crate::timing::Millis;
 
 /// Beatmap event
 #[non_exhaustive]
@@ -40,7 +40,7 @@ pub struct BackgroundEvent {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct VideoEvent {
     /// The timestamp at which the video starts
-    pub start_time: TimestampMillis,
+    pub start_time: Millis,
 
     /// Location of the background image relative to the beatmap directory.
     pub filename: String,
@@ -54,10 +54,10 @@ pub struct VideoEvent {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BreakEvent {
     /// The timestamp at which the break starts
-    pub start_time: TimestampMillis,
+    pub start_time: Millis,
 
     /// The timestamp at which the break ends
-    pub end_time: TimestampMillis,
+    pub end_time: Millis,
 }
 
 impl FromStr for Event {
@@ -89,7 +89,7 @@ impl FromStr for Event {
                     Point::new(0, 0)
                 };
                 Event::Video(VideoEvent {
-                    start_time: TimestampMillis(start_time),
+                    start_time: Millis(start_time),
                     filename,
                     offset,
                 })
@@ -98,8 +98,8 @@ impl FromStr for Event {
                 let start_time = parts[1].parse::<i32>()?;
                 let end_time = parts[2].parse::<i32>()?;
                 Event::Break(BreakEvent {
-                    start_time: TimestampMillis(start_time),
-                    end_time: TimestampMillis(end_time),
+                    start_time: Millis(start_time),
+                    end_time: Millis(end_time),
                 })
             }
             _ => Event::Storyboard(line.to_string()),
@@ -118,9 +118,9 @@ impl fmt::Display for Event {
             Event::Video(evt) => write!(
                 f,
                 "1,{},{:?},{},{}",
-                evt.start_time, evt.filename, evt.offset.x, evt.offset.y
+                evt.start_time.0, evt.filename, evt.offset.x, evt.offset.y
             )?,
-            Event::Break(evt) => write!(f, "2,{},{}", evt.start_time, evt.end_time)?,
+            Event::Break(evt) => write!(f, "2,{},{}", evt.start_time.0, evt.end_time.0)?,
             Event::Storyboard(line) => write!(f, "{}", line)?,
         }
 
