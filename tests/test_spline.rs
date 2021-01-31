@@ -1,8 +1,8 @@
-use std::fs::File;
 use std::io::Read;
 use std::str::FromStr;
+use std::{fs::File, time::Instant};
 
-use libosu::{beatmap::Beatmap, hitobject::HitObjectKind, spline::Spline};
+use libosu::{beatmap::Beatmap, hitobject::HitObjectKind, math::Point, spline::Spline};
 
 macro_rules! test_spline {
     ($($name:ident: $id:expr,)*) => {
@@ -37,4 +37,29 @@ test_spline! {
     test_spline_774965: 774965,
     test_spline_804683: 804683,
     test_spline_1595588: 1595588,
+}
+
+#[test]
+fn test_spline_points() {
+    let before = Instant::now();
+    for _ in 0..1_000_000 {
+        let spline = Spline::from_control(
+            libosu::prelude::SliderSplineKind::Bezier,
+            &[
+                Point { x: 0, y: 0 },
+                Point { x: 0, y: 10 },
+                Point { x: 20, y: 5 },
+            ],
+            Some(100.0),
+        );
+        assert_eq!(
+            spline.spline_points,
+            include!("spline_points_list.in"),
+            "{:#?}\n!=\n{:#?}",
+            spline.spline_points,
+            include!("spline_points_list.in"),
+        );
+    }
+    let elapsed = before.elapsed();
+    panic!("{}ms elapsed", elapsed.as_millis());
 }
