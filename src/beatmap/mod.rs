@@ -6,7 +6,7 @@ use crate::enums::{GridSize, Mode};
 use crate::events::Event;
 use crate::hitobject::{HitObject, HitObjectKind};
 use crate::hitsounds::SampleSet;
-use crate::timing::{TimestampMillis, TimingPoint};
+use crate::timing::{Millis, TimingPoint};
 
 pub use self::format::*;
 
@@ -60,14 +60,14 @@ impl Difficulty {
     /// - AR > 5: preempt = 1200ms - 750ms * (AR - 5) / 5
     ///
     /// [1]: https://osu.ppy.sh/wiki/en/Beatmapping/Approach_rate
-    pub fn approach_preempt(&self) -> u32 {
-        if self.approach_rate < 5.0 {
-            1200 + (600.0 * (5.0 - self.approach_rate)) as u32 / 5
+    pub fn approach_preempt(&self) -> Millis {
+        Millis(if self.approach_rate < 5.0 {
+            1200 + (600.0 * (5.0 - self.approach_rate)) as i32 / 5
         } else if self.approach_rate > 5.0 {
-            1200 - (750.0 * (self.approach_rate - 5.0)) as u32 / 5
+            1200 - (750.0 * (self.approach_rate - 5.0)) as i32 / 5
         } else {
             1200
-        }
+        })
     }
 
     /// Calculates the duration of time (in milliseconds) it takes the hitobject to fade in
@@ -80,14 +80,14 @@ impl Difficulty {
     /// - AR > 5: fade_in = 800ms - 500ms * (AR - 5) / 5
     ///
     /// [1]: https://osu.ppy.sh/wiki/en/Beatmapping/Approach_rate
-    pub fn approach_fade_time(&self) -> u32 {
-        if self.approach_rate < 5.0 {
-            800 + (400.0 * (5.0 - self.approach_rate)) as u32 / 5
+    pub fn approach_fade_time(&self) -> Millis {
+        Millis(if self.approach_rate < 5.0 {
+            800 + (400.0 * (5.0 - self.approach_rate)) as i32 / 5
         } else if self.approach_rate > 5.0 {
-            800 - (500.0 * (self.approach_rate - 5.0)) as u32 / 5
+            800 - (500.0 * (self.approach_rate - 5.0)) as i32 / 5
         } else {
             800
-        }
+        })
     }
 }
 
@@ -102,10 +102,10 @@ pub struct Beatmap {
     pub audio_filename: String,
 
     /// The amount of time (in milliseconds) added before the audio file begins playing. Useful for audio files that begin immediately.
-    pub audio_leadin: u32,
+    pub audio_leadin: Millis,
 
     /// When (in milliseconds) the audio file should begin playing when selected in the song selection menu.
-    pub preview_time: u32,
+    pub preview_time: Millis,
 
     /// Whether or not to show the countdown
     pub countdown: bool,
@@ -192,8 +192,8 @@ impl Default for Beatmap {
             version: 0,
 
             audio_filename: String::new(),
-            audio_leadin: 0,
-            preview_time: 0,
+            audio_leadin: Millis(0),
+            preview_time: Millis(0),
             countdown: false,
             sample_set: SampleSet::None,
             stack_leniency: 0.7,
@@ -230,7 +230,7 @@ impl Default for Beatmap {
 
 impl Beatmap {
     /// Returns the timing point associated with the timing section to which the given time belongs.
-    pub fn locate_timing_point(&self, time: impl Into<TimestampMillis>) -> Option<TimingPoint> {
+    pub fn locate_timing_point(&self, time: impl Into<Millis>) -> Option<TimingPoint> {
         // TODO: make this efficient
         let mut tp = None;
         let time = time.into();
@@ -243,7 +243,7 @@ impl Beatmap {
     }
 
     /// Returns the hitobject located at the given time.
-    pub fn locate_hitobject(&self, time: impl Into<TimestampMillis>) -> Option<HitObject> {
+    pub fn locate_hitobject(&self, time: impl Into<Millis>) -> Option<HitObject> {
         let time = time.into();
         for hit_object in self.hit_objects.iter() {
             if hit_object.start_time == time {

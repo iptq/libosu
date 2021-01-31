@@ -9,7 +9,7 @@ use libosu::{
     events::{BackgroundEvent, BreakEvent, Event},
     hitsounds::SampleSet,
     math::Point,
-    timing::TimestampMillis,
+    timing::Millis,
 };
 
 fn load_beatmap(path: impl AsRef<Path>) -> Beatmap {
@@ -25,8 +25,8 @@ fn parse_taeyang_remote_control() {
     let beatmap = load_beatmap("tests/files/774965.osu");
 
     assert_eq!(beatmap.audio_filename, "control.mp3");
-    assert_eq!(beatmap.audio_leadin, 1000);
-    assert_eq!(beatmap.preview_time, 85495);
+    assert_eq!(beatmap.audio_leadin, Millis(1000));
+    assert_eq!(beatmap.preview_time, Millis(85495));
     assert_eq!(beatmap.countdown, false);
     assert_eq!(beatmap.sample_set, SampleSet::Normal);
     assert_eq!(beatmap.stack_leniency, 0.8);
@@ -67,8 +67,8 @@ fn parse_taeyang_remote_control() {
                 offset: Point::new(0, 0)
             }),
             Event::Break(BreakEvent {
-                start_time: TimestampMillis(184604),
-                end_time: TimestampMillis(189653),
+                start_time: Millis(184604),
+                end_time: Millis(189653),
             })
         ]
     );

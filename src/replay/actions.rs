@@ -1,6 +1,8 @@
 #[cfg(feature = "replay-data")]
 use std::io::Read;
 
+use crate::timing::Millis;
+
 #[cfg(feature = "replay-data")]
 use super::ReplayResult;
 
@@ -11,7 +13,7 @@ pub struct ReplayAction {
     ///
     /// After osu! version `20130319` if this is the last action in the stream
     /// it may be set `-12345` indicating the `buttons` field holds the RNG seed for this score.
-    pub time: i64,
+    pub time: Millis,
 
     /// Cursor position X, in the range 0-512
     pub x: f32,
@@ -76,12 +78,12 @@ impl ReplayActionData {
             .filter(|action_str| !action_str.trim().is_empty())
             .map(|action_str| {
                 let mut parts = action_str.split('|');
-                let time = parts.next().unwrap().parse::<i64>()?;
+                let time = Millis(parts.next().unwrap().parse::<i32>()?);
                 let x = parts.next().unwrap().parse::<f32>()?;
                 let y = parts.next().unwrap().parse::<f32>()?;
                 let bits = parts.next().unwrap().parse::<u32>()?;
 
-                let buttons = if time == -12345 {
+                let buttons = if time.0 == -12345 {
                     // allow this
                     unsafe { Buttons::from_bits_unchecked(bits) }
                 } else {
@@ -96,7 +98,7 @@ impl ReplayActionData {
             })
             .collect::<ReplayResult<Vec<_>>>()?;
 
-        let has_seed = matches!(frames.last(), Some(ReplayAction { time: -12345, .. }));
+        let has_seed = matches!(frames.last(), Some(ReplayAction { time: Millis(-12345), .. }));
         let rng_seed = if has_seed {
             let last_element = frames.pop().expect("has_seed checked");
             Some(last_element.buttons.bits())

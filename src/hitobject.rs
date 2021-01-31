@@ -8,7 +8,7 @@ use crate::errors::{ParseError, ParseResult};
 use crate::hitsounds::{Additions, SampleInfo, SampleSet};
 use crate::math::Point;
 use crate::spline::Spline;
-use crate::timing::TimestampMillis;
+use crate::timing::Millis;
 
 /// Distinguishes between different types of slider splines.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -70,7 +70,7 @@ pub struct SliderInfo {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SpinnerInfo {
     /// The time at which the slider ends.
-    pub end_time: TimestampMillis,
+    pub end_time: Millis,
 }
 
 /// Distinguishes between different types of hit objects.
@@ -112,7 +112,7 @@ pub struct HitObject {
     pub pos: Point<i32>,
 
     /// When this hit object occurs during the map.
-    pub start_time: TimestampMillis,
+    pub start_time: Millis,
 
     /// The kind of HitObject this represents (circle, slider, spinner).
     pub kind: HitObjectKind,
@@ -188,7 +188,7 @@ impl FromStr for HitObject {
         let additions = Additions::from_bits(additions_bits)
             .ok_or(ParseError::InvalidAdditions(additions_bits))?;
 
-        let start_time = TimestampMillis(timestamp);
+        let start_time = Millis(timestamp);
 
         // color is the top 3 bits of the "type" string, since there's a possible of 8 different
         // combo colors max
@@ -284,7 +284,7 @@ impl FromStr for HitObject {
                     SampleInfo::default()
                 };
                 HitObjectKind::Spinner(SpinnerInfo {
-                    end_time: TimestampMillis(end_time),
+                    end_time: Millis(end_time),
                 })
             }
             o => {
@@ -354,7 +354,7 @@ impl fmt::Display for HitObject {
             }
 
             HitObjectKind::Spinner(info) => {
-                write!(f, ",{}", info.end_time)?;
+                write!(f, ",{}", info.end_time.0)?;
             }
         }
 

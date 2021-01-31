@@ -221,12 +221,12 @@ impl Replay {
         let mods = Mods::from_bits(mods_value).ok_or(ReplayError::UnexpectedMods(mods_value))?;
         let life_graph = reader
             .read_uleb128_string()?
-            .split(",")
+            .split(',')
             .filter_map(|frame| {
                 if frame.is_empty() {
                     None
                 } else {
-                    Some(frame.split("|"))
+                    Some(frame.split('|'))
                 }
             })
             .map(|mut frame| {

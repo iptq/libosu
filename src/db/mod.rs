@@ -4,7 +4,7 @@ use std::io;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::enums::{Grade, Mode, Mods, RankedStatus};
+use crate::{enums::{Grade, Mode, Mods, RankedStatus}, timing::Millis};
 
 pub use self::binary::{Error, ReadBytesOsu, WriteBytesOsu};
 
@@ -99,12 +99,12 @@ pub struct DbBeatmap {
     /// A list of calculated star ratings for different mods for mania. Empty if version less than 20140609.
     pub std_mania_rating: Vec<(Mods, f64)>,
 
-    /// The drain time in seconds.
-    pub drain_time: u32,
+    /// The drain time in milliseconds.
+    pub drain_time: Millis,
     /// The total time in milliseconds.
-    pub total_time: u32,
+    pub total_time: Millis,
     /// The preview time point in milliseconds.
-    pub preview_time: u32,
+    pub preview_time: Millis,
 
     /// Timing points for the beatmap.
     pub timing_points: Vec<DbBeatmapTimingPoint>,
@@ -276,9 +276,9 @@ impl DbBeatmap {
             std_taiko_rating: Self::read_star_rating(&mut reader)?,
             std_ctb_rating: Self::read_star_rating(&mut reader)?,
             std_mania_rating: Self::read_star_rating(&mut reader)?,
-            drain_time: reader.read_u32::<LittleEndian>()?,
-            total_time: reader.read_u32::<LittleEndian>()?,
-            preview_time: reader.read_u32::<LittleEndian>()?,
+            drain_time: Millis(reader.read_i32::<LittleEndian>()? * 1000), // the file contains seconds, not milliseconds
+            total_time: Millis(reader.read_i32::<LittleEndian>()?),
+            preview_time: Millis(reader.read_i32::<LittleEndian>()?),
             timing_points: Self::read_timing_points(&mut reader)?,
             beatmap_id: reader.read_u32::<LittleEndian>()?,
             beatmap_set_id: reader.read_u32::<LittleEndian>()?,
@@ -346,7 +346,7 @@ impl Db {
 mod tests {
     use std::io::BufReader;
 
-    use crate::enums::{Grade, Mode, Mods, RankedStatus, UserPermission};
+    use crate::{enums::{Grade, Mode, Mods, RankedStatus, UserPermission}, timing::Millis};
 
     use super::{Db, DbBeatmap, DbBeatmapTimingPoint};
 
@@ -427,9 +427,9 @@ mod tests {
         ],
         std_ctb_rating: vec![],
         std_mania_rating: vec![],
-        drain_time: 31,
-        total_time: 34109,
-        preview_time: 5,
+        drain_time: Millis(31000),
+        total_time: Millis(34109),
+        preview_time: Millis(5),
         timing_points: vec![
             DbBeatmapTimingPoint {
                 bpm: 566.037735849057,

@@ -5,13 +5,13 @@ use std::str::FromStr;
 use num::FromPrimitive;
 use regex::Regex;
 
-use crate::color::Color;
 use crate::enums::{GridSize, Mode};
 use crate::errors::ParseError;
 use crate::events::Event;
 use crate::hitobject::HitObject;
 use crate::hitsounds::SampleSet;
 use crate::timing::TimingPoint;
+use crate::{color::Color, timing::Millis};
 
 use super::Beatmap;
 
@@ -152,10 +152,14 @@ impl Beatmap {
                                 kvalue!(line_no, captures[beatmap.audio_filename]: str)
                             }
                             "AudioLeadIn" => {
-                                kvalue!(line_no, captures[beatmap.audio_leadin]: parse(u32))
+                                let ms =
+                                    kvalue!(line_no, captures[beatmap.audio_leadin] => parse(i32));
+                                beatmap.audio_leadin = Millis(ms);
                             }
                             "PreviewTime" => {
-                                kvalue!(line_no, captures[beatmap.preview_time]: parse(u32))
+                                let ms =
+                                    kvalue!(line_no, captures[beatmap.preview_time] => parse(i32));
+                                beatmap.preview_time = Millis(ms);
                             }
                             "Countdown" => {
                                 kvalue!(line_no, captures[beatmap.countdown]: parse(bool))
@@ -344,8 +348,8 @@ impl fmt::Display for Beatmap {
         // general
         writeln!(f, "[General]")?;
         writeln!(f, "AudioFilename: {}", self.audio_filename)?;
-        writeln!(f, "AudioLeadIn: {}", self.audio_leadin)?;
-        writeln!(f, "PreviewTime: {}", self.preview_time)?;
+        writeln!(f, "AudioLeadIn: {}", self.audio_leadin.0)?;
+        writeln!(f, "PreviewTime: {}", self.preview_time.0)?;
         writeln!(f, "Countdown: {}", if self.countdown { 1 } else { 0 })?;
         writeln!(
             f,
