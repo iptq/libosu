@@ -117,7 +117,7 @@ fn collect_hitsounds(beatmap: &Beatmap) -> Result<Vec<HitsoundInfo>> {
                         additions_set: edge_addition_set,
                         additions: *additions,
                     });
-                    time += duration.0 as f64;
+                    time += duration;
                 }
             }
             // spinners get 1 hitsound at the end
@@ -171,7 +171,7 @@ fn write_hitsounds(hitsounds: &Vec<HitsoundInfo>, beatmap: &mut Beatmap) -> Resu
             } else if let HitObjectKind::Slider(SliderInfo { num_repeats, .. }) = ho.kind {
                 let time_diff = (hitsound.time.0 - ho.start_time.0) as f64;
                 let duration = beatmap.get_slider_duration(ho).unwrap();
-                let num_repeats_approx = time_diff / duration.0 as f64;
+                let num_repeats_approx = time_diff / duration;
                 let num_repeats_rounded = num_repeats_approx.round();
                 if num_repeats_rounded as u32 > num_repeats {
                     continue;

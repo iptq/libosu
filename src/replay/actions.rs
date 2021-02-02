@@ -78,6 +78,7 @@ impl ReplayActionData {
             .filter(|action_str| !action_str.trim().is_empty())
             .map(|action_str| {
                 let mut parts = action_str.split('|');
+                println!("{:?}", parts);
                 let time = Millis(parts.next().unwrap().parse::<i32>()?);
                 let x = parts.next().unwrap().parse::<f32>()?;
                 let y = parts.next().unwrap().parse::<f32>()?;
@@ -98,7 +99,13 @@ impl ReplayActionData {
             })
             .collect::<ReplayResult<Vec<_>>>()?;
 
-        let has_seed = matches!(frames.last(), Some(ReplayAction { time: Millis(-12345), .. }));
+        let has_seed = matches!(
+            frames.last(),
+            Some(ReplayAction {
+                time: Millis(-12345),
+                ..
+            })
+        );
         let rng_seed = if has_seed {
             let last_element = frames.pop().expect("has_seed checked");
             Some(last_element.buttons.bits())

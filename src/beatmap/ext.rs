@@ -16,14 +16,14 @@ impl Beatmap {
             HitObjectKind::Circle => Some(ho.start_time),
             HitObjectKind::Slider(_) => {
                 let duration = self.get_slider_duration(ho)?;
-                Some(Millis(ho.start_time.0 + duration.0))
+                Some(Millis(ho.start_time.0 + duration as i32))
             }
             HitObjectKind::Spinner(SpinnerInfo { end_time }) => Some(end_time),
         }
     }
 
     /// Returns the slider duration for a given slider
-    pub fn get_slider_duration(&self, ho: &HitObject) -> Option<Millis> {
+    pub fn get_slider_duration(&self, ho: &HitObject) -> Option<f64> {
         let info = match &ho.kind {
             HitObjectKind::Slider(info) => info,
             _ => return None,
@@ -38,7 +38,7 @@ impl Beatmap {
         let beat_duration = 60_000.0 / bpm;
         let duration = beats_number * beat_duration;
 
-        Some(Millis(duration as i32))
+        Some(duration)
     }
 
     /// Returns the slider velocity at the given time

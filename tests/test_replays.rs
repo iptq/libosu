@@ -6,6 +6,7 @@ use anyhow::Result;
 use libosu::{
     enums::{Mode, Mods},
     replay::{Buttons, Replay, ReplayActionData},
+    timing::Millis,
 };
 
 #[cfg(feature = "replay-data")]
@@ -167,12 +168,12 @@ fn test_replay_action_parser() -> Result<()> {
 
     assert_eq!(actions.len(), 2);
 
-    assert_eq!(actions[0].time, 1);
+    assert_eq!(actions[0].time, Millis(1));
     assert_eq!(actions[0].x, 32.1);
     assert_eq!(actions[0].y, 300.734);
     assert_eq!(actions[0].buttons, Buttons::empty());
 
-    assert_eq!(actions[1].time, 32);
+    assert_eq!(actions[1].time, Millis(32));
     assert_eq!(actions[1].x, 500.5123);
     assert_eq!(actions[1].y, 0.0);
     assert_eq!(actions[1].buttons, Buttons::K2 | Buttons::M2);
