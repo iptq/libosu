@@ -344,7 +344,7 @@ impl Replay {
 
                 let this_frame = format!(
                     "{}|{}|{}|{}",
-                    frame.time,
+                    frame.time.0,
                     frame.x,
                     frame.y,
                     frame.buttons.bits()
