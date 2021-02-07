@@ -25,6 +25,9 @@ extern crate thiserror;
 #[macro_use]
 extern crate serde;
 
+/// Provides NotNan
+pub extern crate ordered_float;
+
 pub(crate) mod float;
 pub(crate) mod utils;
 
@@ -74,6 +77,7 @@ pub mod prelude {
     pub use crate::replay::*;
     pub use crate::spline::*;
     pub use crate::timing::*;
+    pub use ordered_float::*;
 }
 
 /// Says "hello there"
