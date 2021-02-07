@@ -4,7 +4,10 @@ use std::io;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::{enums::{Grade, Mode, Mods, RankedStatus}, timing::Millis};
+use crate::{
+    enums::{Grade, Mode, Mods, RankedStatus},
+    timing::Millis,
+};
 
 pub use self::binary::{Error, ReadBytesOsu, WriteBytesOsu};
 
@@ -346,7 +349,10 @@ impl Db {
 mod tests {
     use std::io::BufReader;
 
-    use crate::{enums::{Grade, Mode, Mods, RankedStatus, UserPermission}, timing::Millis};
+    use crate::{
+        enums::{Grade, Mode, Mods, RankedStatus, UserPermission},
+        timing::Millis,
+    };
 
     use super::{Db, DbBeatmap, DbBeatmapTimingPoint};
 

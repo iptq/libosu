@@ -101,8 +101,7 @@ impl Spline {
                 let mut last_index = 0;
                 let mut i = 0;
                 while i < points.len() {
-                    let multipart_segment =
-                        i < points.len() - 2 && (points[i] == points[i + 1]);
+                    let multipart_segment = i < points.len() - 2 && (points[i] == points[i + 1]);
                     if multipart_segment || i == points.len() - 1 {
                         let sub = &points[last_index..i + 1];
                         if sub.len() == 2 {
@@ -239,7 +238,13 @@ fn subdivide(control_points: &[P], l: &mut [P], r: &mut [P], midpoints_buf: &mut
     }
 }
 
-fn approximate(control_points: &[P], output: &mut Vec<P>, l_buf: &mut [P], r_buf: &mut [P], midpoints_buf: &mut [P]) {
+fn approximate(
+    control_points: &[P],
+    output: &mut Vec<P>,
+    l_buf: &mut [P],
+    r_buf: &mut [P],
+    midpoints_buf: &mut [P],
+) {
     let count = control_points.len();
 
     subdivide(&control_points, l_buf, r_buf, midpoints_buf);
@@ -250,8 +255,8 @@ fn approximate(control_points: &[P], output: &mut Vec<P>, l_buf: &mut [P], r_buf
 
     for i in 1..count - 1 {
         let index = 2 * i;
-        let p =
-            (l_buf[index] * P::new(2.0, 2.0) + l_buf[index - 1] + l_buf[index + 1]) * P::new(0.25, 0.25);
+        let p = (l_buf[index] * P::new(2.0, 2.0) + l_buf[index - 1] + l_buf[index + 1])
+            * P::new(0.25, 0.25);
         output.push(p);
     }
 }
@@ -293,7 +298,13 @@ fn create_singlebezier(output: &mut Vec<P>, control_points: &[P]) {
     while !to_flatten.is_empty() {
         let mut parent = to_flatten.pop().unwrap();
         if is_flat_enough(&parent, TOLERANCE_SQ) {
-            approximate(&parent, output, &mut l_buf[..count * 2 - 1], &mut r_buf[..count], &mut midpoints_buf[..count]);
+            approximate(
+                &parent,
+                output,
+                &mut l_buf[..count * 2 - 1],
+                &mut r_buf[..count],
+                &mut midpoints_buf[..count],
+            );
             free_buffers.push(parent);
             continue;
         }
@@ -302,7 +313,12 @@ fn create_singlebezier(output: &mut Vec<P>, control_points: &[P]) {
             .pop()
             .unwrap_or_else(|| vec![P::new(0.0, 0.0); count]);
 
-        subdivide(&parent, &mut left_child, &mut right_child, &mut midpoints_buf[..count]);
+        subdivide(
+            &parent,
+            &mut left_child,
+            &mut right_child,
+            &mut midpoints_buf[..count],
+        );
 
         // We re-use the buffer of the parent for one of the children, so that we save one allocation per iteration.
         parent[..count].clone_from_slice(&left_child[..count]);
