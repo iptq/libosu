@@ -1,12 +1,5 @@
-// WARNING: totally unsafe vector manipulation below!
-// TODO: figure out if this is type-safe
-
-use std::collections::VecDeque;
-use std::mem::ManuallyDrop;
-
 use ordered_float::NotNan;
 
-use crate::float::compare_eq_f64;
 use crate::hitobject::SliderSplineKind;
 use crate::math::{Math, Point};
 
@@ -104,90 +97,28 @@ impl Spline {
                 c
             }
             SliderSplineKind::Bezier => {
-                let mut idx = 0;
-                let mut whole = Vec::new();
-                let mut cumul_length = 0.0;
-                let mut last_circ: Option<P> = None;
-
-                let mut check_push = |whole: &mut Vec<P>, point: P| -> bool {
-                    let result;
-                    if let Some(circ) = last_circ {
-                        let distance = circ.distance(point);
-                        let total_len = cumul_length + distance;
-                        if let Some(pixel_length) = pixel_length {
-                            if total_len < pixel_length {
-                                whole.push(point);
-                                cumul_length += circ.distance(point);
-                                last_circ = Some(point);
-                                result = true;
-                            } else {
-                                let push_amt = pixel_length - cumul_length;
-                                let new_end = Math::point_on_line(circ, point, push_amt);
-                                whole.push(new_end);
-                                last_circ = Some(new_end);
-                                result = false;
-                            }
+                let mut output = Vec::new();
+                let mut last_index = 0;
+                let mut i = 0;
+                while i < points.len() {
+                    let multipart_segment =
+                        i < points.len() - 2 && (points[i] == points[i + 1]);
+                    if multipart_segment || i == points.len() - 1 {
+                        let sub = &points[last_index..i + 1];
+                        if sub.len() == 2 {
+                            output.push(points[0]);
+                            output.push(points[1]);
                         } else {
-                            whole.push(point);
-                            cumul_length += circ.distance(point);
-                            last_circ = Some(point);
-                            result = true;
+                            create_singlebezier(&mut output, sub);
                         }
-                    } else {
-                        whole.push(point);
-                        last_circ = Some(point);
-                        result = true;
-                    }
-                    result
-                };
-
-                // TODO: hack to allow breaks
-                #[allow(clippy::never_loop)]
-                'outer: loop {
-                    // split the curve by red-anchors
-                    for i in 1..points.len() {
-                        if compare_eq_f64(points[i].x, points[i - 1].x)
-                            && compare_eq_f64(points[i].y, points[i - 1].y)
-                        {
-                            let spline = calculate_bezier(&points[idx..i]);
-
-                            // check if it's equal to the last thing that was added to whole
-                            if let Some(last) = whole.last() {
-                                if spline[0] != *last && !check_push(&mut whole, spline[0]) {
-                                    break 'outer;
-                                }
-                            } else if !check_push(&mut whole, spline[0]) {
-                                break 'outer;
-                            }
-
-                            // add points, making sure no 2 are the same
-                            for points in spline.windows(2) {
-                                if points[0] != points[1] && !check_push(&mut whole, points[1]) {
-                                    break 'outer;
-                                }
-                            }
-
-                            idx = i;
-                            continue;
+                        if multipart_segment {
+                            i += 1;
                         }
+                        last_index = i;
                     }
-
-                    let spline = calculate_bezier(&points[idx..]);
-                    if let Some(last) = whole.last() {
-                        if spline[0] != *last && !check_push(&mut whole, spline[0]) {
-                            break 'outer;
-                        }
-                    } else if !check_push(&mut whole, spline[0]) {
-                        break 'outer;
-                    }
-                    for points in spline.windows(2) {
-                        if points[0] != points[1] && !check_push(&mut whole, points[1]) {
-                            break 'outer;
-                        }
-                    }
-                    break;
+                    i += 1;
                 }
-                whole
+                output
             }
             _ => todo!(),
         };
@@ -196,11 +127,11 @@ impl Spline {
         let mut curr = 0.0;
         // using NotNan here because these need to be binary-searched over
         // and f64 isn't Ord
-        cumulative_lengths.push(unsafe { NotNan::unchecked_new(curr) });
+        cumulative_lengths.push(NotNan::new(curr).unwrap());
         for points in spline_points.windows(2) {
             let dist = points[0].distance(points[1]);
             curr += dist;
-            cumulative_lengths.push(unsafe { NotNan::unchecked_new(curr) });
+            cumulative_lengths.push(NotNan::new(curr).unwrap());
         }
 
         Spline {
@@ -236,7 +167,7 @@ impl Spline {
         debug!("remain={:?} mid={:?}", remain, mid);
 
         self.spline_points[limit_idx] = mid;
-        self.cumulative_lengths[limit_idx] = unsafe { NotNan::unchecked_new(to_length) };
+        self.cumulative_lengths[limit_idx] = NotNan::new(to_length).unwrap();
         debug!("spline_points[{}] = {:?}", limit_idx, mid);
         debug!("cumulative_lengths[{}] = {:?}", limit_idx, to_length);
 
@@ -257,7 +188,7 @@ impl Spline {
 
     /// Calculate the angle at the given length on the slider
     fn angle_at_length(&self, length: f64) -> P {
-        let _length_notnan = unsafe { NotNan::unchecked_new(length) };
+        let _length_notnan = NotNan::new(length).unwrap();
         // match self.cumulative_lengths.binary_search(&length_notnan) {
         //     Ok(_) => {}
         //     Err(_) => {}
@@ -268,7 +199,7 @@ impl Spline {
     /// Calculate the point at which the slider ball would be after it has traveled a distance of
     /// `length` into the slider.
     pub fn point_at_length(&self, length: f64) -> P {
-        let length_notnan = unsafe { NotNan::unchecked_new(length) };
+        let length_notnan = NotNan::new(length).unwrap();
         match self.cumulative_lengths.binary_search(&length_notnan) {
             Ok(idx) => self.spline_points[idx],
             Err(idx) => {
@@ -286,107 +217,99 @@ impl Spline {
                 let proportion = (length - len1) / (len2 - len1);
 
                 let (p1, p2) = (self.spline_points[idx - 1], self.spline_points[idx]);
-                (p2 - p1) * proportion + p1
+                (p2 - p1) * P::new(proportion, proportion) + p1
             }
         }
     }
 }
 
 type P = Point<f64>;
-type V<T> = (*mut T, usize, usize);
-fn calculate_bezier(points: &[P]) -> Vec<P> {
-    // trivial case
-    if points.len() == 2 {
-        return points.to_vec();
-    }
 
-    let points = points.to_vec();
-    let mut output = Vec::new();
-    let n = points.len() - 1;
-    let last = points[n];
+fn subdivide(control_points: &[P], l: &mut [P], r: &mut [P], midpoints_buf: &mut [P]) {
+    let count = control_points.len();
+    midpoints_buf.copy_from_slice(control_points);
 
-    let mut to_flatten = VecDeque::new();
-    let mut free_buffers = VecDeque::new();
+    for i in 0..count {
+        l[i] = midpoints_buf[0];
+        r[count - i - 1] = midpoints_buf[count - i - 1];
 
-    to_flatten.push_back(vec_to_parts(points));
-    let p = n;
-    let buf1 = vec_to_parts(vec![Point::new(0.0, 0.0); p + 1]);
-    let buf2 = vec_to_parts(vec![Point::new(0.0, 0.0); p * 2 + 1]);
-
-    let left_child = buf2;
-    while !to_flatten.is_empty() {
-        let parent = to_flatten.pop_front().unwrap();
-        let parent_slice = unsafe { std::slice::from_raw_parts_mut(parent.0, parent.1) };
-
-        if bezier_flat_enough(parent_slice) {
-            bezier_approximate(parent_slice, &mut output, buf1, buf2, p + 1);
-            free_buffers.push_front(parent);
-            continue;
-        }
-
-        let right_child = if free_buffers.is_empty() {
-            let buf = vec![Point::new(0.0, 0.0); p + 1];
-            vec_to_parts(buf)
-        } else {
-            free_buffers.pop_front().unwrap()
-        };
-        bezier_subdivide(parent_slice, left_child, right_child, buf1, p + 1);
-
-        let left_child = unsafe { std::slice::from_raw_parts(left_child.0, left_child.1) };
-        parent_slice[..p + 1].clone_from_slice(&left_child[..p + 1]);
-
-        to_flatten.push_front(right_child);
-        to_flatten.push_front(parent);
-    }
-
-    output.push(last);
-    output
-}
-
-const TOLERANCE: f64 = 0.25;
-fn bezier_flat_enough(curve: &[P]) -> bool {
-    for i in 1..(curve.len() - 1) {
-        let p = curve[i - 1] - curve[i] * 2.0 + curve[i + 1];
-        if p.x * p.x + p.y * p.y > TOLERANCE * TOLERANCE / 4.0 {
-            return false;
+        for j in 0..count - i - 1 {
+            midpoints_buf[j] = (midpoints_buf[j] + midpoints_buf[j + 1]) / P::new(2.0, 2.0);
         }
     }
-    true
 }
 
-fn bezier_approximate(curve: &[P], output: &mut Vec<P>, buf1: V<P>, buf2: V<P>, count: usize) {
-    let l = buf2;
-    let r = buf1;
-    bezier_subdivide(curve, l, r, buf1, count);
+fn approximate(control_points: &[P], output: &mut Vec<P>, l_buf: &mut [P], r_buf: &mut [P], midpoints_buf: &mut [P]) {
+    let count = control_points.len();
 
-    let l = unsafe { std::slice::from_raw_parts_mut(l.0, l.1) };
-    let r = unsafe { std::slice::from_raw_parts_mut(r.0, r.1) };
-    l[count..2 * count - 1].clone_from_slice(&r[1..count]);
-    output.push(curve[0]);
+    subdivide(&control_points, l_buf, r_buf, midpoints_buf);
 
-    for i in 1..(count - 1) {
-        let idx = 2 * i;
-        let p = (l[idx - 1] + l[idx] * 2.0 + l[idx + 1]) * 0.25;
+    l_buf[count..(count * 2) - 1].clone_from_slice(&r_buf[1..count]);
+
+    output.push(control_points[0]);
+
+    for i in 1..count - 1 {
+        let index = 2 * i;
+        let p =
+            (l_buf[index] * P::new(2.0, 2.0) + l_buf[index - 1] + l_buf[index + 1]) * P::new(0.25, 0.25);
         output.push(p);
     }
 }
 
-fn bezier_subdivide(curve: &[P], l: V<P>, r: V<P>, subdiv: V<P>, count: usize) {
-    let midpoints = unsafe { std::slice::from_raw_parts_mut(subdiv.0, subdiv.1) };
-    midpoints[..count].clone_from_slice(&curve[..count]);
-
-    let l = unsafe { std::slice::from_raw_parts_mut(l.0, l.1) };
-    let r = unsafe { std::slice::from_raw_parts_mut(r.0, r.1) };
-    for i in 0..count {
-        l[i] = midpoints[0];
-        r[count - i - 1] = midpoints[count - i - 1];
-        for j in 0..(count - i - 1) {
-            midpoints[j] = (midpoints[j] + midpoints[j + 1]) * 0.5;
+fn is_flat_enough(control_points: &[P], tolerance_sq: f64) -> bool {
+    for i in 1..control_points.len() - 1 {
+        if (control_points[i - 1] - control_points[i] * P::new(2.0, 2.0) + control_points[i + 1])
+            .length_squared()
+            > tolerance_sq
+        {
+            return false;
         }
     }
+
+    true
 }
 
-fn vec_to_parts<T>(vec: Vec<T>) -> (*mut T, usize, usize) {
-    let mut me = ManuallyDrop::new(vec);
-    (me.as_mut_ptr(), me.len(), me.capacity())
+fn create_singlebezier(output: &mut Vec<P>, control_points: &[P]) {
+    let count = control_points.len();
+    const TOLERANCE: f64 = 0.25;
+    const TOLERANCE_SQ: f64 = TOLERANCE * TOLERANCE;
+
+    if count == 0 {
+        return;
+    }
+
+    let mut to_flatten: Vec<Vec<P>> = Vec::new();
+    let mut free_buffers: Vec<Vec<P>> = Vec::new();
+
+    let last_control_point = control_points[count - 1];
+    to_flatten.push(control_points.to_vec());
+
+    let mut left_child = vec![P::new(0.0, 0.0); count * 2 - 1];
+
+    let mut l_buf = vec![P::new(0.0, 0.0); count * 2 - 1];
+    let mut r_buf = vec![P::new(0.0, 0.0); count];
+    let mut midpoints_buf = vec![P::new(0.0, 0.0); count];
+
+    while !to_flatten.is_empty() {
+        let mut parent = to_flatten.pop().unwrap();
+        if is_flat_enough(&parent, TOLERANCE_SQ) {
+            approximate(&parent, output, &mut l_buf[..count * 2 - 1], &mut r_buf[..count], &mut midpoints_buf[..count]);
+            free_buffers.push(parent);
+            continue;
+        }
+
+        let mut right_child = free_buffers
+            .pop()
+            .unwrap_or_else(|| vec![P::new(0.0, 0.0); count]);
+
+        subdivide(&parent, &mut left_child, &mut right_child, &mut midpoints_buf[..count]);
+
+        // We re-use the buffer of the parent for one of the children, so that we save one allocation per iteration.
+        parent[..count].clone_from_slice(&left_child[..count]);
+
+        to_flatten.push(right_child);
+        to_flatten.push(parent);
+    }
+
+    output.push(last_control_point);
 }
