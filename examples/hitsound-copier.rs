@@ -8,7 +8,7 @@ use libosu::{
     beatmap::Beatmap,
     hitobject::{HitObjectKind, SliderInfo, SpinnerInfo},
     hitsounds::{Additions, SampleSet},
-    timing::TimestampMillis,
+    timing::Millis,
 };
 use structopt::StructOpt;
 
@@ -52,7 +52,7 @@ fn main() -> Result<()> {
 
 #[derive(Debug)]
 struct HitsoundInfo {
-    time: TimestampMillis,
+    time: Millis,
     sample_set: SampleSet,
     additions_set: SampleSet,
     additions: Additions,
@@ -112,7 +112,7 @@ fn collect_hitsounds(beatmap: &Beatmap) -> Result<Vec<HitsoundInfo>> {
                         *addition_set
                     };
                     hitsounds.push(HitsoundInfo {
-                        time: TimestampMillis(time as i32),
+                        time: Millis(time as i32),
                         sample_set: edge_sample_set,
                         additions_set: edge_addition_set,
                         additions: *additions,
