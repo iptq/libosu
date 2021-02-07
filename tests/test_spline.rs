@@ -70,7 +70,11 @@ fn test_spline_points() -> Result<()> {
 
         let expected_points = expected_spline_points.len();
         let actual_points = spline.spline_points.len();
-        assert_eq!(expected_points, actual_points, "expected {} points, got {}", expected_points, actual_points);
+        assert_eq!(
+            expected_points, actual_points,
+            "expected {} points, got {}",
+            expected_points, actual_points
+        );
 
         for (i, (Point { x: ax, y: ay }, (ex, ey))) in spline
             .spline_points
