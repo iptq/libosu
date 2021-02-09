@@ -11,7 +11,7 @@ use crate::timing::Millis;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UninheritedTimingInfo {
     /// Milliseconds per beat (aka beat duration)
-    pub mpb: Millis,
+    pub mpb: f64,
 
     /// The number of beats in a single measure
     pub meter: u32,
@@ -108,7 +108,7 @@ impl FromStr for TimingPoint {
                 })
             } else {
                 TimingPointKind::Uninherited(UninheritedTimingInfo {
-                    mpb: Millis(mpb as i32),
+                    mpb,
                     meter,
                 })
             },
@@ -139,7 +139,7 @@ impl fmt::Display for TimingPoint {
         let (beat_length, meter) = match self.kind {
             TimingPointKind::Inherited(InheritedTimingInfo {
                 slider_velocity, ..
-            }) => (Millis((-100.0 / slider_velocity) as i32), 0),
+            }) => (-100.0 / slider_velocity, 0),
             TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, meter, .. }) => (mpb, meter),
         };
 
@@ -147,7 +147,7 @@ impl fmt::Display for TimingPoint {
             f,
             "{},{},{},{},{},{},{},{}",
             self.time.0,
-            beat_length.0,
+            beat_length,
             meter,
             self.sample_set as i32,
             self.sample_index,

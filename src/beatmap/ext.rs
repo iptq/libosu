@@ -79,7 +79,7 @@ impl Beatmap {
             }
 
             if let TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, .. }) = tp.kind {
-                current = Some(60_000.0 / mpb.0 as f64);
+                current = Some(60_000.0 / mpb as f64);
             }
         }
 

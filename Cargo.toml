@@ -19,7 +19,7 @@ documentation = "https://docs.rs/libosu/"
 all-features = true
 
 [dev-dependencies]
-serde_json = "1.0.61"
+serde_json = "1.0.62"
 difference = "2.0.0"
 structopt = "0.3.21"
 anyhow = "1.0.38"
@@ -31,21 +31,21 @@ num = "0.3.1"
 num-derive = "0.3.3"
 num-rational = "0.3.2"
 num-traits = "0.2.14"
-ordered-float = { version = "2.0.1", features = ["serde"] }
+ordered-float = { version = "2.1.1", features = ["serde"] }
 regex = "1.4.3"
 thiserror = "1.0.23"
 derive_more = "0.99.11"
-log = "0.4.13"
+log = "0.4.14"
 byteorder = "1.4.2"
 
 futures = { version = "0.3.12", optional = true }
 http = { version = "0.2.3", optional = true }
-hyper = { version = "0.14.2", features = ["stream", "http2", "client", "tcp"], optional = true }
+hyper = { version = "0.14.4", features = ["stream", "http2", "client", "tcp"], optional = true }
 hyper-tls = { version = "0.5.0", optional = true }
-tokio = { version = "1.0.2", optional = true }
+tokio = { version = "1.2.0", optional = true }
 xz2 = { version = "0.1.6", optional = true }
-serde = { version = "1.0.120", features = ["derive"], optional = true }
-serde_json = { version = "1.0.61", optional = true }
+serde = { version = "1.0.123", features = ["derive"], optional = true }
+serde_json = { version = "1.0.62", optional = true }
 
 [features]
 default = []
