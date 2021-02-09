@@ -107,10 +107,7 @@ impl FromStr for TimingPoint {
                     slider_velocity: -100.0 / mpb,
                 })
             } else {
-                TimingPointKind::Uninherited(UninheritedTimingInfo {
-                    mpb,
-                    meter,
-                })
+                TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, meter })
             },
             kiai,
             sample_set: match sample_set {
