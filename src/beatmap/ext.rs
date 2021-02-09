@@ -35,7 +35,7 @@ impl Beatmap {
         let beats_number = info.pixel_length * info.num_repeats as f64 / pixels_per_beat;
 
         let bpm = self.get_bpm_at_time(ho.start_time)?;
-        let beat_duration = 60_000.0 / bpm;
+        let beat_duration = 60.0 / bpm;
         let duration = beats_number * beat_duration;
 
         Some(duration)
