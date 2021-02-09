@@ -13,6 +13,11 @@ pub use self::point::*;
 pub struct Millis(pub i32);
 
 impl Millis {
+    /// Converts from seconds to Milliseconds
+    pub fn from_seconds(secs: f64) -> Millis {
+        Millis((secs * 1000.0) as i32)
+    }
+
     /// Converts this Milliseconds to seconds
     pub fn as_seconds(&self) -> f64 {
         self.0 as f64 / 1000.0
