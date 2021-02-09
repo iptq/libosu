@@ -12,6 +12,13 @@ pub use self::point::*;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Millis(pub i32);
 
+impl Millis {
+    /// Converts this Milliseconds to seconds
+    pub fn as_seconds(&self) -> f64 {
+        self.0 as f64 / 1000.0
+    }
+}
+
 impl fmt::Display for Millis {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_fmt(format_args!("{}ms", self.0))
