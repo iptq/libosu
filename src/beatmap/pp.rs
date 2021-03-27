@@ -183,7 +183,7 @@ pub fn calculate_ppv2(
     aim_pp *= 1.0 + ar_bonus.min(ar_bonus * (nobjects as f64 / 1000.0));
 
     // hd bonus
-    let hd_bonus = 1.0;
+    let mut hd_bonus = 1.0;
     if params.mods.contains(Mods::Hidden) {
         hd_bonus *= 1.0 + 0.04 * (12.0 - ar);
     }
@@ -208,7 +208,7 @@ pub fn calculate_ppv2(
     aim_pp *= od_bonus;
 
     // speed pp ---------------------------------------------------------------
-    let speed_pp = pp_base(speed_stars);
+    let mut speed_pp = pp_base(speed_stars);
     speed_pp *= length_bonus;
     if params.nmiss > 0 {
         speed_pp *= miss_penality_speed;
@@ -270,20 +270,30 @@ pub fn acc_calc(n300: u32, n100: u32, n50: u32, nmiss: u32) -> f64 {
     (n300 as f64 * 6.0 + n100 as f64 * 2.0 + n50 as f64 * 1.0) / (total_objs as f64 * 6.0)
 }
 
-struct ModsApply {
+/// Values of difficulty settings after mods applied (may exceed original limits)
+pub struct ModsApply {
+    /// Speed multiplier after mods
     speed_mul: f64,
+
+    /// AR after mods
     ar: f64,
+
+    /// OD after mods
     od: f64,
+
+    /// CS after mods
     cs: f64,
+
+    /// HP after mods
     hp: f64,
 }
 
 /// Apply mods to difficulty scores
 pub fn mods_apply(mods: Mods, ar: f64, od: f64, cs: f64, hp: f64) -> ModsApply {
-    const MODS_SPEED_CHANGING: Mods = Mods::DoubleTime | Mods::HalfTime | Mods::Nightcore;
-    const MODS_MAP_CHANGING: Mods = Mods::HardRock | Mods::Easy | MODS_SPEED_CHANGING;
+    let mods_speed_changing = Mods::DoubleTime | Mods::HalfTime | Mods::Nightcore;
+    let mods_map_changing = Mods::HardRock | Mods::Easy | mods_speed_changing;
 
-    if !mods.intersects(MODS_SPEED_CHANGING) {
+    if !mods.intersects(mods_speed_changing) {
         return ModsApply {
             speed_mul: 1.0,
             ar,
@@ -303,7 +313,7 @@ pub fn mods_apply(mods: Mods, ar: f64, od: f64, cs: f64, hp: f64) -> ModsApply {
         speed_mul *= 0.75;
     }
 
-    let od_ar_hp_modifier = 1.0;
+    let mut od_ar_hp_modifier = 1.0;
 
     if mods.contains(Mods::HardRock) {
         od_ar_hp_modifier = 1.4;
