@@ -34,9 +34,14 @@ pub enum DbError {
 #[derive(Debug, PartialEq, Clone, Copy)]
 /// Timing point for beatmap in osu!.db
 pub struct DbBeatmapTimingPoint {
-    bpm: f64,
-    offset: f64,
-    is_uninherited: bool,
+    /// Bpm of the timing point
+    pub bpm: f64,
+
+    /// Offset of the timing point
+    pub offset: f64,
+
+    /// Whether or not it's inherited or uninherited
+    pub is_uninherited: bool,
 }
 
 #[derive(Debug, PartialEq, Clone)]

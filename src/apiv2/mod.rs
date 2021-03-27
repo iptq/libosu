@@ -3,6 +3,4 @@
 //! Documentation: <https://osu.ppy.sh/docs>
 
 /// APIv2
-pub struct APIv2 {
-
-}
+pub struct APIv2 {}

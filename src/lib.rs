@@ -59,8 +59,6 @@ pub mod hitobject;
 pub mod hitsounds;
 /// math
 pub mod math;
-// /// working with beatmap files.
-// pub mod parsing;
 pub mod replay;
 /// calculating slider body shapes.
 pub mod spline;
@@ -70,7 +68,11 @@ pub mod timing;
 /// exports everything in the library.
 pub mod prelude {
     #[cfg(feature = "apiv1")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "apiv1")))]
     pub use crate::apiv1::*;
+    #[cfg(feature = "apiv2")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "apiv2")))]
+    pub use crate::apiv2::*;
     pub use crate::beatmap::*;
     pub use crate::color::*;
     pub use crate::db::*;

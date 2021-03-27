@@ -75,6 +75,7 @@ impl FromStr for Beatmap {
     }
 }
 
+/// APIs related to parsing and serializing .osu files
 impl Beatmap {
     /// Parse a beatmap from any `Read`er
     pub fn parse(reader: impl Read) -> Result<Beatmap, BeatmapParseError> {

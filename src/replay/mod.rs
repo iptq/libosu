@@ -173,7 +173,7 @@ pub struct Replay {
 
     /// Timestamp of the replay in measured in 1/10ths of a millisecond (100 ns)
     ///
-    /// This is value is measured in [windows ticks][1] 
+    /// This is value is measured in [windows ticks][1]
     /// It counts the number of ticks from 12:00:00 midnight, January 1, 0001 to the time this replay was created
     ///
     /// [1]: https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks
