@@ -22,6 +22,7 @@ The following features are available through adding features in `Cargo.toml`,
 and are not included by default since they may bring in extra dependencies:
 
 - `apiv1`: Bindings for the osu! API v1.
+- `apiv2`: Bindings for the osu! API v2.
 - `replay-data`: Action data for osu! replay files (requires LZMA).
 
 Getting Started
@@ -34,21 +35,10 @@ Projects using libosu
 ---------------------
 
 - [editor](https://github.com/iptq/editor): wip osu editor
+- [mapping-tools](https://github.com/iptq/mapping-tools): wip port of mapping tools to rust
 
 If you have a project using libosu, open an issue with a brief description and
 I'll add it to the list!
-
-Why Rust?
----------
-
-The real question is, why _not_ rust? For a low level language, Rust has many
-language features such as generics and a rich type system that greatly enhances
-development. Additionally, its strong emphasis on memory safety means that it
-can perform at native speeds. Most languages support native library extensions
-already, so integration into other languages is also possible. One other
-interesting feature is that Rust already has relatively good support for
-WebAssembly, which means it could be possible to integrate this library into
-web applications as well.
 
 Contact
 -------
