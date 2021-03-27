@@ -1,7 +1,7 @@
 //! osu! API v1
 //! -----------
 //!
-//! Documentation: https://github.com/ppy/osu-api/wiki
+//! Documentation: <https://github.com/ppy/osu-api/wiki>
 
 mod errors;
 mod models;

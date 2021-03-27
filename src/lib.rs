@@ -1,12 +1,13 @@
 //! # libosu
 //!
-//! `libosu` is an attempt to make a convenient library for writing OSU-related programs. It
+//! `libosu` is an attempt to make a convenient library for writing osu-related programs. it
 //! includes data structures and parsers for beatmaps, replays, and more.
 //!
-//! Please note that until this crate hits `1.0`, none of the APIs in this crate will be stable, so
-//! take care when using this crate. Always pin to the version that you are using!
+//! please note that until this crate hits `1.0`, none of the apis in this crate will be stable, so
+//! take care when using this crate. always pin to the version that you are using!
 
 #![deny(missing_docs)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[macro_use]
 extern crate bitflags;
@@ -25,44 +26,48 @@ extern crate thiserror;
 #[macro_use]
 extern crate serde;
 
-/// Provides NotNan
+/// provides notnan
 pub extern crate ordered_float;
 
 pub(crate) mod float;
 pub(crate) mod utils;
 
-/// Client for the OSU api
+/// client for the osu api
 #[cfg(feature = "apiv1")]
+#[cfg_attr(docsrs, doc(cfg(feature = "apiv1")))]
 pub mod apiv1;
-/// Beatmaps
+#[cfg(feature = "apiv2")]
+#[cfg_attr(docsrs, doc(cfg(feature = "apiv2")))]
+pub mod apiv2;
+/// beatmaps
 pub mod beatmap;
-/// Defines the Color struct
+/// defines the color struct
 pub mod color;
 
-/// Deals with osu database files (osu.db, collections.db, etc)
+/// deals with osu database files (osu.db, collections.db, etc)
 pub mod db;
-/// Data structures
-// TODO: should probably split this and move enums into their respective modules
+/// data structures
+// todo: should probably split this and move enums into their respective modules
 pub mod enums;
-/// Errors
+/// errors
 pub mod errors;
-/// Beatmap events
+/// beatmap events
 pub mod events;
-/// Hit-objects
+/// hit-objects
 pub mod hitobject;
-/// Data structures for hitsounds
+/// data structures for hitsounds
 pub mod hitsounds;
-/// Math
+/// math
 pub mod math;
-// /// Working with beatmap files.
+// /// working with beatmap files.
 // pub mod parsing;
 pub mod replay;
-/// Calculating slider body shapes.
+/// calculating slider body shapes.
 pub mod spline;
-/// Timing and timing points.
+/// timing and timing points.
 pub mod timing;
 
-/// Exports everything in the library.
+/// exports everything in the library.
 pub mod prelude {
     #[cfg(feature = "apiv1")]
     pub use crate::apiv1::*;
@@ -80,7 +85,7 @@ pub mod prelude {
     pub use ordered_float::*;
 }
 
-/// Says "hello there"
+/// says "hello there"
 #[deprecated]
 pub fn say_hello_there() {
     println!("hello there");

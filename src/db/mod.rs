@@ -78,8 +78,10 @@ pub struct DbBeatmap {
 
     /// When the beatmap was last modified.
     ///
-    /// This is value is measured in windows ticks (https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks)
-    /// It counts the number of ticks from 12:00:00 midnight, January 1, 0001 to the time this replay was created
+    /// This is value is measured in [windows ticks][1].  It counts the number of ticks from
+    /// 12:00:00 midnight, January 1, 0001 to the time this replay was created
+    ///
+    /// [1]: https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks
     pub modification_date: u64,
 
     /// AR rating.
@@ -153,8 +155,10 @@ pub struct DbBeatmap {
 
     /// Last time the map was played.
     ///
-    /// This is value is measured in windows ticks (https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks)
-    /// It counts the number of ticks from 12:00:00 midnight, January 1, 0001 to the time this replay was created
+    /// This is value is measured in [windows ticks][1].  It counts the number of ticks from
+    /// 12:00:00 midnight, January 1, 0001 to the time this replay was created
+    ///
+    /// [1]: https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks
     pub last_played: u64,
 
     /// If the format is osz2.
@@ -165,8 +169,10 @@ pub struct DbBeatmap {
 
     /// Last time beatmap was checked to the online repository.
     ///
-    /// This is value is measured in windows ticks (https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks)
-    /// It counts the number of ticks from 12:00:00 midnight, January 1, 0001 to the time this replay was created
+    /// This is value is measured in [windows ticks][1].  It counts the number of ticks from
+    /// 12:00:00 midnight, January 1, 0001 to the time this replay was created
+    ///
+    /// [1]: https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks
     pub last_checked: u64,
 
     /// Ignore beatmap sounds.
@@ -199,10 +205,13 @@ pub struct Db {
     pub folder_count: u32,
     /// If the account is unlocked, aka not banned or locked.
     pub account_unlocked: bool,
+
     /// When the account will be unlocked
     ///
-    /// This is value is measured in windows ticks (https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks)
-    /// It counts the number of ticks from 12:00:00 midnight, January 1, 0001 to the time this replay was created
+    /// This is value is measured in [windows ticks][1].  It counts the number of ticks from
+    /// 12:00:00 midnight, January 1, 0001 to the time this replay was created
+    ///
+    /// [1]: https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks
     pub unlocked_date: u64,
     /// The player's username
     pub player_name: String,

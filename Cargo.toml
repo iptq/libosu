@@ -15,9 +15,6 @@ keywords = ["osu"]
 repository = "https://github.com/iptq/libosu.git"
 documentation = "https://docs.rs/libosu/"
 
-[package.metadata.docs.rs]
-all-features = true
-
 [dev-dependencies]
 serde_json = "1.0.62"
 difference = "2.0.0"
@@ -46,10 +43,12 @@ tokio = { version = "1.2.0", optional = true }
 xz2 = { version = "0.1.6", optional = true }
 serde = { version = "1.0.123", features = ["derive"], optional = true }
 serde_json = { version = "1.0.62", optional = true }
+reqwest = { version = "0.11.2", optional = true }
 
 [features]
 default = []
 apiv1 = ["hyper", "hyper-tls", "tokio", "http", "futures", "serde", "serde_json"]
+apiv2 = ["reqwest"]
 replay-data = ["xz2"]
 
 # Used to check for clippy lints
@@ -58,3 +57,7 @@ clippy = []
 
 [package.metadata.cargo-all-features]
 skip_optional_dependencies = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

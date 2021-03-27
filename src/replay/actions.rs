@@ -1,9 +1,11 @@
 #[cfg(feature = "replay-data")]
+#[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
 use std::io::Read;
 
 use crate::timing::Millis;
 
 #[cfg(feature = "replay-data")]
+#[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
 use super::ReplayResult;
 
 /// An action by the player while playing the map
@@ -58,6 +60,7 @@ pub struct ReplayActionData {
 
 impl ReplayActionData {
     #[cfg(feature = "replay-data")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     /// create a new ReplayActionParser from a BufRead
     pub fn parse(data: impl Read) -> ReplayResult<Self> {
         use std::io::BufReader;

@@ -80,6 +80,7 @@ pub type ReplayResult<T, E = ReplayError> = std::result::Result<T, E>;
 #[derive(Debug, Error)]
 pub enum ReplayError {
     #[cfg(feature = "replay-data")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     #[error("error creating lzma decoder: {0}")]
     LzmaCreate(#[from] xz2::stream::Error),
 
@@ -172,8 +173,10 @@ pub struct Replay {
 
     /// Timestamp of the replay in measured in 1/10ths of a millisecond (100 ns)
     ///
-    /// This is value is measured in windows ticks (https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks)
+    /// This is value is measured in [windows ticks][1] 
     /// It counts the number of ticks from 12:00:00 midnight, January 1, 0001 to the time this replay was created
+    ///
+    /// [1]: https://docs.microsoft.com/en-us/dotnet/api/system.datetime.ticks?redirectedfrom=MSDN&view=net-5.0#System_DateTime_Ticks
     pub timestamp: u64,
 
     /// The action data contained in this replay.
@@ -320,6 +323,7 @@ impl Replay {
     }
 
     #[cfg(feature = "replay-data")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     /// Updates the Replay object with action data
     pub fn update_action_data(&mut self, action_data: &ReplayActionData) -> ReplayResult<()> {
         use xz2::{
@@ -362,6 +366,7 @@ impl Replay {
     }
 
     #[cfg(feature = "replay-data")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     /// Parse and retrieve the actions in the replay
     pub fn parse_action_data(&self) -> ReplayResult<ReplayActionData> {
         use std::io::Cursor;
