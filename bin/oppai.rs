@@ -11,9 +11,11 @@ use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 struct Opt {
+    file: PathBuf,
     #[structopt(short = "m", long = "mods", parse(try_from_str = parse_mods))]
     mods: Option<Mods>,
-    file: PathBuf,
+    #[structopt(short = "p", long = "pretty")]
+    pretty: bool,
 }
 
 fn main() -> Result<()> {
@@ -65,6 +67,8 @@ fn main() -> Result<()> {
 
     let value = json!({
         "beatmap": {
+            "id": beatmap.beatmap_id,
+            "set_id": beatmap.beatmap_set_id,
             "artist": beatmap.artist,
             "title": beatmap.title,
             "mapper": beatmap.creator,
@@ -76,7 +80,11 @@ fn main() -> Result<()> {
     });
 
     let stdout = io::stdout();
-    serde_json::to_writer_pretty(stdout, &value)?;
+    if opts.pretty {
+        serde_json::to_writer_pretty(stdout, &value)?;
+    } else {
+        serde_json::to_writer(stdout, &value)?;
+    }
     Ok(())
 }
 
