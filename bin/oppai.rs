@@ -10,7 +10,9 @@ use serde_json::json;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
+#[structopt(name = "oppai")]
 struct Opt {
+    /// Path to the .osu file to process
     file: PathBuf,
 
     /// The mods used (for ex. "HDDT", "EZ,FL" formats both work)
