@@ -2,12 +2,8 @@
 
 use chrono::{DateTime, Utc};
 
-#[derive(Debug, Serialize, Deserialize)]
-/// A timestamp object that could be returned by the API
-pub struct Timestamp {
-    #[serde(flatten)]
-    datetime: DateTime<Utc>,
-}
+/// Timestamp
+pub type Timestamp = DateTime<Utc>;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[repr(i32)]

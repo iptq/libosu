@@ -42,6 +42,37 @@ pub struct Beatmap {
 
     /// Date/time the map was deleted (if it was)
     pub deleted_at: Option<Timestamp>,
+
+    /// HP Drain
+    #[serde(rename = "drain")]
+    pub hp_drain: f64,
+
+    /// Drain time (in seconds)
+    #[serde(rename = "hit_length")]
+    pub drain_length: u32,
+
+    /// TODO: what is this?
+    pub is_scoreable: bool,
+
+    /// Last updated
+    pub last_updated: Timestamp,
+
+    /// Mode represented as an integer
+    pub mode_int: u32,
+
+    /// Amount of passes
+    #[serde(rename = "passcount")]
+    pub pass_count: u32,
+
+    /// Amount of plays
+    #[serde(rename = "playcount")]
+    pub play_count: u32,
+
+    /// Ranked status
+    pub ranked: u32,
+
+    /// URL to the beatmap
+    pub url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
