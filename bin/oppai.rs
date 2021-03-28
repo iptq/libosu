@@ -26,7 +26,6 @@ struct Opt {
     // /// Accuracy (as a percent, for ex. 100 for 100% or 95.68 for 95.68%)
     // #[structopt(short = "a", long = "acc")]
     // acc: Option<f64>,
-
     /// Max combo achieved during the run
     #[structopt(short = "c", long = "combo")]
     combo: Option<u32>,

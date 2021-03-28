@@ -1,2 +1,2 @@
 doc:
-    cargo +nightly rustdoc --all-features -- --cfg docsrs
+    cargo +nightly rustdoc --lib --all-features -- --cfg docsrs

@@ -7,15 +7,19 @@ use std::ops::BitOr;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Mode {
     /// osu!standard
+    #[cfg_attr(feature = "serde", serde(rename = "osu"))]
     Osu = 0,
 
     /// Taiko
+    #[cfg_attr(feature = "serde", serde(rename = "taiko"))]
     Taiko = 1,
 
     /// Catch the beat
+    #[cfg_attr(feature = "serde", serde(rename = "fruits"))]
     Catch = 2,
 
     /// osu!mania
+    #[cfg_attr(feature = "serde", serde(rename = "mania"))]
     Mania = 3,
 }
 

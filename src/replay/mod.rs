@@ -65,8 +65,8 @@ use std::io::{Read, Write};
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
-use crate::db::{ReadBytesOsu, WriteBytesOsu};
 use crate::data::{Mode, Mods};
+use crate::db::{ReadBytesOsu, WriteBytesOsu};
 
 pub use self::actions::{Buttons, ReplayAction, ReplayActionData};
 

@@ -1,6 +1,6 @@
 [package]
 name = "libosu"
-version = "0.0.25"
+version = "0.0.26"
 authors = [
     "Michael Zhang <mail@mzhang.io>",
     "Nobbele <realnobbele@gmail.com>",
@@ -47,15 +47,16 @@ tokio = { version = "1.4.0", optional = true }
 xz2 = { version = "0.1.6", optional = true }
 serde = { version = "1.0.125", features = ["derive"], optional = true }
 serde_json = { version = "1.0.64", optional = true }
-reqwest = { version = "0.11.2", optional = true }
+reqwest = { version = "0.11.2", features = ["json"], optional = true }
 structopt = { version = "0.3.21", optional = true }
 anyhow = { version = "1.0.40", optional = true }
+chrono = { version = "0.4.19", optional = true }
 
 [features]
 default = []
 examples = ["anyhow", "serde", "serde_json", "structopt"]
 apiv1 = ["hyper", "hyper-tls", "tokio", "http", "futures", "serde", "serde_json"]
-apiv2 = ["reqwest"]
+apiv2 = ["reqwest", "serde", "chrono/serde"]
 replay-data = ["xz2"]
 
 # Used to check for clippy lints

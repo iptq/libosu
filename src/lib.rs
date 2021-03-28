@@ -44,10 +44,10 @@ pub mod beatmap;
 /// defines the color struct
 pub mod color;
 
-/// deals with osu database files (osu.db, collections.db, etc)
-pub mod db;
 /// data structures
 pub mod data;
+/// deals with osu database files (osu.db, collections.db, etc)
+pub mod db;
 /// errors
 pub mod errors;
 /// beatmap events
@@ -74,8 +74,8 @@ pub mod prelude {
     pub use crate::apiv2::*;
     pub use crate::beatmap::{diff_calc::*, pp_calc::*, *};
     pub use crate::color::*;
-    pub use crate::db::*;
     pub use crate::data::*;
+    pub use crate::db::*;
     pub use crate::events::*;
     pub use crate::hitobject::*;
     pub use crate::hitsounds::*;
