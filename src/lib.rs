@@ -47,8 +47,7 @@ pub mod color;
 /// deals with osu database files (osu.db, collections.db, etc)
 pub mod db;
 /// data structures
-// todo: should probably split this and move enums into their respective modules
-pub mod enums;
+pub mod data;
 /// errors
 pub mod errors;
 /// beatmap events
@@ -76,7 +75,7 @@ pub mod prelude {
     pub use crate::beatmap::{diff_calc::*, pp_calc::*, *};
     pub use crate::color::*;
     pub use crate::db::*;
-    pub use crate::enums::*;
+    pub use crate::data::*;
     pub use crate::events::*;
     pub use crate::hitobject::*;
     pub use crate::hitsounds::*;
