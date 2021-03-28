@@ -73,7 +73,7 @@ pub mod prelude {
     #[cfg(feature = "apiv2")]
     #[cfg_attr(docsrs, doc(cfg(feature = "apiv2")))]
     pub use crate::apiv2::*;
-    pub use crate::beatmap::*;
+    pub use crate::beatmap::{*, diff_calc::*, pp_calc::*};
     pub use crate::color::*;
     pub use crate::db::*;
     pub use crate::enums::*;
