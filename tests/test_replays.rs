@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::Result;
 use libosu::{
-    enums::{Mode, Mods},
+    data::{Mode, Mods},
     replay::{Buttons, Replay, ReplayActionData},
     timing::Millis,
 };

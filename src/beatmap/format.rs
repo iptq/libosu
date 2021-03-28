@@ -5,7 +5,7 @@ use std::str::FromStr;
 use num::FromPrimitive;
 use regex::Regex;
 
-use crate::enums::{GridSize, Mode};
+use crate::data::{GridSize, Mode};
 use crate::errors::ParseError;
 use crate::events::Event;
 use crate::hitobject::HitObject;

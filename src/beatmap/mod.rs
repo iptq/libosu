@@ -4,7 +4,7 @@ mod format;
 pub mod pp_calc;
 
 use crate::color::Color;
-use crate::enums::{GridSize, Mode};
+use crate::data::{GridSize, Mode};
 use crate::events::Event;
 use crate::hitobject::{HitObject, HitObjectKind};
 use crate::hitsounds::SampleSet;

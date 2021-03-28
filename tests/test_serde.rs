@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use libosu::{
     beatmap::Beatmap,
-    enums::Mode,
+    data::Mode,
     events::{BackgroundEvent, BreakEvent, Event},
     hitsounds::SampleSet,
     math::Point,

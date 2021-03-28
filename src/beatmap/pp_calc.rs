@@ -1,7 +1,7 @@
 //! Ported from pyttanko
 
 use crate::beatmap::Beatmap;
-use crate::enums::{Mode, Mods};
+use crate::data::{Mode, Mods};
 
 /// Results from pp calculation
 #[derive(Clone, Debug)]

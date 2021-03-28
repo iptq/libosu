@@ -7,7 +7,7 @@ use std::ops::{Index, IndexMut};
 use ordered_float::NotNan;
 
 use crate::beatmap::Beatmap;
-use crate::enums::{Mode, Mods};
+use crate::data::{Mode, Mods};
 use crate::hitobject::{HitObject, HitObjectKind};
 use crate::math::Point;
 

@@ -5,7 +5,7 @@ use std::io;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
-    enums::{Grade, Mode, Mods, RankedStatus},
+    data::{Grade, Mode, Mods, RankedStatus},
     timing::Millis,
 };
 
@@ -364,7 +364,7 @@ mod tests {
     use std::io::BufReader;
 
     use crate::{
-        enums::{Grade, Mode, Mods, RankedStatus, UserPermission},
+        data::{Grade, Mode, Mods, RankedStatus, UserPermission},
         timing::Millis,
     };
 
