@@ -239,19 +239,19 @@ pub fn acc_calc(n300: u32, n100: u32, n50: u32, nmiss: u32) -> f64 {
 /// Values of difficulty settings after mods applied (may exceed original limits)
 pub struct ModsApply {
     /// Speed multiplier after mods
-    speed_mul: f64,
+    pub speed_mul: f64,
 
     /// AR after mods
-    ar: f64,
+    pub ar: f64,
 
     /// OD after mods
-    od: f64,
+    pub od: f64,
 
     /// CS after mods
-    cs: f64,
+    pub cs: f64,
 
     /// HP after mods
-    hp: f64,
+    pub hp: f64,
 }
 
 /// Apply mods to difficulty scores

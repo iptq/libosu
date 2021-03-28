@@ -49,11 +49,13 @@ bitflags! {
         /// No-Fail (NF) Makes the player incapabale of failing beatmaps, even if their life drops to zero.
         const NoFail = 1;
 
-        /// Easy (EZ) halves the all difficulty settings for a beatmap, and gives the player 2 extra lives in modes other than taiko.
+        /// Easy (EZ) halves the all difficulty settings for a beatmap, and gives the player 2
+        /// extra lives in modes other than taiko.
         const Easy = 2;
 
-        /// No Video (NV) disables the background video of a beatmap. It is no longer available for use, it was replaced with a setting.
-        const NoVideo = 4;
+        /// Touch Device (TD) is a marker for a score that has been determined to be set on a
+        /// touchscreen device. This value used to be No Video (NV), for when video is disabled.
+        const TouchDevice = 4;
 
         /// Hidden (HD) removes approach circles and causes hit objects to fade after appearing.
         const Hidden = 8;
@@ -175,7 +177,7 @@ impl Mods {
             let thismod = match (ch1, ch2) {
                 ('N', 'F') => Mods::NoFail,
                 ('E', 'Z') => Mods::Easy,
-                ('N', 'V') => Mods::NoVideo,
+                ('T', 'D') | ('N', 'V') => Mods::TouchDevice,
                 ('H', 'D') => Mods::Hidden,
                 ('H', 'R') => Mods::HardRock,
                 ('S', 'D') => Mods::SuddenDeath,

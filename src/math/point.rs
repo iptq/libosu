@@ -14,7 +14,7 @@ pub struct Point<T> {
 
 impl<T> Point<T> {
     /// Create a new point
-    pub fn new(x: T, y: T) -> Point<T> {
+    pub const fn new(x: T, y: T) -> Point<T> {
         Point { x, y }
     }
 }
@@ -37,6 +37,17 @@ impl<T: Mul<Output = T>> Mul for Point<T> {
         Self {
             x: self.x * rhs.x,
             y: self.y * rhs.y,
+        }
+    }
+}
+
+impl<T: Mul<Output = T> + Copy> Mul<T> for Point<T> {
+    type Output = Self;
+
+    fn mul(self, rhs: T) -> Self::Output {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
         }
     }
 }
@@ -68,6 +79,14 @@ impl<T: Copy + NumCast> Point<T> {
     #[inline]
     pub fn to_float<U: Float>(&self) -> Option<Point<U>> {
         Some(Point::new(cast(self.x)?, cast(self.y)?))
+    }
+}
+
+impl<T: Mul<Output = T> + Add<Output = T>> Point<T> {
+    #[inline]
+    /// Dot product of two points (element-wise multiplication)
+    pub fn dot(self, other: Self) -> T {
+        self.x * other.x + self.y * other.y
     }
 }
 
