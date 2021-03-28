@@ -142,6 +142,85 @@ bitflags! {
     }
 }
 
+impl Mods {
+    /// Attempts to parse mods from a string, delimiter is what goes between mods
+    ///
+    /// ```
+    /// # use libosu::prelude::Mods;
+    /// assert_eq!(Mods::parse_from_str("+HD", ""), Some(Mods::Hidden));
+    /// assert_eq!(Mods::parse_from_str("+EZDT", ","), None);
+    /// assert_eq!(Mods::parse_from_str("+EZ,DT", ","), Some(Mods::Easy | Mods::DoubleTime));
+    /// assert_eq!(Mods::parse_from_str("4K|FI|RD", "|"), Some(Mods::Key4 | Mods::FadeIn | Mods::Random));
+    /// ```
+    pub fn parse_from_str(s: impl AsRef<str>, delimiter: impl AsRef<str>) -> Option<Self> {
+        // convert string to uppercase
+        let s = s.as_ref().to_uppercase();
+
+        // trim off starting +
+        let s = s.trim_start_matches('+');
+
+        let mut mods = Mods::None;
+        let delim = delimiter.as_ref();
+        let mut it = s.chars().peekable();
+        loop {
+            let ch1 = match it.next() {
+                Some(c) => c,
+                None => return None,
+            };
+            let ch2 = match it.next() {
+                Some(c) => c,
+                None => return None,
+            };
+
+            let thismod = match (ch1, ch2) {
+                ('N', 'F') => Mods::NoFail,
+                ('E', 'Z') => Mods::Easy,
+                ('N', 'V') => Mods::NoVideo,
+                ('H', 'D') => Mods::Hidden,
+                ('H', 'R') => Mods::HardRock,
+                ('S', 'D') => Mods::SuddenDeath,
+                ('D', 'T') => Mods::DoubleTime,
+                ('R', 'X') | ('R', 'L') => Mods::Relax,
+                ('H', 'T') => Mods::HalfTime,
+                ('N', 'C') => Mods::Nightcore,
+                ('F', 'L') => Mods::Flashlight,
+                ('A', 'U') => Mods::Autoplay,
+                ('S', 'O') => Mods::SpunOut,
+                ('A', 'P') => Mods::Relax2,
+                ('P', 'F') => Mods::Perfect,
+                ('4', 'K') => Mods::Key4,
+                ('5', 'K') => Mods::Key5,
+                ('6', 'K') => Mods::Key6,
+                ('7', 'K') => Mods::Key7,
+                ('8', 'K') => Mods::Key8,
+                ('F', 'I') => Mods::FadeIn,
+                ('R', 'D') => Mods::Random,
+                ('C', 'M') => Mods::LastMod,
+                ('T', 'P') => Mods::TargetPractice,
+                ('9', 'K') => Mods::Key9,
+                ('1', 'K') => Mods::Key1,
+                ('3', 'K') => Mods::Key3,
+                ('2', 'K') => Mods::Key2,
+                _ => return None,
+            };
+            mods |= thismod;
+
+            if it.peek().is_none() {
+                break;
+            }
+
+            for ce in delim.chars() {
+                match it.next() {
+                    Some(c) if c == ce => {}
+                    _ => return None,
+                }
+            }
+        }
+
+        Some(mods)
+    }
+}
+
 /// Integer enumeration of the user's permission
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
