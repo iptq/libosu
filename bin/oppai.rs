@@ -12,10 +12,22 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 struct Opt {
     file: PathBuf,
+
+    /// The mods used (for ex. "HDDT", "EZ,FL" formats both work)
     #[structopt(short = "m", long = "mods", parse(try_from_str = parse_mods))]
     mods: Option<Mods>,
+
+    /// Whether or not to indent the output
     #[structopt(short = "p", long = "pretty")]
     pretty: bool,
+
+    // /// Accuracy (as a percent, for ex. 100 for 100% or 95.68 for 95.68%)
+    // #[structopt(short = "a", long = "acc")]
+    // acc: Option<f64>,
+
+    /// Max combo achieved during the run
+    #[structopt(short = "c", long = "combo")]
+    combo: Option<u32>,
 }
 
 fn main() -> Result<()> {
@@ -44,7 +56,7 @@ fn main() -> Result<()> {
 
     let max_combo = beatmap.max_combo();
     let params = PPCalcParams {
-        combo: max_combo,
+        combo: opts.combo.unwrap_or(max_combo),
         n300: nobjects,
         n100: 0,
         n50: 0,

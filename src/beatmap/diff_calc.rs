@@ -1,7 +1,6 @@
 //! Difficulty calculation
 
 use std::cmp::Reverse;
-use std::mem;
 use std::ops::{Index, IndexMut};
 
 use ordered_float::NotNan;
