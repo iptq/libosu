@@ -160,7 +160,6 @@ pub fn calculate_ppv2(
 
     // speed pp ---------------------------------------------------------------
     let mut speed_pp = pp_base(speed_stars);
-    eprintln!("speed pp: {}", speed_pp);
     speed_pp *= length_bonus;
     if params.nmiss > 0 {
         speed_pp *= miss_penality_speed;
