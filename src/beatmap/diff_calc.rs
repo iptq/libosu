@@ -397,7 +397,6 @@ pub fn d_strain(
     }
 
     obj.strains[diff_type] = prev_obj.strains[diff_type] * decay + value;
-    eprintln!("strain = {} * {} + {} = {}", prev_obj.strains[diff_type], decay, value, obj.strains[diff_type]);
 }
 
 /// calculates spacing weight and returns (weight, is_single)

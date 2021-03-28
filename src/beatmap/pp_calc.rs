@@ -4,7 +4,9 @@ use crate::beatmap::Beatmap;
 use crate::enums::{Mode, Mods};
 
 /// Results from pp calculation
-pub struct PPCalc {
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct PPCalcOutput {
     total_pp: f64,
     aim_pp: f64,
     speed_pp: f64,
@@ -57,23 +59,6 @@ pub struct PPCalcParams {
     pub score_version: ScoreVersion,
 }
 
-impl Beatmap {
-    /// Calculate
-    pub fn calculate_ppv2(&self, params: PPCalcParams) -> PPCalc {
-        calculate_ppv2(
-            0.0,
-            0.0,
-            self.difficulty.approach_rate as f64,
-            self.difficulty.overall_difficulty as f64,
-            0,
-            0,
-            0,
-            0,
-            params,
-        )
-    }
-}
-
 /// Calculates pp
 pub fn calculate_ppv2(
     aim_stars: f64,
@@ -85,7 +70,7 @@ pub fn calculate_ppv2(
     ncircles: u32,
     nobjects: u32,
     params: PPCalcParams,
-) -> PPCalc {
+) -> PPCalcOutput {
     // accuracy ---------------------------------------------------------------
     let accuracy = acc_calc(params.n300, params.n100, params.n50, params.nmiss);
     let mut real_acc = accuracy;
@@ -175,6 +160,7 @@ pub fn calculate_ppv2(
 
     // speed pp ---------------------------------------------------------------
     let mut speed_pp = pp_base(speed_stars);
+    eprintln!("speed pp: {}", speed_pp);
     speed_pp *= length_bonus;
     if params.nmiss > 0 {
         speed_pp *= miss_penality_speed;
@@ -193,7 +179,7 @@ pub fn calculate_ppv2(
     // acc pp -----------------------------------------------------------------
     let mut acc_pp = 1.52163f64.powf(od) * real_acc.powf(24.0) * 2.83;
     // length bonus (not the same as speed/aim length bonus)
-    acc_pp = (ncircles as f64 / 1000.0).powf(0.3).min(1.15);
+    acc_pp *= (ncircles as f64 / 1000.0).powf(0.3).min(1.15);
 
     if params.mods.contains(Mods::Hidden) {
         acc_pp *= 1.08;
@@ -217,7 +203,7 @@ pub fn calculate_ppv2(
     let total_pp = (aim_pp.powf(1.1) + speed_pp.powf(1.1) + acc_pp.powf(1.1)).powf(1.0 / 1.1)
         * final_multiplier;
 
-    PPCalc {
+    PPCalcOutput {
         total_pp,
         aim_pp,
         speed_pp,

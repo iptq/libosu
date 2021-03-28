@@ -5,6 +5,42 @@ use crate::timing::{
 };
 
 impl Beatmap {
+    /// Get the maximum combo in this map
+    pub fn max_combo(&self) -> u32 {
+        let mut res = 0;
+
+        let mut mpb = 0.0;
+        let mut sv = 0.0;
+        for (i, (obj, tp)) in self.double_iter().enumerate() {
+            let sl = match &obj.kind {
+                // trivial case of circle or spinner
+                HitObjectKind::Circle | HitObjectKind::Spinner(_) => {
+                    res += 1;
+                    continue;
+                }
+                HitObjectKind::Slider(v) => v,
+            };
+
+            match &tp.kind {
+                TimingPointKind::Inherited(tp) => sv = tp.slider_velocity,
+                TimingPointKind::Uninherited(tp) => mpb = tp.mpb,
+            };
+            let slider_multiplier = self.difficulty.slider_multiplier;
+            let pixels_per_beat = slider_multiplier * 100.0 * sv;
+
+            let num_beats = (sl.pixel_length * sl.num_repeats as f64) / pixels_per_beat;
+            let mut ticks = ((num_beats - 0.1) / sl.num_repeats as f64
+                * self.difficulty.slider_tick_rate)
+                .ceil() as i32;
+            ticks -= 1;
+            ticks *= sl.num_repeats as i32;
+            ticks += sl.num_repeats as i32 + 1;
+            res += ticks.max(0) as u32;
+        }
+
+        res
+    }
+
     /// Iterate both hit objects and timing points
     pub fn double_iter(&self) -> DoubleIter {
         DoubleIter::new(self)
@@ -108,19 +144,21 @@ impl<'a> Iterator for DoubleIter<'a> {
     type Item = (&'a HitObject, &'a TimingPoint);
 
     fn next(&mut self) -> Option<Self::Item> {
+        // try to get the next hit object
         let ho = match self.beatmap.hit_objects.get(self.ho_index) {
             Some(v) => v,
             None => return None,
         };
 
         let tp = loop {
+            // get the currently tracked tp
             let this_tp = match self.beatmap.timing_points.get(self.tp_index) {
                 Some(v) => v,
                 None => return None,
             };
 
             if let Some(v) = self.beatmap.timing_points.get(self.tp_index + 1) {
-                if v.time < ho.start_time {
+                if v.time <= ho.start_time {
                     self.tp_index += 1;
                     continue;
                 }
