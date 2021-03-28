@@ -12,14 +12,6 @@ pub struct PPCalc {
     accuracy: f64,
 }
 
-/// Type of difficulty used for calculation
-pub enum DiffType {
-    /// Speed
-    Speed,
-    /// Aim
-    Aim,
-}
-
 /// Score version
 #[derive(Clone, Debug)]
 pub enum ScoreVersion {
@@ -65,33 +57,7 @@ pub struct PPCalcParams {
     pub score_version: ScoreVersion,
 }
 
-/// Difficulty and PP calculation
 impl Beatmap {
-    /// Calculate pp
-    pub fn calculate_diff(&self) -> Result<PPCalc, Error> {
-        self.calculate_diff_with_mods(Mods::None)
-    }
-
-    /// Calculate pp with mods
-    pub fn calculate_diff_with_mods(&self, mods: Mods) -> Result<PPCalc, Error> {
-        // non-normalized diameter where the small circle size buff starts
-        const CIRCLESIZE_BUFF_THRESHOLD: f64 = 30.0;
-        const STAR_SCALING_FACTOR: f64 = 0.0675; // global stars multiplier
-
-        // 50% of the difference between aim and speed is added to star rating to compensate aim
-        // only or speed only maps
-        const EXTREME_SCALING_FACTOR: f64 = 0.5;
-
-        if !matches!(self.mode, Mode::Osu) {
-            return Err(Error::UnimplementedMode);
-        }
-
-        todo!()
-    }
-
-    /// Calculate individual
-    pub fn calculate_individual(&self, diff_type: DiffType, speed_mul: f64) {}
-
     /// Calculate
     pub fn calculate_ppv2(&self, params: PPCalcParams) -> PPCalc {
         calculate_ppv2(

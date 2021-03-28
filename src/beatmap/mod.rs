@@ -1,6 +1,7 @@
+pub mod diff_calc;
 mod ext;
 mod format;
-pub mod pp;
+pub mod pp_calc;
 
 use crate::color::Color;
 use crate::enums::{GridSize, Mode};

@@ -1,5 +1,5 @@
 //! osu! API v1
-//! -----------
+//! ---
 //!
 //! Documentation: <https://github.com/ppy/osu-api/wiki>
 

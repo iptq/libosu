@@ -2,7 +2,7 @@ mod point;
 
 use std::{
     fmt,
-    ops::{Add, Deref},
+    ops::{Add, Deref, Sub},
 };
 
 pub use self::point::*;
@@ -49,5 +49,13 @@ impl Add<Millis> for Millis {
 
     fn add(self, rhs: Millis) -> Self::Output {
         Millis(self.0 + rhs.0)
+    }
+}
+
+impl Sub<Millis> for Millis {
+    type Output = i32;
+
+    fn sub(self, rhs: Millis) -> Self::Output {
+        self.0 - rhs.0
     }
 }
