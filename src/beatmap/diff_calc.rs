@@ -243,7 +243,7 @@ impl<'a> DiffCalc<'a> {
 
         // total stars
         let mut total_stars = aim_stars + speed_stars;
-        total_stars += (speed_stars + aim_stars).abs() * EXTREME_SCALING_FACTOR;
+        total_stars += (speed_stars - aim_stars).abs() * EXTREME_SCALING_FACTOR;
 
         let mut nsingles = 0;
         let mut nsingles_threshold = 0;
@@ -325,7 +325,7 @@ impl<'a> DiffCalc<'a> {
 
         let mut strains = self.strains.clone();
         strains.sort_by_key(|k| Reverse(NotNan::new(*k).unwrap()));
-        for strain in strains {
+        for strain in strains.iter() {
             total += strain.powf(1.2);
             difficulty += strain * weight;
             weight *= DECAY_WEIGHT;
@@ -373,9 +373,10 @@ pub fn d_strain(
 ) {
     let mut value = 0.0;
     let time_elapsed = (obj.timef() - prev_obj.timef()) / speed_mul;
+    obj.delta_time = time_elapsed;
     let decay = diff_type.decay_base().powf(time_elapsed / 1000.0);
 
-    if !matches!(
+    if matches!(
         obj.inner.kind,
         HitObjectKind::Circle | HitObjectKind::Slider(_)
     ) {
@@ -396,6 +397,7 @@ pub fn d_strain(
     }
 
     obj.strains[diff_type] = prev_obj.strains[diff_type] * decay + value;
+    eprintln!("strain = {} * {} + {} = {}", prev_obj.strains[diff_type], decay, value, obj.strains[diff_type]);
 }
 
 /// calculates spacing weight and returns (weight, is_single)
@@ -440,7 +442,7 @@ pub fn d_spacing_weight(
 
             let weighted_distance = distance.powf(0.99);
             let res = (result + weighted_distance / strain_time.max(AIM_TIMING_THRESHOLD))
-                .powf(weighted_distance / strain_time);
+                .max(weighted_distance / strain_time);
             (res, false)
         }
 

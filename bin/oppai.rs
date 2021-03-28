@@ -1,10 +1,10 @@
 use std::fs::File;
-use std::path::PathBuf;
 use std::io;
+use std::path::PathBuf;
 
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
+use libosu::prelude::{Beatmap, DiffCalc, Mods, PPCalcParams};
 use serde_json::json;
-use libosu::prelude::{Beatmap, DiffCalc, Mods};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -28,6 +28,12 @@ fn main() -> Result<()> {
     let diff = diff_calc.calc(mods, None)?;
 
     let value = json!({
+        "beatmap": {
+            "artist": beatmap.artist,
+            "title": beatmap.title,
+            "mapper": beatmap.creator,
+            "diffname": beatmap.difficulty_name,
+        },
         "diff": diff,
     });
 
