@@ -106,6 +106,7 @@ macro_rules! test_serde {
 }
 
 test_serde! {
+    // test_parser_75: 75,
     test_parser_129891: 129891,
     test_parser_774965: 774965,
     test_parser_804683: 804683,

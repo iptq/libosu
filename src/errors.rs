@@ -8,6 +8,9 @@ pub enum ParseError {
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 
+    #[error("missing version header")]
+    MissingVersionHeader,
+
     #[error("error parsing int: {0}")]
     Int(#[from] std::num::ParseIntError),
 
