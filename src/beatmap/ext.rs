@@ -6,6 +6,7 @@ use crate::timing::{
 
 impl Beatmap {
     /// Get the maximum combo in this map
+    // TODO: verify this is accurate
     pub fn max_combo(&self) -> u32 {
         let mut res = 0;
 
@@ -58,7 +59,7 @@ impl Beatmap {
         }
     }
 
-    /// Returns the slider duration (in seconds) for a given slider
+    /// Returns the slider duration in seconds (including repeats!) for a given slider
     pub fn get_slider_duration(&self, ho: &HitObject) -> Option<f64> {
         let info = match &ho.kind {
             HitObjectKind::Slider(info) => info,
@@ -124,6 +125,9 @@ impl Beatmap {
 }
 
 /// An iterator over both hit objects and their corresponding timing points
+///
+/// For each hit object, the timing point that most closely affects it will be returned in the same
+/// tuple.
 pub struct DoubleIter<'a> {
     beatmap: &'a Beatmap,
     ho_index: usize,
@@ -131,7 +135,7 @@ pub struct DoubleIter<'a> {
 }
 
 impl<'a> DoubleIter<'a> {
-    pub fn new(beatmap: &'a Beatmap) -> Self {
+    fn new(beatmap: &'a Beatmap) -> Self {
         DoubleIter {
             beatmap,
             ho_index: 0,

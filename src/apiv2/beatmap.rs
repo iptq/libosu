@@ -1,7 +1,7 @@
 //! Models dealing with beatmaps
 
 use crate::apiv2::data::{RankStatus, Timestamp};
-use crate::data::{Mode, };
+use crate::data::Mode;
 
 #[derive(Debug, Serialize, Deserialize)]
 /// Extended beatmap
@@ -124,9 +124,7 @@ pub struct Failtimes {
 
 #[derive(Debug, Serialize, Deserialize)]
 /// Beatmapset
-pub struct Beatmapset{
-
-}
+pub struct Beatmapset {}
 
 #[cfg(test)]
 mod tests {

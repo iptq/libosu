@@ -10,6 +10,7 @@ use crate::hitobject::{HitObject, HitObjectKind};
 use crate::hitsounds::SampleSet;
 use crate::timing::{Millis, TimingPoint};
 
+pub use self::ext::DoubleIter;
 pub use self::format::*;
 
 /// Difficulty settings defined by the map.

@@ -24,12 +24,17 @@ impl Spline {
         control_points: &[Point<i32>],
         pixel_length: Option<f64>,
     ) -> Self {
-        // no matter what, if there's 2 control points, it's linear
         let mut kind = kind;
         let mut control_points = control_points.to_vec();
+
+        // no matter what, if there's 2 control points, it's linear
         if control_points.len() == 2 {
             kind = SliderSplineKind::Linear;
         }
+
+        // if there's 3 points but the 3 points occur on the same line then it's also linear
+        // we can also safely remove the middle one
+        // TODO: if the 3 points coincide then this gets fucked
         if control_points.len() == 3
             && Math::is_line(
                 control_points[0].to_float::<f64>().unwrap(),
@@ -99,16 +104,21 @@ impl Spline {
             SliderSplineKind::Bezier => {
                 let mut output = Vec::new();
                 let mut last_index = 0;
+
+                // loop over the control points, segmenting them into smaller curves based on red
+                // nodes (which are just two consecutive control points with the same position)
                 let mut i = 0;
                 while i < points.len() {
                     let multipart_segment = i < points.len() - 2 && (points[i] == points[i + 1]);
                     if multipart_segment || i == points.len() - 1 {
-                        let sub = &points[last_index..i + 1];
-                        if sub.len() == 2 {
+                        let subcurve = &points[last_index..i + 1];
+
+                        // linear case, just push the two points
+                        if subcurve.len() == 2 {
                             output.push(points[0]);
                             output.push(points[1]);
                         } else {
-                            create_singlebezier(&mut output, sub);
+                            create_singlebezier(&mut output, subcurve);
                         }
                         if multipart_segment {
                             i += 1;
@@ -117,6 +127,8 @@ impl Spline {
                     }
                     i += 1;
                 }
+
+                println!("Output: {:?}", output);
                 output
             }
             _ => todo!(),
@@ -186,13 +198,22 @@ impl Spline {
     }
 
     /// Calculate the angle at the given length on the slider
-    fn angle_at_length(&self, length: f64) -> P {
-        let _length_notnan = NotNan::new(length).unwrap();
-        // match self.cumulative_lengths.binary_search(&length_notnan) {
-        //     Ok(_) => {}
-        //     Err(_) => {}
-        // }
-        todo!()
+    pub fn angle_at_length(&self, length: f64) -> f64 {
+        // dumb way of calculating
+        // TODO: is it worth it using a different algorithm?
+        let mut cands = vec![];
+        const EPSILON: f64 = 0.001;
+        cands.push(self.point_at_length(length - EPSILON));
+        cands.push(self.point_at_length(length));
+        cands.push(self.point_at_length(length + EPSILON));
+        cands.dedup();
+
+        match cands.as_slice() {
+            &[a, b, ..] => {
+                return (a.y - b.y).atan2(a.x - b.x);
+            }
+            _ => panic!("uhhhhh"),
+        }
     }
 
     /// Calculate the point at which the slider ball would be after it has traveled a distance of
@@ -201,7 +222,9 @@ impl Spline {
         let length_notnan = NotNan::new(length).unwrap();
         match self.cumulative_lengths.binary_search(&length_notnan) {
             Ok(idx) => self.spline_points[idx],
+
             Err(idx) => {
+                // if it's out of bounds, just return the bounds
                 let n = self.spline_points.len();
                 if idx == 0 && self.spline_points.len() > 2 {
                     return self.spline_points[0];
@@ -209,6 +232,8 @@ impl Spline {
                     return self.spline_points[n - 1];
                 }
 
+                // there's no point at this length, give us an approximation based on the two points
+                // around it instead
                 let (len1, len2) = (
                     self.cumulative_lengths[idx - 1].into_inner(),
                     self.cumulative_lengths[idx].into_inner(),
@@ -274,6 +299,12 @@ fn is_flat_enough(control_points: &[P], tolerance_sq: f64) -> bool {
     true
 }
 
+/// The bezier algorithm as implemented by osu.
+///
+/// This seems to be an iterative version of [De Casteljau's algorithm][1], splitting curves in
+/// half until they're "flat enough" as evaluated by [`is_flat_enough`], and then lerp'd.
+///
+/// [1]:
 fn create_singlebezier(output: &mut Vec<P>, control_points: &[P]) {
     let count = control_points.len();
     const TOLERANCE: f64 = 0.25;
