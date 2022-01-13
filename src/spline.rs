@@ -1,5 +1,6 @@
 use ordered_float::NotNan;
 
+use crate::float::compare_eq_f64;
 use crate::hitobject::SliderSplineKind;
 use crate::math::{Math, Point};
 
@@ -102,34 +103,93 @@ impl Spline {
                 c
             }
             SliderSplineKind::Bezier => {
-                let mut output = Vec::new();
-                let mut last_index = 0;
+                                let mut idx = 0;
+                let mut whole = Vec::new();
+                let mut cumul_length = 0.0;
+                let mut last_circ: Option<P> = None;
 
-                // loop over the control points, segmenting them into smaller curves based on red
-                // nodes (which are just two consecutive control points with the same position)
-                let mut i = 0;
-                while i < points.len() {
-                    let multipart_segment = i < points.len() - 2 && (points[i] == points[i + 1]);
-                    if multipart_segment || i == points.len() - 1 {
-                        let subcurve = &points[last_index..i + 1];
-
-                        // linear case, just push the two points
-                        if subcurve.len() == 2 {
-                            output.push(points[0]);
-                            output.push(points[1]);
+                let mut check_push = |whole: &mut Vec<P>, point: P| -> bool {
+                    let result;
+                    if let Some(circ) = last_circ {
+                        let distance = circ.distance(point);
+                        let total_len = cumul_length + distance;
+                        if let Some(pixel_length) = pixel_length {
+                            if total_len < pixel_length {
+                                whole.push(point);
+                                cumul_length += circ.distance(point);
+                                last_circ = Some(point);
+                                result = true;
+                            } else {
+                                let push_amt = pixel_length - cumul_length;
+                                let new_end = Math::point_on_line(circ, point, push_amt);
+                                whole.push(new_end);
+                                last_circ = Some(new_end);
+                                result = false;
+                            }
                         } else {
-                            create_singlebezier(&mut output, subcurve);
+                            whole.push(point);
+                            cumul_length += circ.distance(point);
+                            last_circ = Some(point);
+                            result = true;
                         }
-                        if multipart_segment {
-                            i += 1;
-                        }
-                        last_index = i;
+                    } else {
+                        whole.push(point);
+                        last_circ = Some(point);
+                        result = true;
                     }
-                    i += 1;
-                }
+                    result
+                };
 
-                println!("Output: {:?}", output);
-                output
+                // TODO: hack to allow breaks
+                #[allow(clippy::never_loop)]
+                'outer: loop {
+                    // split the curve by red-anchors
+                    for i in 1..points.len() {
+                        if compare_eq_f64(points[i].x, points[i - 1].x)
+                            && compare_eq_f64(points[i].y, points[i - 1].y)
+                        {
+                            let mut spline = Vec::new();
+                            create_singlebezier(&mut spline, &points[idx..i]);
+
+                            // check if it's equal to the last thing that was added to whole
+                            if let Some(last) = whole.last() {
+                                if spline[0] != *last && !check_push(&mut whole, spline[0]) {
+                                    break 'outer;
+                                }
+                            } else if !check_push(&mut whole, spline[0]) {
+                                break 'outer;
+                            }
+
+                            // add points, making sure no 2 are the same
+                            for points in spline.windows(2) {
+                                if points[0] != points[1] && !check_push(&mut whole, points[1]) {
+                                    break 'outer;
+                                }
+                            }
+
+                            idx = i;
+                            continue;
+                        }
+                    }
+
+                    let mut spline = Vec::new();
+                    create_singlebezier(&mut spline, &points[idx..]);
+
+                    if let Some(last) = whole.last() {
+                        if spline[0] != *last && !check_push(&mut whole, spline[0]) {
+                            break 'outer;
+                        }
+                    } else if !check_push(&mut whole, spline[0]) {
+                        break 'outer;
+                    }
+                    for points in spline.windows(2) {
+                        if points[0] != points[1] && !check_push(&mut whole, points[1]) {
+                            break 'outer;
+                        }
+                    }
+                    break;
+                }
+                whole
             }
             _ => todo!(),
         };
