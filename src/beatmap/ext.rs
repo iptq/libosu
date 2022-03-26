@@ -7,6 +7,9 @@ use crate::timing::{
 impl Beatmap {
     /// Get the maximum combo in this map
     // TODO: verify this is accurate
+
+    // TODO: take these allows away once this is confirmed
+    #[allow(unused_variables, unused_assignments)]
     pub fn max_combo(&self) -> u32 {
         let mut res = 0;
 

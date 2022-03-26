@@ -87,7 +87,7 @@ impl FromStr for TimingPoint {
 
     fn from_str(input: &str) -> Result<TimingPoint, Self::Err> {
         // trim trailing commas to not have leftover empty pieces
-        let input = input.trim_end_matches(",");
+        let input = input.trim_end_matches(',');
         let parts = input.split(',').collect::<Vec<_>>();
 
         println!("PARTS {:?}", parts);

@@ -229,8 +229,8 @@ impl<'a> DiffCalc<'a> {
             0.32 + 0.5 * ((diff + star).log10() - star.log10())
         }
 
-        let aim_length_bonus = length_bonus(aim_stars, aim_diff);
-        let speed_length_bonus = length_bonus(speed_stars, speed_diff);
+        let _aim_length_bonus = length_bonus(aim_stars, aim_diff);
+        let _speed_length_bonus = length_bonus(speed_stars, speed_diff);
 
         aim_stars = aim_stars.sqrt() * STAR_SCALING_FACTOR;
         speed_stars = speed_stars.sqrt() * STAR_SCALING_FACTOR;

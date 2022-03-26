@@ -27,10 +27,10 @@ pub enum SampleSet {
     Drum = 3,
 }
 
-#[allow(non_upper_case_globals)]
 bitflags! {
     /// A representation of hitsound additions.
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+    #[allow(non_upper_case_globals)]
     pub struct Additions: u32 {
         /// Whistle hitsound
         const WHISTLE = 1 << 1;

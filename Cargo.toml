@@ -59,6 +59,10 @@ apiv1 = ["hyper", "hyper-tls", "tokio", "http", "futures", "serde", "serde_json"
 apiv2 = ["reqwest", "serde", "chrono/serde"]
 replay-data = ["xz2"]
 
+# Difficulty calculation isn't yet confirmed to be accurate, will feature-gate
+# this for users who want something but won't merge this in until it's ready
+experimental-diff-calc = []
+
 # Used to check for clippy lints
 # See: https://github.com/rust-lang/cargo/issues/8075#issuecomment-610259732
 clippy = []

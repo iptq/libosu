@@ -1,6 +1,11 @@
-pub mod diff_calc;
 mod ext;
 mod format;
+
+#[cfg(feature = "experimental-diff-calc")]
+#[cfg_attr(docsrs, doc(cfg(feature = "experimental-diff-calc")))]
+pub mod diff_calc;
+#[cfg(feature = "experimental-diff-calc")]
+#[cfg_attr(docsrs, doc(cfg(feature = "experimental-diff-calc")))]
 pub mod pp_calc;
 
 use crate::color::Color;

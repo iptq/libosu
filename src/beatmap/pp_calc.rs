@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 //! Ported from pyttanko
 
 use crate::beatmap::Beatmap;

@@ -27,24 +27,24 @@ lazy_static! {
 /// Macro for matching beatmap keys easier.
 macro_rules! kvalue {
     ($line:expr, $captures:ident[$name:expr]: str) => {
-        $name = String::from(&$captures["value"]);
+        { $name = String::from(&$captures["value"]); }
     };
     ($line:expr, $captures:ident[$name:expr] => str) => {
         String::from(&$captures["value"])
     };
     ($line:expr, $captures:ident[$name:expr]: parse(bool)) => {
-        $name = {
+        { $name = {
             let val = kvalue!($line, $captures[$name] => parse(u8));
             !(val == 0)
-        };
+        }; }
     };
     ($line:expr, $captures:ident[$name:expr] => parse($type:ident)) => {
         $captures["value"].parse::<$type>()
-            .map_err(|err| BeatmapParseError { line: $line, inner: err.into() })?;
+            .map_err(|err| BeatmapParseError { line: $line, inner: err.into() })?
     };
     ($line:expr, $captures:ident[$name:expr]: parse($type:ident)) => {
         $name = $captures["value"].parse::<$type>()
-            .map_err(|err| BeatmapParseError { line: $line, inner: err.into() })?;
+            .map_err(|err| BeatmapParseError { line: $line, inner: err.into() })?
     };
 }
 
@@ -93,7 +93,7 @@ impl Beatmap {
             })?;
             let line = line.as_ref();
 
-            if let Some(captures) = SECTION_HEADER_RGX.captures(&line) {
+            if let Some(captures) = SECTION_HEADER_RGX.captures(line) {
                 section = String::from(&captures["name"]);
                 continue;
             }
@@ -129,7 +129,7 @@ impl Beatmap {
                     beatmap.timing_points.push(tp);
                 }
                 "Version" => {
-                    if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(&line) {
+                    if let Some(capture) = OSU_FORMAT_VERSION_RGX.captures(line) {
                         beatmap.version =
                             capture["version"]
                                 .parse::<u32>()

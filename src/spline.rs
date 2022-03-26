@@ -103,7 +103,7 @@ impl Spline {
                 c
             }
             SliderSplineKind::Bezier => {
-                                let mut idx = 0;
+                let mut idx = 0;
                 let mut whole = Vec::new();
                 let mut cumul_length = 0.0;
                 let mut last_circ: Option<P> = None;
@@ -269,9 +269,7 @@ impl Spline {
         cands.dedup();
 
         match cands.as_slice() {
-            &[a, b, ..] => {
-                return (a.y - b.y).atan2(a.x - b.x);
-            }
+            &[a, b, ..] => (a.y - b.y).atan2(a.x - b.x),
             _ => panic!("uhhhhh"),
         }
     }
@@ -332,7 +330,7 @@ fn approximate(
 ) {
     let count = control_points.len();
 
-    subdivide(&control_points, l_buf, r_buf, midpoints_buf);
+    subdivide(control_points, l_buf, r_buf, midpoints_buf);
 
     l_buf[count..(count * 2) - 1].clone_from_slice(&r_buf[1..count]);
 

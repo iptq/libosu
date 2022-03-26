@@ -179,7 +179,7 @@ impl FromStr for HitObject {
     /// Creates a HitObject from the *.osz format
     fn from_str(input: &str) -> Result<HitObject, Self::Err> {
         // trim trailing commas to not have leftover empty pieces
-        let input = input.trim_end_matches(",");
+        let input = input.trim_end_matches(',');
         let parts = input.split(',').collect::<Vec<_>>();
 
         let x = parts[0].parse::<i32>()?;
