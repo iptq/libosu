@@ -71,5 +71,5 @@ clippy = []
 skip_optional_dependencies = true
 
 [package.metadata.docs.rs]
-features = ["apiv1", "apiv2", "replay-data"]
+features = ["apiv1", "apiv2", "replay-data", "experimental-diff-calc"]
 rustdoc-args = ["--cfg", "docsrs"]
