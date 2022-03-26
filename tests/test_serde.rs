@@ -111,4 +111,8 @@ test_serde! {
     test_parser_774965: 774965,
     test_parser_804683: 804683,
     test_parser_1595588: 1595588,
+
+    // https://github.com/iptq/libosu/issues/12
+    test_parser_1360: 1360,
+    test_parser_3516: 3516,
 }

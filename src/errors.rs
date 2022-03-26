@@ -20,6 +20,9 @@ pub enum ParseError {
     #[error("missing component in color")]
     MissingColorComponent,
 
+    #[error("invalid timing point: {0}")]
+    InvalidTimingPoint(&'static str),
+
     #[error("invalid additions: {0}")]
     InvalidAdditions(u32),
 

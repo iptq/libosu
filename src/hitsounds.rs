@@ -15,7 +15,7 @@ use crate::errors::ParseError;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SampleSet {
     /// No sample set used. (TODO: wtf?)
-    None = 0,
+    Default = 0,
 
     /// Normal sample set.
     Normal = 1,
@@ -67,8 +67,8 @@ pub struct SampleInfo {
 impl Default for SampleInfo {
     fn default() -> SampleInfo {
         SampleInfo {
-            sample_set: SampleSet::None,
-            addition_set: SampleSet::None,
+            sample_set: SampleSet::Default,
+            addition_set: SampleSet::Default,
             custom_index: 0,
             sample_volume: 0,
             filename: "".to_owned(),

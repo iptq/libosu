@@ -198,7 +198,7 @@ impl Default for Beatmap {
             audio_leadin: Millis(0),
             preview_time: Millis(0),
             countdown: false,
-            sample_set: SampleSet::None,
+            sample_set: SampleSet::Default,
             stack_leniency: 0.7,
             mode: Mode::Osu,
             letterbox_in_breaks: false,

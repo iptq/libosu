@@ -86,20 +86,80 @@ impl FromStr for TimingPoint {
     type Err = ParseError;
 
     fn from_str(input: &str) -> Result<TimingPoint, Self::Err> {
+        // trim trailing commas to not have leftover empty pieces
+        let input = input.trim_end_matches(",");
         let parts = input.split(',').collect::<Vec<_>>();
 
+        println!("PARTS {:?}", parts);
+
+        if parts.len() < 2 {
+            return Err(ParseError::InvalidTimingPoint(
+                "timing point must have more than 2 components",
+            ));
+        }
+
+        // parts.len() must be >= 2 at this point
+
         let timestamp = parts[0].parse::<i32>()?;
+        let time = Millis(timestamp);
+
         let mpb = parts[1].parse::<f64>()?;
+
+        if parts.len() == 2 {
+            let timing_point = TimingPoint {
+                kind: TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, meter: 4 }),
+                kiai: false,
+                sample_set: SampleSet::Default,
+                sample_index: 0,
+                volume: 100,
+                time,
+            };
+
+            return Ok(timing_point);
+        }
+
+        // parts.len() must be > 2 at this point
+
         let meter = parts[2].parse::<u32>()?;
-        let sample_set = parts[3].parse::<i32>()?;
-        let sample_index = parts[4].parse::<u32>()?;
-        let volume = parts[5].parse::<u16>()?;
-        let inherited = parts[6].parse::<i32>()? == 0;
-        let kiai = parts[7].parse::<i32>()? > 0;
+
+        let kiai = if parts.len() > 7 {
+            parts[7].parse::<i32>()? > 0
+        } else {
+            false
+        };
+
+        let sample_set = if parts.len() > 3 {
+            match parts[3].parse::<u32>()? {
+                0 => SampleSet::Default,
+                1 => SampleSet::Normal,
+                2 => SampleSet::Soft,
+                3 => SampleSet::Drum,
+                invalid => return Err(ParseError::InvalidSampleSet(invalid)),
+            }
+        } else {
+            SampleSet::Default
+        };
+
+        let sample_index = if parts.len() > 4 {
+            parts[4].parse::<u32>()?
+        } else {
+            0
+        };
+
+        let volume = if parts.len() > 5 {
+            parts[5].parse::<u16>()?
+        } else {
+            100
+        };
+
+        let inherited = if parts.len() > 6 {
+            parts[6].parse::<i32>()? == 0
+        } else {
+            false
+        };
 
         // calculate bpm from mpb
         let _ = 60_000.0 / mpb;
-        let time = Millis(timestamp);
 
         let timing_point = TimingPoint {
             kind: if inherited {
@@ -110,13 +170,7 @@ impl FromStr for TimingPoint {
                 TimingPointKind::Uninherited(UninheritedTimingInfo { mpb, meter })
             },
             kiai,
-            sample_set: match sample_set {
-                0 => SampleSet::None,
-                1 => SampleSet::Normal,
-                2 => SampleSet::Soft,
-                3 => SampleSet::Drum,
-                _ => panic!("Invalid sample set '{}'.", sample_set),
-            },
+            sample_set,
             sample_index,
             volume,
             time,

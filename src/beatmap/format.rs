@@ -170,7 +170,7 @@ impl Beatmap {
                                     let sample_set =
                                         kvalue!(line_no, captures[beatmap.sample_set] => str);
                                     match sample_set.as_ref() {
-                                        "None" => SampleSet::None,
+                                        "None" => SampleSet::Default,
                                         "Normal" => SampleSet::Normal,
                                         "Soft" => SampleSet::Soft,
                                         "Drum" => SampleSet::Drum,
@@ -356,7 +356,7 @@ impl fmt::Display for Beatmap {
             f,
             "SampleSet: {}",
             match self.sample_set {
-                SampleSet::None => "None",
+                SampleSet::Default => "None",
                 SampleSet::Normal => "Normal",
                 SampleSet::Soft => "Soft",
                 SampleSet::Drum => "Drum",
