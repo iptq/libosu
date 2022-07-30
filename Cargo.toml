@@ -1,6 +1,6 @@
 [package]
 name = "libosu"
-version = "0.0.27"
+version = "0.0.28"
 authors = [
     "Michael Zhang <mail@mzhang.io>",
     "Nobbele <realnobbele@gmail.com>",
@@ -15,34 +15,28 @@ keywords = ["osu"]
 repository = "https://github.com/iptq/libosu.git"
 documentation = "https://docs.rs/libosu/"
 
-[[bin]]
-name = "oppai"
-path = "bin/oppai.rs"
-required-features = ["serde"]
-
 [dev-dependencies]
-serde_json = "1.0.79"
+serde_json = "1.0.82"
 difference = "2.0.0"
-structopt = "0.3.26"
-anyhow = "1.0.56"
+anyhow = "1.0.58"
 
 [dependencies]
 bitflags = "1.3.2"
 lazy_static = "1.4.0"
 num = "0.4.0"
 num-derive = "0.3.3"
-num-traits = "0.2.14"
-ordered-float = { version = "2.10.0", features = ["serde"] }
-regex = "1.5.5"
-thiserror = "1.0.30"
+num-traits = "0.2.15"
+ordered-float = { version = "3.0.0", features = ["serde"] }
+regex = "1.6.0"
+thiserror = "1.0.31"
 derive_more = "0.99.17"
-log = "0.4.16"
+log = "0.4.17"
 byteorder = "1.4.3"
 static_assertions = "1.1.0"
 
 futures = { version = "0.3.21", optional = true }
-http = { version = "0.2.6", optional = true }
-hyper = { version = "0.14.18", features = ["stream", "http2", "client", "tcp"], optional = true }
+http = { version = "0.2.8", optional = true }
+hyper = { version = "0.14.20", features = ["stream", "http2", "client", "tcp"], optional = true }
 hyper-tls = { version = "0.5.0", optional = true }
 tokio = { version = "1.17.0", optional = true }
 xz2 = { version = "0.1.6", optional = true }
@@ -50,13 +44,12 @@ lzma-rs = { version = "0.2", optional = true }
 serde = { version = "1.0.136", features = ["derive"], optional = true }
 serde_json = { version = "1.0.79", optional = true }
 reqwest = { version = "0.11.10", features = ["json"], optional = true }
-structopt = { version = "0.3.26", optional = true }
 anyhow = { version = "1.0.56", optional = true }
 chrono = { version = "0.4.19", optional = true }
 
 [features]
 default = []
-examples = ["anyhow", "serde", "serde_json", "structopt"]
+examples = ["anyhow", "serde", "serde_json"]
 apiv1 = ["hyper", "hyper-tls", "tokio", "http", "futures", "serde", "serde_json"]
 apiv2 = ["reqwest", "serde", "chrono/serde"]
 replay-data = []
