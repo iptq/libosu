@@ -90,8 +90,6 @@ impl FromStr for TimingPoint {
         let input = input.trim_end_matches(',');
         let parts = input.split(',').collect::<Vec<_>>();
 
-        println!("PARTS {:?}", parts);
-
         if parts.len() < 2 {
             return Err(ParseError::InvalidTimingPoint(
                 "timing point must have more than 2 components",
