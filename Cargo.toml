@@ -38,6 +38,7 @@ thiserror = "1.0.30"
 derive_more = "0.99.17"
 log = "0.4.16"
 byteorder = "1.4.3"
+static_assertions = "1.1.0"
 
 futures = { version = "0.3.21", optional = true }
 http = { version = "0.2.6", optional = true }
@@ -52,7 +53,6 @@ reqwest = { version = "0.11.10", features = ["json"], optional = true }
 structopt = { version = "0.3.26", optional = true }
 anyhow = { version = "1.0.56", optional = true }
 chrono = { version = "0.4.19", optional = true }
-static_assertions = "1.1.0"
 
 [features]
 default = []
