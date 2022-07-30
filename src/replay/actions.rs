@@ -63,18 +63,9 @@ impl ReplayActionData {
     #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     /// create a new ReplayActionParser from a BufRead
     pub fn parse(data: impl Read) -> ReplayResult<Self> {
-        use std::io::BufReader;
-
         use super::ReplayError;
-        use xz2::{bufread::XzDecoder, stream::Stream};
 
-        let lzma_decoder = Stream::new_lzma_decoder(std::u64::MAX)?;
-        let data_reader = BufReader::new(data);
-        let mut xz_decoder = XzDecoder::new_stream(data_reader, lzma_decoder);
-
-        let mut data = Vec::new();
-        xz_decoder.read_to_end(&mut data)?;
-
+        let data = super::lzma::decode(data)?;
         let string = String::from_utf8(data)?;
         let mut frames = string
             .split(',')

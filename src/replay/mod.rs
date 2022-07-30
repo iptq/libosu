@@ -60,6 +60,7 @@
 //! [1]: https://osu.ppy.sh/wiki/en/osu%21_File_Formats/Osr_%28file_format%29
 
 mod actions;
+mod lzma;
 
 use std::io::{Read, Write};
 
