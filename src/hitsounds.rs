@@ -83,9 +83,18 @@ impl FromStr for SampleInfo {
         let extra_parts = line.split(':').collect::<Vec<_>>();
         let sample_set = extra_parts[0].parse::<u32>()?;
         let addition_set = extra_parts[1].parse::<u32>()?;
-        let custom_index = extra_parts[2].parse::<i32>()?;
-        let sample_volume = extra_parts[3].parse::<i32>()?;
-        let filename = extra_parts[4].to_owned();
+        let custom_index = match extra_parts.get(2) {
+            Some(v) => v.parse::<i32>()?,
+            None => 0,
+        };
+        let sample_volume = match extra_parts.get(3) {
+            Some(v) => v.parse::<i32>()?,
+            None => 0,
+        };
+        let filename = match extra_parts.get(4) {
+            Some(v) => (*v).to_owned(),
+            None => String::new(),
+        };
 
         Ok(SampleInfo {
             addition_set: SampleSet::from_u32(addition_set)
