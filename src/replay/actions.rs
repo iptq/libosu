@@ -1,6 +1,6 @@
 #[cfg(feature = "replay-data")]
 #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
-use std::io::Read;
+use std::io::BufRead;
 
 use crate::timing::Millis;
 
@@ -62,7 +62,7 @@ impl ReplayActionData {
     #[cfg(feature = "replay-data")]
     #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     /// create a new ReplayActionParser from a BufRead
-    pub fn parse(data: impl Read) -> ReplayResult<Self> {
+    pub fn parse(data: impl BufRead) -> ReplayResult<Self> {
         use super::ReplayError;
 
         let data = super::lzma::decode(data)?;

@@ -1,5 +1,5 @@
 {
     "rust-analyzer.cargo.features": [
-        "replay-data", "lzma-sys"
+        "lzma-rs"
     ]
 }

@@ -157,6 +157,13 @@ fn lzma_encode(data: &[u8]) -> Result<Vec<u8>> {
     Ok(buf)
 }
 
+#[cfg(feature = "lzma-rs")]
+fn lzma_encode(mut data: &[u8]) -> Result<Vec<u8>> {
+    let mut data_out = Vec::new();
+    lzma_rs::lzma_compress(&mut data, &mut data_out)?;
+    Ok(data_out)
+}
+
 #[cfg(feature = "replay-data")]
 #[test]
 fn test_replay_action_parser() -> Result<()> {

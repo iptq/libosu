@@ -60,6 +60,8 @@
 //! [1]: https://osu.ppy.sh/wiki/en/osu%21_File_Formats/Osr_%28file_format%29
 
 mod actions;
+
+#[cfg(feature = "replay-data")]
 mod lzma;
 
 use std::io::{Read, Write};
@@ -80,10 +82,15 @@ pub type ReplayResult<T, E = ReplayError> = std::result::Result<T, E>;
 #[non_exhaustive]
 #[derive(Debug, Error)]
 pub enum ReplayError {
-    #[cfg(feature = "lzma-sys")]
+    #[cfg(all(feature = "lzma-sys", not(feature = "lzma-rs")))]
     #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     #[error("error creating lzma decoder: {0}")]
     LzmaCreate(#[from] xz2::stream::Error),
+
+    #[cfg(all(feature = "lzma-rs", not(feature = "lzma-sys")))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
+    #[error("error creating lzma decoder: {0}")]
+    LzmaCreate(#[from] lzma_rs::error::Error),
 
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
@@ -327,12 +334,8 @@ impl Replay {
     #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     /// Updates the Replay object with action data
     pub fn update_action_data(&mut self, action_data: &ReplayActionData) -> ReplayResult<()> {
-        // clear everything in the data first
-        // NOTE: this doesn't change the capacity
-        self.action_data.clear();
-
         {
-            let mut writer = lzma::encode_writer(&mut self.action_data)?;
+            let mut writer = Vec::new();
             for (i, frame) in action_data.frames.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(&[b','])?;
@@ -352,6 +355,8 @@ impl Replay {
                 let this_frame = format!(",-12345|0|0|{}", seed);
                 writer.write_all(this_frame.as_bytes())?;
             }
+
+            self.action_data = lzma::encode(writer.as_slice())?;
         }
 
         Ok(())
