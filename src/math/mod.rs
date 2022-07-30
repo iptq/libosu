@@ -46,4 +46,30 @@ impl<T: Float> Math<T> {
     pub fn is_line(a: Point<T>, b: Point<T>, c: Point<T>) -> bool {
         ((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)).abs() < cast(0.001).unwrap()
     }
+
+    /// Finds a point on the spline at the position of a parameter.
+    ///
+    /// <param name="t">The parameter at which to find the point on the spline, in the range [0, 1].</param>
+    /// <returns>The point on the spline at <paramref name="t"/>.</returns>
+    pub fn catmull_find_point(
+        val1: Point<T>,
+        val2: Point<T>,
+        val3: Point<T>,
+        val4: Point<T>,
+        t: T,
+    ) -> Point<T> {
+        let t2 = t * t;
+        let t3 = t * t2;
+
+        let half = num::cast::<_, T>(0.5).expect("can cast correctly.");
+        let two = num::cast::<_, T>(2.0).expect("can cast correctly.");
+        let three = num::cast::<_, T>(3.0).expect("can cast correctly.");
+        let four = num::cast::<_, T>(4.0).expect("can cast correctly.");
+        let five = num::cast::<_, T>(5.0).expect("can cast correctly.");
+
+        return (val2 * (-val1 + val3) * two * t
+            + (val1 * two - val2 * five + val3 * four - val4) * t2
+            + (-val1 + val2 * three - val3 * three + val4) * t3)
+            * half;
+    }
 }

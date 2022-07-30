@@ -13,6 +13,7 @@ use crate::timing::Millis;
 /// Distinguishes between different types of slider splines.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(test, derive(proptest_derive::Arbitrary))]
 pub enum SliderSplineKind {
     /// Linear is the most straightforward, and literally consists of two endpoints.
     Linear,
