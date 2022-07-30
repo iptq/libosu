@@ -141,7 +141,7 @@ fn test_parse_after_actions() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "replay-data")]
+#[cfg(feature = "lzma-sys")]
 fn lzma_encode(data: &[u8]) -> Result<Vec<u8>> {
     use xz2::{
         stream::{LzmaOptions, Stream},

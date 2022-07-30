@@ -80,7 +80,7 @@ pub type ReplayResult<T, E = ReplayError> = std::result::Result<T, E>;
 #[non_exhaustive]
 #[derive(Debug, Error)]
 pub enum ReplayError {
-    #[cfg(feature = "replay-data")]
+    #[cfg(feature = "lzma-sys")]
     #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     #[error("error creating lzma decoder: {0}")]
     LzmaCreate(#[from] xz2::stream::Error),
@@ -327,24 +327,15 @@ impl Replay {
     #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     /// Updates the Replay object with action data
     pub fn update_action_data(&mut self, action_data: &ReplayActionData) -> ReplayResult<()> {
-        use xz2::{
-            stream::{LzmaOptions, Stream},
-            write::XzEncoder,
-        };
-
         // clear everything in the data first
         // NOTE: this doesn't change the capacity
         self.action_data.clear();
 
-        // write thru the encoder
-        // TODO: presets? options?
-        let opts = LzmaOptions::new_preset(0)?;
-        let stream = Stream::new_lzma_encoder(&opts)?;
         {
-            let mut xz = XzEncoder::new_stream(&mut self.action_data, stream);
+            let mut writer = lzma::encode_writer(&mut self.action_data)?;
             for (i, frame) in action_data.frames.iter().enumerate() {
                 if i > 0 {
-                    xz.write_all(&[b','])?;
+                    writer.write_all(&[b','])?;
                 }
 
                 let this_frame = format!(
@@ -354,12 +345,12 @@ impl Replay {
                     frame.y,
                     frame.buttons.bits()
                 );
-                xz.write_all(this_frame.as_bytes())?;
+                writer.write_all(this_frame.as_bytes())?;
             }
 
             if let Some(seed) = action_data.rng_seed {
                 let this_frame = format!(",-12345|0|0|{}", seed);
-                xz.write_all(this_frame.as_bytes())?;
+                writer.write_all(this_frame.as_bytes())?;
             }
         }
 
