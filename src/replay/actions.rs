@@ -72,7 +72,6 @@ impl ReplayActionData {
             .filter(|action_str| !action_str.trim().is_empty())
             .map(|action_str| {
                 let mut parts = action_str.split('|');
-                println!("{:?}", parts);
                 let time = Millis(parts.next().unwrap().parse::<i32>()?);
                 let x = parts.next().unwrap().parse::<f32>()?;
                 let y = parts.next().unwrap().parse::<f32>()?;
