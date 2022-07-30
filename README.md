@@ -43,7 +43,9 @@ I'll add it to the list!
 Contact
 -------
 
-Authors: Michael Zhang
+Primary maintainer: Michael Zhang
+
+See [`Cargo.toml`](Cargo.toml) for full list of authors.
 
 License: MIT
 
