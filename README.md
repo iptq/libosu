@@ -45,10 +45,11 @@ Contact
 
 Primary maintainer: Michael Zhang
 
-See [`Cargo.toml`](Cargo.toml) for full list of authors.
+See [contributors page][4] for full list of authors.
 
 License: MIT
 
 [1]: https://crates.io/crates/libosu
 [2]: https://docs.rs/libosu
 [3]: https://deps.rs/repo/github/iptq/libosu
+[4]: https://github.com/iptq/libosu/graphs/contributors
