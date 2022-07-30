@@ -17,4 +17,4 @@ jobs:
 
       - name: run tests
         run: |
-            cargo test --features examples,apiv1,apiv2,lzma-rs --all
+            cargo test --features examples,apiv1,apiv2,replay-data --all
