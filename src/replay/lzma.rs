@@ -60,7 +60,7 @@ mod lzma_impl {
     use super::super::ReplayResult;
 
     pub fn decode(input: impl BufRead) -> ReplayResult<Vec<u8>> {
-        let lzma_decoder = Stream::new_lzma_decoder(std::u64::MAX)?;
+        let lzma_decoder = Stream::new_lzma_decoder(std::u32::MAX as u64)?;
         let mut xz_decoder = XzDecoder::new_stream(input, lzma_decoder);
 
         let mut data = Vec::new();
