@@ -61,7 +61,7 @@
 
 mod actions;
 
-#[cfg(feature = "replay-data")]
+#[cfg(any(feature = "replay-data", feature = "replay-data-xz2"))]
 mod lzma;
 
 use std::io::{Read, Write};
@@ -82,12 +82,12 @@ pub type ReplayResult<T, E = ReplayError> = std::result::Result<T, E>;
 #[non_exhaustive]
 #[derive(Debug, Error)]
 pub enum ReplayError {
-    #[cfg(all(feature = "lzma-sys", not(feature = "lzma-rs")))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
+    #[cfg(any(feature = "replay-data-xz2"))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "replay-data-xz2")))]
     #[error("error creating lzma decoder: {0}")]
     LzmaCreate(#[from] xz2::stream::Error),
 
-    #[cfg(all(feature = "lzma-rs", not(feature = "lzma-sys")))]
+    #[cfg(any(feature = "replay-data"))]
     #[cfg_attr(docsrs, doc(cfg(feature = "replay-data")))]
     #[error("error creating lzma decoder: {0}")]
     LzmaCreate(#[from] lzma_rs::error::Error),

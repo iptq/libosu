@@ -26,10 +26,12 @@
           packages = with pkgs;
             with pkgs.fenix.minimal; [
               cargo
+              cargo-all-features
               cargo-edit
+              cargo-udeps
               cargo-watch
-              rustfmt
               crate2nix
+              rustfmt
             ];
         };
       });

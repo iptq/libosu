@@ -39,24 +39,26 @@ static_assertions = "1.1.0"
 futures = { version = "0.3.21", optional = true }
 http = { version = "0.2.8", optional = true }
 hyper = { version = "0.14.20", features = ["stream", "http2", "client", "tcp"], optional = true }
-hyper-tls = { version = "0.5.0", optional = true }
 tokio = { version = "1.17.0", optional = true }
 xz2 = { version = "0.1.6", optional = true }
 lzma-rs = { version = "0.2", optional = true }
 serde = { version = "1.0.136", features = ["derive"], optional = true }
 serde_json = { version = "1.0.79", optional = true }
-reqwest = { version = "0.11.10", features = ["json"], optional = true }
+reqwest = { version = "0.11.10", features = ["json", "rustls-tls"], default-features = false, optional = true }
 anyhow = { version = "1.0.56", optional = true }
 chrono = { version = "0.4.19", optional = true }
+url = { version = "2.2.2", optional = true }
 
 [features]
 default = []
-examples = ["anyhow", "serde", "serde_json"]
-apiv1 = ["hyper", "hyper-tls", "tokio", "http", "futures", "serde", "serde_json"]
-apiv2 = ["reqwest", "serde", "chrono/serde"]
-replay-data = []
-lzma-sys = ["dep:xz2", "replay-data"]
-lzma-rs = ["dep:lzma-rs", "replay-data"]
+examples = ["dep:anyhow", "serde", "dep:serde_json"]
+apiv1 = [
+    "dep:hyper", "dep:tokio", "dep:http", "dep:futures", "dep:reqwest",
+    "dep:url", "serde", "dep:serde_json"
+]
+apiv2 = ["dep:reqwest", "serde", "dep:chrono", "chrono?/serde"]
+replay-data = ["dep:lzma-rs"]
+replay-data-xz2 = ["dep:xz2"]
 
 # Difficulty calculation isn't yet confirmed to be accurate, will feature-gate
 # this for users who want something but won't merge this in until it's ready
@@ -67,7 +69,11 @@ experimental-diff-calc = []
 clippy = []
 
 [package.metadata.cargo-all-features]
-skip_optional_dependencies = true
+# skip_optional_dependencies = true
+skip_feature_sets = [
+    ["replay-data", "replay-data-xz2"],
+]
+allowlist = ["replay-data", "replay-data-xz2", "apiv1", "apiv2"]
 
 [package.metadata.docs.rs]
 features = ["apiv1", "apiv2", "replay-data", "experimental-diff-calc"]

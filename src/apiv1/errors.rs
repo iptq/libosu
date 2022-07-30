@@ -10,6 +10,12 @@ pub enum Error {
 
     #[error("serde_json error: {0}")]
     Json(#[from] serde_json::Error),
+
+    #[error("reqwest error: {0}")]
+    Reqwest(#[from] reqwest::Error),
+
+    #[error("url parse error: {0}")]
+    UrlParse(#[from] url::ParseError),
 }
 
 /// Result type that defaults to the API error.

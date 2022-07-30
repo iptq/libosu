@@ -7,15 +7,12 @@ mod errors;
 mod models;
 
 use std::convert::TryInto;
+use std::str::FromStr;
 use std::fmt;
 
 use futures::stream::TryStreamExt;
-use hyper::{
-    client::{Client, HttpConnector},
-    Body, Uri,
-};
-use hyper_tls::HttpsConnector;
 use serde::de::DeserializeOwned;
+use reqwest::{Client, Url};
 
 use crate::data::Mode;
 
@@ -26,19 +23,18 @@ const API_BASE: &str = "https://osu.ppy.sh/api";
 
 /// A struct used for interfacing with the osu! API.
 pub struct API {
-    client: Client<HttpsConnector<HttpConnector>>,
+    client: Client,
     api_key: String,
 }
 
 impl API {
     /// Creates a new API object with the specified key.
     /// Obtain a key from the [osu! website](https://osu.ppy.sh/p/api).
-    pub fn new(api_key: impl AsRef<str>) -> Self {
-        let https = HttpsConnector::new();
-        API {
-            client: Client::builder().build::<_, Body>(https),
+    pub async fn new(api_key: impl AsRef<str>) -> Result<Self> {
+        Ok(API {
+            client: Client::builder().build()?,
             api_key: api_key.as_ref().to_owned(),
-        }
+        })
     }
 
     /// Make a GET request to an arbitrary endpoint of the OSU API
@@ -46,22 +42,9 @@ impl API {
     where
         T: DeserializeOwned,
     {
-        let full_url: Uri = format!("{}{}", API_BASE, url.as_ref()).try_into()?;
-        let mut resp = self.client.get(full_url).await?;
-        let body = resp.body_mut();
-
-        // TODO: is there a more elegant way to do this
-        let mut result = Vec::new();
-        loop {
-            let next = match body.try_next().await {
-                Ok(Some(v)) => v,
-                Ok(None) => break,
-                Err(e) => return Err(e.into()),
-            };
-            result.extend(next);
-        }
-
-        let result = serde_json::from_slice(result.as_ref())?;
+        let full_url= Url::from_str(&format!("{}{}", API_BASE, url.as_ref()))?;
+        let mut resp = self.client.get(full_url).send().await?;
+        let result = resp.json().await?;
         Ok(result)
     }
 

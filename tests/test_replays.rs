@@ -141,7 +141,7 @@ fn test_parse_after_actions() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "lzma-sys")]
+#[cfg(feature = "replay-data-xz2")]
 fn lzma_encode(data: &[u8]) -> Result<Vec<u8>> {
     use xz2::{
         stream::{LzmaOptions, Stream},
@@ -157,7 +157,7 @@ fn lzma_encode(data: &[u8]) -> Result<Vec<u8>> {
     Ok(buf)
 }
 
-#[cfg(feature = "lzma-rs")]
+#[cfg(feature = "replay-data")]
 fn lzma_encode(mut data: &[u8]) -> Result<Vec<u8>> {
     let mut data_out = Vec::new();
     lzma_rs::lzma_compress(&mut data, &mut data_out)?;
