@@ -7,12 +7,12 @@ mod errors;
 mod models;
 
 use std::convert::TryInto;
-use std::str::FromStr;
 use std::fmt;
+use std::str::FromStr;
 
 use futures::stream::TryStreamExt;
-use serde::de::DeserializeOwned;
 use reqwest::{Client, Url};
+use serde::de::DeserializeOwned;
 
 use crate::data::Mode;
 
@@ -42,7 +42,7 @@ impl API {
     where
         T: DeserializeOwned,
     {
-        let full_url= Url::from_str(&format!("{}{}", API_BASE, url.as_ref()))?;
+        let full_url = Url::from_str(&format!("{}{}", API_BASE, url.as_ref()))?;
         let mut resp = self.client.get(full_url).send().await?;
         let result = resp.json().await?;
         Ok(result)

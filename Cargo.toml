@@ -48,6 +48,7 @@ reqwest = { version = "0.11.10", features = ["json", "rustls-tls"], default-feat
 anyhow = { version = "1.0.56", optional = true }
 chrono = { version = "0.4.19", optional = true }
 url = { version = "2.2.2", optional = true }
+rosu-pp = { version = "0.8.0", optional = true }
 
 [features]
 default = []
@@ -59,10 +60,7 @@ apiv1 = [
 apiv2 = ["dep:reqwest", "serde", "dep:chrono", "chrono?/serde"]
 replay-data = ["dep:lzma-rs"]
 replay-data-xz2 = ["dep:xz2"]
-
-# Difficulty calculation isn't yet confirmed to be accurate, will feature-gate
-# this for users who want something but won't merge this in until it's ready
-experimental-diff-calc = []
+pp-calc = ["dep:rosu-pp"]
 
 # Used to check for clippy lints
 # See: https://github.com/rust-lang/cargo/issues/8075#issuecomment-610259732

@@ -451,6 +451,7 @@ dependencies = [
  "proptest-derive",
  "regex",
  "reqwest",
+ "rosu-pp",
  "serde",
  "serde_json",
  "static_assertions",
@@ -859,6 +860,12 @@ dependencies = [
  "web-sys",
  "winapi",
 ]
+
+[[package]]
+name = "rosu-pp"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "238725936123d4c42c3a4492397d02614798de0881008e7377d78d5db7e0e042"
 
 [[package]]
 name = "rustc_version"
