@@ -39,7 +39,7 @@ static_assertions = "1.1.0"
 futures = { version = "0.3.21", optional = true }
 http = { version = "0.2.8", optional = true }
 hyper = { version = "0.14.20", features = ["stream", "http2", "client", "tcp"], optional = true }
-tokio = { version = "1.17.0", optional = true }
+tokio = { version = "1.20.3", optional = true }
 xz2 = { version = "0.1.6", optional = true }
 lzma-rs = { version = "0.2", optional = true }
 serde = { version = "1.0.136", features = ["derive"], optional = true }
