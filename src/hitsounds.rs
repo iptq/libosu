@@ -14,17 +14,17 @@ use crate::errors::ParseError;
 #[repr(u8)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum SampleSet {
-    /// No sample set used. (TODO: wtf?)
-    Default = 0,
+  /// No sample set used. (TODO: wtf?)
+  Default = 0,
 
-    /// Normal sample set.
-    Normal = 1,
+  /// Normal sample set.
+  Normal = 1,
 
-    /// Soft sample set.
-    Soft = 2,
+  /// Soft sample set.
+  Soft = 2,
 
-    /// Drum sample set.
-    Drum = 3,
+  /// Drum sample set.
+  Drum = 3,
 }
 
 bitflags! {
@@ -48,78 +48,78 @@ bitflags! {
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SampleInfo {
-    /// The sample (normal/soft/drum) this hitsound uses.
-    pub sample_set: SampleSet,
+  /// The sample (normal/soft/drum) this hitsound uses.
+  pub sample_set: SampleSet,
 
-    /// The additions (whistle, finish, clap) attached to this hitsound.
-    pub addition_set: SampleSet,
+  /// The additions (whistle, finish, clap) attached to this hitsound.
+  pub addition_set: SampleSet,
 
-    /// The index of the sample filename to use
-    pub custom_index: i32,
+  /// The index of the sample filename to use
+  pub custom_index: i32,
 
-    /// Volume (from 5 to 100)
-    pub sample_volume: i32,
+  /// Volume (from 5 to 100)
+  pub sample_volume: i32,
 
-    /// TODO: additional field
-    /// (does this even have any effect lol)
-    pub filename: String,
+  /// TODO: additional field
+  /// (does this even have any effect lol)
+  pub filename: String,
 }
 
 impl Default for SampleInfo {
-    fn default() -> SampleInfo {
-        SampleInfo {
-            sample_set: SampleSet::Default,
-            addition_set: SampleSet::Default,
-            custom_index: 0,
-            sample_volume: 0,
-            filename: "".to_owned(),
-        }
+  fn default() -> SampleInfo {
+    SampleInfo {
+      sample_set: SampleSet::Default,
+      addition_set: SampleSet::Default,
+      custom_index: 0,
+      sample_volume: 0,
+      filename: "".to_owned(),
     }
+  }
 }
 
 impl FromStr for SampleInfo {
-    type Err = ParseError;
+  type Err = ParseError;
 
-    fn from_str(line: &str) -> Result<SampleInfo, Self::Err> {
-        let extra_parts = line.split(':').collect::<Vec<_>>();
-        let sample_set = extra_parts[0].parse::<u32>()?;
-        let addition_set = extra_parts[1].parse::<u32>()?;
-        let custom_index = match extra_parts.get(2) {
-            Some(v) => v.parse::<i32>()?,
-            None => 0,
-        };
-        let sample_volume = match extra_parts.get(3) {
-            Some(v) => v.parse::<i32>()?,
-            None => 0,
-        };
-        let filename = match extra_parts.get(4) {
-            Some(v) => (*v).to_owned(),
-            None => String::new(),
-        };
+  fn from_str(line: &str) -> Result<SampleInfo, Self::Err> {
+    let extra_parts = line.split(':').collect::<Vec<_>>();
+    let sample_set = extra_parts[0].parse::<u32>()?;
+    let addition_set = extra_parts[1].parse::<u32>()?;
+    let custom_index = match extra_parts.get(2) {
+      Some(v) => v.parse::<i32>()?,
+      None => 0,
+    };
+    let sample_volume = match extra_parts.get(3) {
+      Some(v) => v.parse::<i32>()?,
+      None => 0,
+    };
+    let filename = match extra_parts.get(4) {
+      Some(v) => (*v).to_owned(),
+      None => String::new(),
+    };
 
-        Ok(SampleInfo {
-            addition_set: SampleSet::from_u32(addition_set)
-                .ok_or(ParseError::InvalidSampleSet(addition_set))?,
-            sample_set: SampleSet::from_u32(sample_set)
-                .ok_or(ParseError::InvalidSampleSet(sample_set))?,
+    Ok(SampleInfo {
+      addition_set: SampleSet::from_u32(addition_set)
+        .ok_or(ParseError::InvalidSampleSet(addition_set))?,
+      sample_set: SampleSet::from_u32(sample_set)
+        .ok_or(ParseError::InvalidSampleSet(sample_set))?,
 
-            custom_index,
-            sample_volume,
-            filename,
-        })
-    }
+      custom_index,
+      sample_volume,
+      filename,
+    })
+  }
 }
 
 impl fmt::Display for SampleInfo {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}:{}:{}:{}:{}",
-            self.sample_set as u32,
-            self.addition_set as u32,
-            self.custom_index,
-            self.sample_volume,
-            self.filename
-        )
-    }
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(
+      f,
+      "{}:{}:{}:{}:{}",
+      self.sample_set as u32,
+      self.addition_set as u32,
+      self.custom_index,
+      self.sample_volume,
+      self.filename
+    )
+  }
 }

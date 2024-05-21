@@ -66,31 +66,31 @@ pub mod timing;
 
 /// exports everything in the library.
 pub mod prelude {
-    #[cfg(feature = "apiv1")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "apiv1")))]
-    pub use crate::apiv1::*;
-    #[cfg(feature = "apiv2")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "apiv2")))]
-    pub use crate::apiv2::*;
-    pub use crate::beatmap::*;
-    #[cfg(feature = "experimental-diff-calc")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "experimental-diff-calc")))]
-    pub use crate::beatmap::{diff_calc::*, pp_calc::*};
-    pub use crate::color::*;
-    pub use crate::data::*;
-    pub use crate::db::*;
-    pub use crate::events::*;
-    pub use crate::hitobject::*;
-    pub use crate::hitsounds::*;
-    pub use crate::math::*;
-    pub use crate::replay::*;
-    pub use crate::spline::*;
-    pub use crate::timing::*;
-    pub use ordered_float::*;
+  #[cfg(feature = "apiv1")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "apiv1")))]
+  pub use crate::apiv1::*;
+  #[cfg(feature = "apiv2")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "apiv2")))]
+  pub use crate::apiv2::*;
+  pub use crate::beatmap::*;
+  #[cfg(feature = "experimental-diff-calc")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "experimental-diff-calc")))]
+  pub use crate::beatmap::{diff_calc::*, pp_calc::*};
+  pub use crate::color::*;
+  pub use crate::data::*;
+  pub use crate::db::*;
+  pub use crate::events::*;
+  pub use crate::hitobject::*;
+  pub use crate::hitsounds::*;
+  pub use crate::math::*;
+  pub use crate::replay::*;
+  pub use crate::spline::*;
+  pub use crate::timing::*;
+  pub use ordered_float::*;
 }
 
 /// says "hello there"
 #[deprecated]
 pub fn say_hello_there() {
-    println!("hello there");
+  println!("hello there");
 }

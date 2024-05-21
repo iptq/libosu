@@ -4,74 +4,75 @@ use std::path::Path;
 use std::str::FromStr;
 
 use libosu::{
-    beatmap::Beatmap,
-    data::Mode,
-    events::{BackgroundEvent, BreakEvent, Event},
-    hitsounds::SampleSet,
-    math::Point,
-    timing::Millis,
+  beatmap::Beatmap,
+  data::Mode,
+  events::{BackgroundEvent, BreakEvent, Event},
+  hitsounds::SampleSet,
+  math::Point,
+  timing::Millis,
 };
 
 fn load_beatmap(path: impl AsRef<Path>) -> Beatmap {
-    let mut file = File::open(path.as_ref()).expect("couldn't open file");
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)
-        .expect("couldn't read file");
-    Beatmap::from_str(&contents).expect("couldn't parse")
+  let mut file = File::open(path.as_ref()).expect("couldn't open file");
+  let mut contents = String::new();
+  file
+    .read_to_string(&mut contents)
+    .expect("couldn't read file");
+  Beatmap::from_str(&contents).expect("couldn't parse")
 }
 
 #[test]
 fn parse_taeyang_remote_control() {
-    let beatmap = load_beatmap("tests/files/774965.osu");
+  let beatmap = load_beatmap("tests/files/774965.osu");
 
-    assert_eq!(beatmap.audio_filename, "control.mp3");
-    assert_eq!(beatmap.audio_leadin, Millis(1000));
-    assert_eq!(beatmap.preview_time, Millis(85495));
-    assert_eq!(beatmap.countdown, false);
-    assert_eq!(beatmap.sample_set, SampleSet::Normal);
-    assert_eq!(beatmap.stack_leniency, 0.8);
-    assert_eq!(beatmap.mode, Mode::Osu);
-    assert_eq!(beatmap.letterbox_in_breaks, false);
-    assert_eq!(beatmap.widescreen_storyboard, false);
+  assert_eq!(beatmap.audio_filename, "control.mp3");
+  assert_eq!(beatmap.audio_leadin, Millis(1000));
+  assert_eq!(beatmap.preview_time, Millis(85495));
+  assert_eq!(beatmap.countdown, false);
+  assert_eq!(beatmap.sample_set, SampleSet::Normal);
+  assert_eq!(beatmap.stack_leniency, 0.8);
+  assert_eq!(beatmap.mode, Mode::Osu);
+  assert_eq!(beatmap.letterbox_in_breaks, false);
+  assert_eq!(beatmap.widescreen_storyboard, false);
 
-    assert_eq!(beatmap.title, "Remote Control");
-    assert_eq!(beatmap.title_unicode, "リモコン");
-    assert_eq!(beatmap.artist, "kradness&Reol");
-    assert_eq!(beatmap.artist_unicode, "kradness＆れをる");
-    assert_eq!(beatmap.creator, "Taeyang");
-    assert_eq!(beatmap.difficulty_name, "Max Control!");
-    assert_eq!(beatmap.source, "");
-    assert_eq!(
-        beatmap.tags,
-        &[
-            "Jesus-P",
-            "じーざすP",
-            "Giga",
-            "Official",
-            "Rimokon",
-            "Wonderful*Opportunity",
-            "Kagamine",
-            "Rin",
-            "Len",
-            "Glider"
-        ]
-    );
-    assert_eq!(beatmap.beatmap_id, 774965);
-    assert_eq!(beatmap.beatmap_set_id, 351630);
+  assert_eq!(beatmap.title, "Remote Control");
+  assert_eq!(beatmap.title_unicode, "リモコン");
+  assert_eq!(beatmap.artist, "kradness&Reol");
+  assert_eq!(beatmap.artist_unicode, "kradness＆れをる");
+  assert_eq!(beatmap.creator, "Taeyang");
+  assert_eq!(beatmap.difficulty_name, "Max Control!");
+  assert_eq!(beatmap.source, "");
+  assert_eq!(
+    beatmap.tags,
+    &[
+      "Jesus-P",
+      "じーざすP",
+      "Giga",
+      "Official",
+      "Rimokon",
+      "Wonderful*Opportunity",
+      "Kagamine",
+      "Rin",
+      "Len",
+      "Glider"
+    ]
+  );
+  assert_eq!(beatmap.beatmap_id, 774965);
+  assert_eq!(beatmap.beatmap_set_id, 351630);
 
-    assert_eq!(
-        beatmap.events,
-        &[
-            Event::Background(BackgroundEvent {
-                filename: String::from("reol.jpg"),
-                offset: Point::new(0, 0)
-            }),
-            Event::Break(BreakEvent {
-                start_time: Millis(184604),
-                end_time: Millis(189653),
-            })
-        ]
-    );
+  assert_eq!(
+    beatmap.events,
+    &[
+      Event::Background(BackgroundEvent {
+        filename: String::from("reol.jpg"),
+        offset: Point::new(0, 0)
+      }),
+      Event::Break(BreakEvent {
+        start_time: Millis(184604),
+        end_time: Millis(189653),
+      })
+    ]
+  );
 }
 
 macro_rules! test_serde {
