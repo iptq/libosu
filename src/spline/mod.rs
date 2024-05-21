@@ -378,7 +378,7 @@ mod tests {
           control in vec((0..512, 0..384), 10))
       {
           let control = control.into_iter().map(|(x, y)| Point::new(x, y)).collect::<Vec<_>>();
-          let spline = Spline::from_control(kind, &control, pixel_length);
+          Spline::from_control(kind, &control, pixel_length);
       }
   }
 }
