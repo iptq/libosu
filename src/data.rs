@@ -44,7 +44,7 @@ bitflags! {
     /// Mod listing with their respective bitwise representation.
     ///
     /// This list is ripped directly from the [osu! wiki](https://github.com/ppy/osu-api/wiki).
-    #[derive(Default)]
+    #[derive(Default, Clone, Debug, PartialEq, Eq)]
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     pub struct Mods: u32 {
         /// No selected mods
@@ -140,10 +140,10 @@ bitflags! {
         const Key2 = 268435456;
 
         /// Bits of Key4, Key5, Key6, Key7, and Key8.
-        const KeyMod = Self::Key4.bits | Self::Key5.bits | Self::Key6.bits | Self::Key7.bits |Self::Key8.bits;
+        const KeyMod = Self::Key4.bits() | Self::Key5.bits() | Self::Key6.bits() | Self::Key7.bits() |Self::Key8.bits();
 
         /// Mods allowed to be chosen when FreeMod is enabled in multiplayer.
-        const FreeModAllowed = Self::NoFail.bits | Self::Easy.bits | Self::Hidden.bits | Self::HardRock.bits | Self::SuddenDeath.bits | Self::Flashlight.bits | Self::FadeIn.bits | Self::Relax.bits | Self::Relax2.bits | Self::SpunOut.bits | Self::KeyMod.bits;
+        const FreeModAllowed = Self::NoFail.bits() | Self::Easy.bits() | Self::Hidden.bits() | Self::HardRock.bits() | Self::SuddenDeath.bits() | Self::Flashlight.bits() | Self::FadeIn.bits() | Self::Relax.bits() | Self::Relax2.bits() | Self::SpunOut.bits() | Self::KeyMod.bits();
 
     }
 }

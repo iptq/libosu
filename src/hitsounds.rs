@@ -30,6 +30,7 @@ pub enum SampleSet {
 bitflags! {
     /// A representation of hitsound additions.
     #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+    #[derive(Clone, Debug)]
     #[allow(non_upper_case_globals)]
     pub struct Additions: u32 {
         /// Whistle hitsound

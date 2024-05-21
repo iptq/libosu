@@ -29,6 +29,7 @@ pub struct ReplayAction {
 
 bitflags! {
     /// The buttons being pressed during a frame of a replay
+    #[derive(Clone, Debug)]
     pub struct Buttons: u32 {
         /// First mouse button
         const M1 = 1;
