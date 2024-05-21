@@ -1,6 +1,6 @@
 [package]
 name = "libosu"
-version = "0.0.28"
+version = "0.0.29"
 authors = [
     "Michael Zhang <mail@mzhang.io>",
     "Nobbele <realnobbele@gmail.com>",
@@ -14,6 +14,9 @@ readme = "README.md"
 keywords = ["osu"]
 repository = "https://github.com/iptq/libosu.git"
 documentation = "https://docs.rs/libosu/"
+
+[profile.release]
+lto = false
 
 [dev-dependencies]
 serde_json = "1.0.82"
@@ -61,6 +64,7 @@ apiv2 = ["dep:reqwest", "serde", "dep:chrono", "chrono?/serde"]
 replay-data = ["dep:lzma-rs"]
 replay-data-xz2 = ["dep:xz2"]
 pp-calc = ["dep:rosu-pp"]
+experimental-diff-calc = []
 
 # Used to check for clippy lints
 # See: https://github.com/rust-lang/cargo/issues/8075#issuecomment-610259732
@@ -74,5 +78,5 @@ skip_feature_sets = [
 allowlist = ["replay-data", "replay-data-xz2", "apiv1", "apiv2"]
 
 [package.metadata.docs.rs]
-features = ["apiv1", "apiv2", "replay-data", "experimental-diff-calc"]
+features = ["apiv1", "apiv2", "replay-data", "pp-calc"]
 rustdoc-args = ["--cfg", "docsrs"]
